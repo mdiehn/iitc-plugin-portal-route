@@ -36,7 +36,7 @@
       html += '<ol class="driving-route-stops">';
       stops.forEach(function(stop, index) {
         var leg = legsByToIndex[index];
-        html += '<li class="driving-route-stop">';
+        html += '<li class="driving-route-stop" draggable="' + (dr.isDesktopLayout() ? 'true' : 'false') + '" data-index="' + index + '" >';
         html += '<div class="driving-route-stop-title"><span class="driving-route-stop-num">' + (index + 1) + '</span><span>' + dr.escapeHtml(stop.title) + '</span></div>';
         if (leg) {
           html += '<div class="driving-route-leg">Drive from previous: ' + dr.escapeHtml(leg.durationText || dr.formatDuration(leg.durationSeconds)) + ' · ' + dr.escapeHtml(leg.distanceText || dr.formatDistance(leg.distanceMeters)) + '</div>';

@@ -5,7 +5,8 @@
   dr.STORAGE_KEYS = {
     stops: 'iitc-driving-route-stops',
     settings: 'iitc-driving-route-settings',
-    panelOpen: 'iitc-driving-route-panel-open'
+    panelOpen: 'iitc-driving-route-panel-open',
+    panelPosition: 'iitc-driving-route-panel-position'
   };
 
   dr.DEFAULT_SETTINGS = {

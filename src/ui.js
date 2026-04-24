@@ -69,6 +69,7 @@
 
     window.addEventListener('mouseup', function() {
       dragging = false;
+      dr.savePanelPosition(panel);
     });
   };
 
@@ -79,6 +80,8 @@
     panel.id = 'driving-route-panel';
     panel.className = 'driving-route-panel';
     document.body.appendChild(panel);
+
+    dr.restorePanelPosition(panel);
 
     panel.addEventListener('click', function(ev) {
       var target = ev.target;
@@ -102,6 +105,48 @@
       } else if (action === 'clear-route') {
         dr.clearStops();
       }
+    });
+
+    panel.addEventListener('dragstart', function(ev) {
+      if (!dr.isDesktopLayout()) return;
+
+      var item = ev.target.closest('.driving-route-stop');
+      if (!item) return;
+
+      dr.state.dragStopIndex = Number(item.getAttribute('data-index'));
+      ev.dataTransfer.effectAllowed = 'move';
+      item.classList.add('driving-route-dragging');
+    });
+
+    panel.addEventListener('dragend', function(ev) {
+      var item = ev.target.closest('.driving-route-stop');
+      if (item) item.classList.remove('driving-route-dragging');
+      dr.state.dragStopIndex = null;
+    });
+
+    panel.addEventListener('dragover', function(ev) {
+      if (!dr.isDesktopLayout()) return;
+
+      var item = ev.target.closest('.driving-route-stop');
+      if (!item) return;
+
+      ev.preventDefault();
+      ev.dataTransfer.dropEffect = 'move';
+    });
+
+    panel.addEventListener('drop', function(ev) {
+      if (!dr.isDesktopLayout()) return;
+
+      var item = ev.target.closest('.driving-route-stop');
+      if (!item) return;
+
+      ev.preventDefault();
+
+      var fromIndex = dr.state.dragStopIndex;
+      var toIndex = Number(item.getAttribute('data-index'));
+      dr.state.dragStopIndex = null;
+
+      dr.moveStop(fromIndex, toIndex);
     });
 
     panel.addEventListener('change', function(ev) {
@@ -164,3 +209,32 @@
       console.error('Driving Route setup failed:', e);
     }
   };
+
+  dr.savePanelPosition = function(panel) {
+  if (!panel || !dr.isDesktopLayout()) return;
+
+  var rect = panel.getBoundingClientRect();
+  localStorage.setItem(dr.STORAGE_KEYS.panelPosition, JSON.stringify({
+    left: Math.round(rect.left),
+    top: Math.round(rect.top)
+  }));
+};
+
+dr.restorePanelPosition = function(panel) {
+  if (!panel || !dr.isDesktopLayout()) return;
+
+  try {
+    var raw = localStorage.getItem(dr.STORAGE_KEYS.panelPosition);
+    if (!raw) return;
+
+    var pos = JSON.parse(raw);
+    if (typeof pos.left !== 'number' || typeof pos.top !== 'number') return;
+
+    panel.style.left = Math.max(0, Math.min(window.innerWidth - panel.offsetWidth, pos.left)) + 'px';
+    panel.style.top = Math.max(0, Math.min(window.innerHeight - panel.offsetHeight, pos.top)) + 'px';
+    panel.style.right = 'auto';
+    panel.style.bottom = 'auto';
+  } catch (e) {
+    console.warn('Driving Route: failed to restore panel position', e);
+  }
+};
