@@ -89,6 +89,10 @@
         dr.state.panelOpen = !dr.state.panelOpen;
         dr.savePanelOpen();
         dr.renderPanel();
+      } else if (action === 'move-stop-up') {
+        dr.moveStop(Number(target.getAttribute('data-index')), Number(target.getAttribute('data-index')) - 1);
+      } else if (action === 'move-stop-down') {
+        dr.moveStop(Number(target.getAttribute('data-index')), Number(target.getAttribute('data-index')) + 1);
       } else if (action === 'remove-stop') {
         dr.removeStop(Number(target.getAttribute('data-index')));
       } else if (action === 'calculate-route') {
@@ -143,29 +147,16 @@
 
   dr.setup = function() {
     try {
-      console.log('Driving Route setup starting');
-
       dr.injectCss();
-      console.log('Driving Route: css ok');
-
       dr.loadState();
-      console.log('Driving Route: state ok');
-
       dr.createPanel();
-      console.log('Driving Route: panel ok');
-
       dr.addToolboxLink();
-      console.log('Driving Route: toolbox ok');
-
       dr.renderPanel();
-      console.log('Driving Route: render ok');
-
       dr.redrawLabels();
-      console.log('Driving Route: labels ok');
 
-      if (typeof window.addHook === 'function') {
+      if (typeof window.addHook === 'function' && !dr.portalHookRegistered) {
         window.addHook('portalDetailsUpdated', dr.injectPortalDetailsAction);
-        console.log('Driving Route: portal hook ok');
+        dr.portalHookRegistered = true;
       }
 
       console.log('Driving Route setup complete');

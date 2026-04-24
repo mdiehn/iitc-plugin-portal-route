@@ -119,7 +119,16 @@
   border: 2px solid #111;
 }
 
-// mobile media
+.driving-route-stop-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+
+
+/* mobile media */
 @media (max-width: 700px) {
   .driving-route-panel {
     left: 8px;
@@ -127,6 +136,7 @@
     bottom: 8px;
     width: auto;
     max-height: 55vh;
+    resize: none;
   }
 
   .driving-route-header {
@@ -134,12 +144,13 @@
   }
 }
 
-// desktop media
+/* desktop media  */
 @media (min-width: 701px) {
   .driving-route-panel {
     right: 12px;
     bottom: 12px;
     width: 300px;
+    height: auto;
     max-height: calc(100vh - 24px);
 
     resize: both;
