@@ -1,31 +1,42 @@
 #!/usr/bin/env node
-const fs = require('fs');
-const path = require('path');
 
-const root = __dirname;
-const srcDir = path.join(root, 'src');
-const distDir = path.join(root, 'dist');
-const outFile = path.join(distDir, 'driving-route.user.js');
+const fs = require("fs");
+const path = require("path");
 
-const files = [
-  'banner.js',
-  'wrapper-start.js',
-  'constants.js',
-  'state.js',
-  'settings.js',
-  'route.js',
-  'portals.js',
-  'render.js',
-  'ui.js',
-  'actions.js',
-  'wrapper-end.js'
+const root = path.resolve(__dirname);
+const distDir = path.join(root, "dist");
+const outFile = path.join(distDir, "driving-route.user.js");
+
+const sources = [
+  "src/banner.js",
+  "src/wrapper-start.js",
+  "src/constants.js",
+  "src/state.js",
+  "src/storage.js",
+  "src/format.js",
+  "src/portal-actions.js",
+  "src/route-model.js",
+  "src/route-google.js",
+  "src/render-map.js",
+  "src/render-panel.js",
+  "src/export-links.js",
+  "src/ui.js",
+  "src/wrapper-end.js",
 ];
 
 fs.mkdirSync(distDir, { recursive: true });
 
-const content = files
-  .map((name) => fs.readFileSync(path.join(srcDir, name), 'utf8'))
-  .join('\n');
+const output = sources
+  .map((file) => {
+    const fullPath = path.join(root, file);
+    if (!fs.existsSync(fullPath)) {
+      throw new Error(`Missing source file: ${file}`);
+    }
 
-fs.writeFileSync(outFile, content);
-console.log(`Wrote ${outFile}`);
+    return fs.readFileSync(fullPath, "utf8").trimEnd() + "\n";
+  })
+  .join("\n");
+
+fs.writeFileSync(outFile, output, "utf8");
+
+console.log(`Wrote ${path.relative(root, outFile)}`);

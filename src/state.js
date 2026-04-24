@@ -1,11 +1,17 @@
-window.plugin.drivingRoute.state = {
-  routePoints: [],
-  legs: [],
-  total: null,
-  candidatePortals: [],
-  selectedPortalGuids: {},
-  settings: {
-    detourMinutes: 5,
-    hackMinutes: 5
-  }
-};
+  dr.state = {
+    stops: [],
+    route: null,
+    settings: Object.assign({}, dr.DEFAULT_SETTINGS),
+    layers: {
+      labels: null,
+      routeLine: null
+    },
+    panelOpen: true
+  };
+
+  dr.getEffectiveStopMinutes = function(stop) {
+    if (stop && typeof stop.stopMinutes === 'number' && !Number.isNaN(stop.stopMinutes)) {
+      return stop.stopMinutes;
+    }
+    return dr.state.settings.defaultStopMinutes;
+  };
