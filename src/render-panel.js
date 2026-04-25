@@ -116,11 +116,11 @@
 
     var title = dr.state.panelView === 'edit' ? 'Driving Route - Edit waypoints' : 'Driving Route';
     var bodyHtml = dr.state.panelView === 'edit' ? dr.renderEditPanel(legsByToIndex) : dr.renderMainPanel(legsByToIndex);
-    var html = '<div id="driving-route-dialog-content" class="driving-route-dialog-content">' + bodyHtml + '</div>';
+    var html = '<div id="' + dr.DOM_IDS.dialogContent + '" class="driving-route-dialog-content">' + bodyHtml + '</div>';
 
     if (typeof window.dialog === 'function') {
       window.dialog({
-        id: 'driving-route',
+        id: dr.DOM_IDS.dialog,
         title: title,
         html: html,
         dialogClass: 'driving-route-dialog',

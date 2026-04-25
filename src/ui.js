@@ -1,5 +1,5 @@
   dr.setBusy = function(isBusy) {
-    var panel = document.getElementById('driving-route-dialog-content');
+    var panel = document.getElementById(dr.DOM_IDS.dialogContent);
     if (panel) panel.classList.toggle('driving-route-busy', !!isBusy);
   };
 
@@ -19,9 +19,11 @@
   dr.selectedStopIndex = function() {
     var guid = window.selectedPortal;
     if (!guid) return -1;
+
     for (var i = 0; i < dr.state.stops.length; i++) {
       if (dr.state.stops[i].guid === guid) return i;
     }
+
     return -1;
   };
 
@@ -31,6 +33,7 @@
       dr.showMessage('Selected portal is not in the route.');
       return;
     }
+
     dr.removeStop(index);
   };
 
@@ -43,7 +46,7 @@
   };
 
   dr.closeDialog = function() {
-    var content = document.getElementById('driving-route-dialog-content');
+    var content = document.getElementById(dr.DOM_IDS.dialogContent);
     if (content && window.jQuery) {
       try {
         window.jQuery(content).closest('.ui-dialog-content').dialog('close');
@@ -52,6 +55,7 @@
         // Fall through to hiding the content if the IITC dialog wrapper is unavailable.
       }
     }
+
     if (content) content.style.display = 'none';
   };
 
@@ -89,21 +93,30 @@
 
   dr.createMiniControl = function() {
     if (!window.L || !window.map) return;
-    if (dr.state.miniControl) return;
+    if (dr.state.miniControl || document.getElementById(dr.DOM_IDS.miniControl)) return;
 
     var DrivingRouteControl = L.Control.extend({
       options: { position: 'topleft' },
+
       onAdd: function() {
-        var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control driving-route-mini-control');
-        container.id = 'driving-route-mini-control';
+        var container = L.DomUtil.create(
+          'div',
+          'leaflet-bar leaflet-control driving-route-mini-control iitc-plugin-driving-route-control'
+        );
+
+        container.id = dr.DOM_IDS.miniControl;
+
         L.DomEvent.disableClickPropagation(container);
         L.DomEvent.disableScrollPropagation(container);
+
         container.addEventListener('click', function(ev) {
           var button = ev.target.closest('[data-action]');
           if (!button) return;
+
           ev.preventDefault();
           dr.handleAction(button.getAttribute('data-action'), button);
         });
+
         return container;
       }
     });
@@ -112,8 +125,15 @@
     window.map.addControl(dr.state.miniControl);
   };
 
+  dr.removeMiniControl = function() {
+    if (!window.map || !dr.state.miniControl) return;
+
+    window.map.removeControl(dr.state.miniControl);
+    dr.state.miniControl = null;
+  };
+
   dr.renderMiniControl = function() {
-    var container = document.getElementById('driving-route-mini-control');
+    var container = document.getElementById(dr.DOM_IDS.miniControl);
     if (!container) return;
 
     var selectedIndex = dr.selectedStopIndex();
@@ -134,7 +154,7 @@
     dr.dialogEventsRegistered = true;
 
     document.addEventListener('click', function(ev) {
-      var panel = ev.target.closest('#driving-route-dialog-content');
+      var panel = ev.target.closest('#' + dr.DOM_IDS.dialogContent);
       if (!panel) return;
 
       var target = ev.target.closest('[data-action]');
@@ -146,7 +166,7 @@
     });
 
     document.addEventListener('dragstart', function(ev) {
-      var panel = ev.target.closest('#driving-route-dialog-content');
+      var panel = ev.target.closest('#' + dr.DOM_IDS.dialogContent);
       if (!panel) return;
 
       var item = ev.target.closest('.driving-route-stop');
@@ -164,7 +184,7 @@
     });
 
     document.addEventListener('dragover', function(ev) {
-      var panel = ev.target.closest('#driving-route-dialog-content');
+      var panel = ev.target.closest('#' + dr.DOM_IDS.dialogContent);
       if (!panel) return;
 
       var item = ev.target.closest('.driving-route-stop');
@@ -175,7 +195,7 @@
     });
 
     document.addEventListener('drop', function(ev) {
-      var panel = ev.target.closest('#driving-route-dialog-content');
+      var panel = ev.target.closest('#' + dr.DOM_IDS.dialogContent);
       if (!panel) return;
 
       var item = ev.target.closest('.driving-route-stop');
@@ -191,7 +211,7 @@
     });
 
     document.addEventListener('change', function(ev) {
-      var panel = ev.target.closest('#driving-route-dialog-content');
+      var panel = ev.target.closest('#' + dr.DOM_IDS.dialogContent);
       if (!panel) return;
 
       var target = ev.target;
@@ -199,9 +219,11 @@
         var value = Math.max(0, Number(target.value || 0));
         dr.state.settings.defaultStopMinutes = value;
         dr.saveSettings();
+
         if (dr.state.route && dr.state.route.legs) {
           dr.state.route.totals = dr.calculateTotals(dr.state.route.legs);
         }
+
         dr.renderPanel();
       }
     });
@@ -209,10 +231,10 @@
 
   dr.addToolboxLink = function() {
     if (!document.getElementById('toolbox')) return;
-    if (document.getElementById('driving-route-toolbox-link')) return;
+    if (document.getElementById(dr.DOM_IDS.toolboxLink)) return;
 
     var link = document.createElement('a');
-    link.id = 'driving-route-toolbox-link';
+    link.id = dr.DOM_IDS.toolboxLink;
     link.href = '#';
     link.textContent = 'Driving Route';
     link.addEventListener('click', function(ev) {
@@ -228,23 +250,95 @@
   };
 
   dr.injectCss = function() {
-    if (document.getElementById('driving-route-css')) return;
+    if (document.getElementById(dr.DOM_IDS.css)) return;
+
     var style = document.createElement('style');
-    style.id = 'driving-route-css';
+    style.id = dr.DOM_IDS.css;
     style.textContent = dr.CSS;
     document.head.appendChild(style);
+  };
+
+  dr.setupLayerControl = function() {
+    if (!window.L || !window.map) return;
+    if (dr.layerGroup) return;
+
+    dr.layerGroup = L.layerGroup();
+
+    if (typeof window.addLayerGroup === 'function') {
+      window.addLayerGroup('Driving Route', dr.layerGroup, true);
+    } else if (window.layerChooser && typeof window.layerChooser.addOverlay === 'function') {
+      window.layerChooser.addOverlay(dr.layerGroup, 'Driving Route');
+      dr.layerGroup.addTo(window.map);
+    } else {
+      dr.layerGroup.addTo(window.map);
+    }
+  };
+
+  dr.setupLayerEvents = function() {
+    if (dr.layerEventsRegistered) return;
+    if (!window.map || !dr.layerGroup) return;
+
+    window.map.on('overlayadd', function(e) {
+      if (e.layer !== dr.layerGroup) return;
+      dr.enable();
+    });
+
+    window.map.on('overlayremove', function(e) {
+      if (e.layer !== dr.layerGroup) return;
+      dr.disable();
+    });
+
+    dr.layerEventsRegistered = true;
+  };
+
+  dr.isLayerEnabled = function() {
+    if (!window.map || !dr.layerGroup) return true;
+    return window.map.hasLayer(dr.layerGroup);
+  };
+
+  dr.enable = function() {
+    dr.state.enabled = true;
+
+    dr.createMiniControl();
+    dr.renderMiniControl();
+
+    if (typeof dr.redrawLabels === 'function') {
+      dr.redrawLabels();
+    }
+  };
+
+  dr.disable = function() {
+    dr.state.enabled = false;
+
+    dr.removeMiniControl();
+    dr.closeDialog();
+
+    if (typeof dr.clearLabels === 'function') {
+      dr.clearLabels();
+    } else if (typeof dr.redrawLabels === 'function') {
+      dr.redrawLabels();
+    }
   };
 
   dr.setup = function() {
     try {
       dr.injectCss();
       dr.loadState();
-      dr.createMiniControl();
+
+      dr.setupLayerControl();
+      dr.setupLayerEvents();
       dr.setupDialogEventHandlers();
       dr.addToolboxLink();
-      dr.renderPanel();
-      dr.renderMiniControl();
-      dr.redrawLabels();
+
+      if (dr.isLayerEnabled()) {
+        dr.enable();
+      } else {
+        dr.disable();
+      }
+
+      if (dr.state.panelOpen && dr.isLayerEnabled()) {
+        dr.renderPanel();
+      }
 
       if (typeof window.addHook === 'function' && !dr.portalHookRegistered) {
         window.addHook('portalDetailsUpdated', function() {
