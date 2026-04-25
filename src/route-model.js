@@ -39,6 +39,21 @@
     dr.renderPanel();
   };
 
+  dr.moveStop = function(fromIndex, toIndex) {
+    if (fromIndex < 0 || fromIndex >= dr.state.stops.length) return;
+    if (toIndex < 0 || toIndex >= dr.state.stops.length) return;
+    if (fromIndex === toIndex) return;
+
+    var item = dr.state.stops.splice(fromIndex, 1)[0];
+    dr.state.stops.splice(toIndex, 0, item);
+
+    dr.state.route = null;
+    dr.saveStops();
+    dr.clearRouteLine();
+    dr.redrawLabels();
+    dr.renderPanel();
+  };
+
   dr.calculateTotals = function(legs) {
     var driveSeconds = 0;
     var distanceMeters = 0;
