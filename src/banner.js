@@ -1,8 +1,8 @@
 // ==UserScript==
 // @id             iitc-plugin-driving-route
-// @name           IITC plugin: Driving Route DEBUG
+// @name           IITC plugin: Driving Route
 // @category       Navigate
-// @version        0.1.2
+// @version        0.1.0-dev
 // @namespace      https://github.com/mdiehn/iitc-plugin-driving-route
 // @description    Mobile-first route planning through selected portals with segment drive times, stop-time accounting, and Google Maps export.
 // @include        https://intel.ingress.com/*

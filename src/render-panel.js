@@ -143,6 +143,21 @@
         dialogClass: 'driving-route-dialog',
         width: dr.getDialogWidth()
       });
+
+      var newContent = document.getElementById(dr.DOM_IDS.dialogContent);
+      if (newContent && window.jQuery) {
+        try {
+          window.jQuery(newContent)
+            .closest('.ui-dialog-content')
+            .off('dialogclose.drivingRoute')
+            .on('dialogclose.drivingRoute', function() {
+              dr.state.panelOpen = false;
+              dr.savePanelOpen();
+            });
+        } catch (e) {
+          console.warn('Driving Route: failed to attach dialog close handler', e);
+        }
+      }
     } else {
       console.log('Driving Route: IITC dialog API is unavailable.');
     }

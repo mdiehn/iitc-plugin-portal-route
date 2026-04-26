@@ -1,8 +1,8 @@
 // ==UserScript==
 // @id             iitc-plugin-driving-route
-// @name           IITC plugin: Driving Route DEBUG
+// @name           IITC plugin: Driving Route
 // @category       Navigate
-// @version        0.1.2
+// @version        0.1.0-dev
 // @namespace      https://github.com/mdiehn/iitc-plugin-driving-route
 // @description    Mobile-first route planning through selected portals with segment drive times, stop-time accounting, and Google Maps export.
 // @include        https://intel.ingress.com/*
@@ -945,6 +945,21 @@ button.driving-route-waypoint-name,
         dialogClass: 'driving-route-dialog',
         width: dr.getDialogWidth()
       });
+
+      var newContent = document.getElementById(dr.DOM_IDS.dialogContent);
+      if (newContent && window.jQuery) {
+        try {
+          window.jQuery(newContent)
+            .closest('.ui-dialog-content')
+            .off('dialogclose.drivingRoute')
+            .on('dialogclose.drivingRoute', function() {
+              dr.state.panelOpen = false;
+              dr.savePanelOpen();
+            });
+        } catch (e) {
+          console.warn('Driving Route: failed to attach dialog close handler', e);
+        }
+      }
     } else {
       console.log('Driving Route: IITC dialog API is unavailable.');
     }
