@@ -11,6 +11,19 @@
     return '<p class="driving-route-empty">There are no waypoints defined.<br>Select a portal and add it from the Driving Route control.</p>';
   };
 
+  dr.renderRouteSegment = function(leg) {
+    if (!leg) return '';
+
+    var duration = leg.durationText || dr.formatDuration(leg.durationSeconds);
+    var distance = leg.distanceText || dr.formatDistance(leg.distanceMeters);
+
+    return '<div class="driving-route-leg">' +
+      '<span>' + dr.escapeHtml(duration) + '</span>' +
+      '<span> / </span>' +
+      '<span>' + dr.escapeHtml(distance) + '</span>' +
+      '</div>';
+  };
+
   dr.renderStopsList = function(legsByToIndex) {
     var stops = dr.state.stops;
     if (stops.length === 0) return dr.renderEmptyHelp();
@@ -19,21 +32,20 @@
     html += '<div class="driving-route-waypoints-list">';
 
     stops.forEach(function(stop, index) {
-      var leg = legsByToIndex[index];
       var waitValue = dr.formatDurationInput(dr.getEffectiveStopMinutes(stop));
 
       html += '<div class="driving-route-waypoint-row" data-index="' + index + '">';
       html += '<div class="driving-route-waypoint-num"><button type="button" class="driving-route-stop-num driving-route-waypoint-badge" title="Select and center portal" data-action="select-stop-center" data-index="' + index + '">' + (index + 1) + '</button></div>';
-      html += '<div class="driving-route-waypoint-name-cell"><button type="button" class="driving-route-waypoint-name" title="Select portal" data-action="select-stop" data-index="' + index + '">' + dr.escapeHtml(stop.title) + '</button>';
-      if (leg) {
-        html += '<div class="driving-route-leg">' + dr.escapeHtml(leg.durationText || dr.formatDuration(leg.durationSeconds)) + ' · ' + dr.escapeHtml(leg.distanceText || dr.formatDistance(leg.distanceMeters)) + '</div>';
-      }
-      html += '</div>';
+      html += '<div class="driving-route-waypoint-name-cell"><button type="button" class="driving-route-waypoint-name" title="Select portal" data-action="select-stop" data-index="' + index + '">' + dr.escapeHtml(stop.title) + '</button></div>';
       html += '<div class="driving-route-wait-cell"><input class="driving-route-wait-input" type="text" inputmode="decimal" value="' + dr.escapeHtml(waitValue) + '" title="Examples: 15m, 1.5h, 2d" data-field="stop-minutes" data-index="' + index + '"></div>';
       html += '<div class="driving-route-row-action"><button type="button" class="driving-route-row-button" title="Move up" data-action="move-stop-up" data-index="' + index + '" ' + (index === 0 ? 'disabled' : '') + '>&uarr;</button></div>';
       html += '<div class="driving-route-row-action"><button type="button" class="driving-route-row-button" title="Move down" data-action="move-stop-down" data-index="' + index + '" ' + (index === stops.length - 1 ? 'disabled' : '') + '>&darr;</button></div>';
       html += '<div class="driving-route-row-action"><button type="button" class="driving-route-row-button driving-route-remove-stop-button" title="Remove waypoint" data-action="remove-stop" data-index="' + index + '">X</button></div>';
       html += '</div>';
+
+      if (index < stops.length - 1) {
+        html += dr.renderRouteSegment(legsByToIndex[index + 1]);
+      }
     });
 
     html += '</div>';
@@ -62,15 +74,20 @@
 
     html += '<label class="driving-route-setting">Default stop time <input type="text" inputmode="decimal" value="' + dr.escapeHtml(dr.formatDurationInput(dr.state.settings.defaultStopMinutes)) + '" title="Examples: 15m, 1.5h, 2d" data-field="default-stop-minutes"> per portal</label>';
 
+    var plotLabel = dr.state.routeDirty ? 'Replot' : 'Plot';
+
     html += '<div class="driving-route-actions">';
     html += '<button type="button" data-action="add-selected-stop">Add</button>';
-    html += '<button type="button" data-action="calculate-route">Plot</button>';
+    html += '<button type="button" data-action="calculate-route">' + plotLabel + '</button>';
     html += '<button type="button" data-action="open-google-maps">Open Maps</button>';
     html += '<button type="button" data-action="clear-route">Clear</button>';
     html += '<button type="button" data-action="close-panel">Close</button>';
     html += '</div>';
 
     html += '<div class="driving-route-bottom-summary"><b>Waypoints:</b> ' + stops.length + '</div>';
+    if (dr.state.routeDirty) {
+      html += '<div class="driving-route-stale">Route needs replot.</div>';
+    }
     html += dr.renderTotals(dr.state.route);
     if (dr.SHOW_VERSION_IN_PANEL) {
       html += '<div class="driving-route-version">Driving Route ' + dr.escapeHtml(dr.VERSION) + '</div>';

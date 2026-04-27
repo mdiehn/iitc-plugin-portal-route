@@ -199,12 +199,20 @@ button.driving-route-waypoint-badge {
 }
 
 .driving-route-leg {
-  margin-top: 1px;
+  margin: 1px 0 3px 23px;
+  padding-left: 5px;
   opacity: 0.85;
   font-size: 10px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.driving-route-stale {
+  margin-top: 4px;
+  opacity: 0.85;
+  font-size: 10px;
+  font-style: italic;
 }
 
 .driving-route-actions {
@@ -367,6 +375,10 @@ button.driving-route-waypoint-name,
     width: 20px !important;
     min-width: 20px !important;
     max-width: 20px !important;
+  }
+
+  .driving-route-leg {
+    margin-left: 20px;
   }
 }
 `;

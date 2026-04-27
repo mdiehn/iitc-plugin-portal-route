@@ -167,10 +167,11 @@
     var addRemoveClass = selectedInRoute ? ' driving-route-mini-remove' : '';
     var addRemoveText = selectedInRoute ? '-' : '+';
     var addRemoveTitle = selectedInRoute ? 'Remove selected portal from route' : 'Add selected portal to route';
+    var plotTitle = dr.state.routeDirty ? 'Replot route on map' : 'Plot route on map';
 
     container.innerHTML = '' +
       '<a href="#" title="Open route in Google Maps" data-action="open-google-maps">M</a>' +
-      '<a href="#" title="Plot/replot route on map" data-action="calculate-route">P</a>' +
+      '<a href="#" title="' + plotTitle + '" data-action="calculate-route">P</a>' +
       '<a href="#" class="driving-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="toggle-selected-stop">' + addRemoveText + '</a>' +
       '<a href="#" title="Open Driving Route menu" data-action="open-main">' + dr.state.stops.length + '</a>' +
       '<a href="#" title="Driving Route menu" data-action="open-main">=</a>';
@@ -252,9 +253,7 @@
 
         dr.state.settings.defaultStopMinutes = value;
         dr.saveSettings();
-        if (dr.state.route && dr.state.route.legs) {
-          dr.state.route.totals = dr.calculateTotals(dr.state.route.legs);
-        }
+        dr.markRouteStale();
         dr.renderPanel();
       } else if (target && target.getAttribute('data-field') === 'stop-minutes') {
         var stopIndex = Number(target.getAttribute('data-index'));
@@ -386,6 +385,7 @@
       dr.renderPanel();
       dr.renderMiniControl();
       dr.redrawLabels();
+      dr.redrawRouteLine();
 
       if (typeof window.addHook === 'function' && !dr.portalHookRegistered) {
         window.addHook('portalDetailsUpdated', function() {

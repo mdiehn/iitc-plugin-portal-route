@@ -15,7 +15,9 @@
     stops: 'iitc-driving-route-stops',
     settings: 'iitc-driving-route-settings',
     panelOpen: 'iitc-driving-route-panel-open',
-    panelPosition: 'iitc-driving-route-panel-position'
+    panelPosition: 'iitc-driving-route-panel-position',
+    route: 'iitc-driving-route-route',
+    routeDirty: 'iitc-driving-route-route-dirty'
   };
 
   dr.DEFAULT_SETTINGS = {

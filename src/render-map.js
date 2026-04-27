@@ -59,7 +59,8 @@
     });
   };
 
-  dr.drawRoutePath = function(path) {
+  dr.drawRoutePath = function(path, options) {
+    options = options || {};
     dr.clearRouteLine();
     if (!path || path.length < 2) return;
 
@@ -71,9 +72,22 @@
       bubblingMouseEvents: false
     }).addTo(dr.routeOverlayTarget());
 
+    if (options.fitBounds === false) return;
+
     try {
       window.map.fitBounds(dr.state.layers.routeLine.getBounds(), { padding: [30, 30] });
     } catch (e) {
       console.warn('Driving Route: unable to fit route bounds', e);
     }
+  };
+
+  dr.redrawRouteLine = function() {
+    if (!window.map || !window.L) return;
+    if (!dr.state.route || !Array.isArray(dr.state.route.path)) return;
+
+    var path = dr.state.route.path.map(function(point) {
+      return L.latLng(point.lat, point.lng);
+    });
+
+    dr.drawRoutePath(path, { fitBounds: false });
   };

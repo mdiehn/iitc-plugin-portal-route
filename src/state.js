@@ -1,6 +1,7 @@
   dr.state = {
     stops: [],
     route: null,
+    routeDirty: false,
     settings: Object.assign({}, dr.DEFAULT_SETTINGS),
     layers: {
       labels: null,

@@ -1,3 +1,23 @@
+  dr.markRouteStale = function(options) {
+    options = options || {};
+    var hadRouteState = !!dr.state.route || !!dr.state.routeDirty;
+    dr.state.routeDirty = hadRouteState;
+
+    if (options.clearRoute) {
+      dr.state.route = null;
+      dr.clearRouteLine();
+    } else if (dr.state.route && dr.state.route.legs) {
+      dr.state.route.totals = dr.calculateTotals(dr.state.route.legs);
+    }
+
+    dr.saveRoute();
+  };
+
+  dr.markRouteCurrent = function() {
+    dr.state.routeDirty = false;
+    dr.saveRoute();
+  };
+
   dr.addStop = function(stop) {
     if (!stop || typeof stop.lat !== 'number' || typeof stop.lng !== 'number') return;
 
@@ -14,7 +34,7 @@
       stopMinutes: null
     });
 
-    dr.state.route = null;
+    dr.markRouteStale({ clearRoute: true });
     dr.saveStops();
     dr.redrawLabels();
     dr.renderPanel();
@@ -23,9 +43,8 @@
   dr.removeStop = function(index) {
     if (index < 0 || index >= dr.state.stops.length) return;
     dr.state.stops.splice(index, 1);
-    dr.state.route = null;
+    dr.markRouteStale({ clearRoute: true });
     dr.saveStops();
-    dr.clearRouteLine();
     dr.redrawLabels();
     dr.renderPanel();
   };
@@ -33,7 +52,9 @@
   dr.clearStops = function() {
     dr.state.stops = [];
     dr.state.route = null;
+    dr.state.routeDirty = false;
     dr.saveStops();
+    dr.saveRoute();
     dr.clearRouteLine();
     dr.redrawLabels();
     dr.renderPanel();
@@ -47,9 +68,8 @@
     var item = dr.state.stops.splice(fromIndex, 1)[0];
     dr.state.stops.splice(toIndex, 0, item);
 
-    dr.state.route = null;
+    dr.markRouteStale({ clearRoute: true });
     dr.saveStops();
-    dr.clearRouteLine();
     dr.redrawLabels();
     dr.renderPanel();
   };
@@ -61,11 +81,7 @@
     if (typeof minutes !== 'number' || !isFinite(minutes) || minutes < 0) return;
 
     dr.state.stops[index].stopMinutes = Math.round(minutes);
-
-    if (dr.state.route && dr.state.route.legs) {
-      dr.state.route.totals = dr.calculateTotals(dr.state.route.legs);
-    }
-
+    dr.markRouteStale();
     dr.saveStops();
     dr.renderPanel();
   };

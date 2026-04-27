@@ -221,12 +221,20 @@ button.driving-route-waypoint-badge {
 }
 
 .driving-route-leg {
-  margin-top: 1px;
+  margin: 1px 0 3px 23px;
+  padding-left: 5px;
   opacity: 0.85;
   font-size: 10px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.driving-route-stale {
+  margin-top: 4px;
+  opacity: 0.85;
+  font-size: 10px;
+  font-style: italic;
 }
 
 .driving-route-actions {
@@ -390,6 +398,10 @@ button.driving-route-waypoint-name,
     min-width: 20px !important;
     max-width: 20px !important;
   }
+
+  .driving-route-leg {
+    margin-left: 20px;
+  }
 }
 `;
 
@@ -410,7 +422,9 @@ button.driving-route-waypoint-name,
     stops: 'iitc-driving-route-stops',
     settings: 'iitc-driving-route-settings',
     panelOpen: 'iitc-driving-route-panel-open',
-    panelPosition: 'iitc-driving-route-panel-position'
+    panelPosition: 'iitc-driving-route-panel-position',
+    route: 'iitc-driving-route-route',
+    routeDirty: 'iitc-driving-route-route-dirty'
   };
 
   dr.DEFAULT_SETTINGS = {
@@ -421,6 +435,7 @@ button.driving-route-waypoint-name,
   dr.state = {
     stops: [],
     route: null,
+    routeDirty: false,
     settings: Object.assign({}, dr.DEFAULT_SETTINGS),
     layers: {
       labels: null,
@@ -453,6 +468,15 @@ button.driving-route-waypoint-name,
 
       var rawPanelOpen = localStorage.getItem(dr.STORAGE_KEYS.panelOpen);
       if (rawPanelOpen !== null) dr.state.panelOpen = rawPanelOpen === 'true';
+
+      var rawRoute = localStorage.getItem(dr.STORAGE_KEYS.route);
+      if (rawRoute) {
+        var route = JSON.parse(rawRoute);
+        if (route && Array.isArray(route.legs)) dr.state.route = route;
+      }
+
+      var rawRouteDirty = localStorage.getItem(dr.STORAGE_KEYS.routeDirty);
+      if (rawRouteDirty !== null) dr.state.routeDirty = rawRouteDirty === 'true';
     } catch (e) {
       console.warn('Driving Route: failed to load saved state', e);
     }
@@ -468,6 +492,21 @@ button.driving-route-waypoint-name,
 
   dr.savePanelOpen = function() {
     localStorage.setItem(dr.STORAGE_KEYS.panelOpen, String(dr.state.panelOpen));
+  };
+
+
+  dr.saveRoute = function() {
+    if (dr.state.route) {
+      localStorage.setItem(dr.STORAGE_KEYS.route, JSON.stringify(dr.state.route));
+    } else {
+      localStorage.removeItem(dr.STORAGE_KEYS.route);
+    }
+    localStorage.setItem(dr.STORAGE_KEYS.routeDirty, String(!!dr.state.routeDirty));
+  };
+
+  dr.clearSavedRoute = function() {
+    localStorage.removeItem(dr.STORAGE_KEYS.route);
+    localStorage.removeItem(dr.STORAGE_KEYS.routeDirty);
   };
 
   dr.formatDuration = function(seconds) {
@@ -532,6 +571,26 @@ button.driving-route-waypoint-name,
     container.appendChild(wrapper);
   };
 
+  dr.markRouteStale = function(options) {
+    options = options || {};
+    var hadRouteState = !!dr.state.route || !!dr.state.routeDirty;
+    dr.state.routeDirty = hadRouteState;
+
+    if (options.clearRoute) {
+      dr.state.route = null;
+      dr.clearRouteLine();
+    } else if (dr.state.route && dr.state.route.legs) {
+      dr.state.route.totals = dr.calculateTotals(dr.state.route.legs);
+    }
+
+    dr.saveRoute();
+  };
+
+  dr.markRouteCurrent = function() {
+    dr.state.routeDirty = false;
+    dr.saveRoute();
+  };
+
   dr.addStop = function(stop) {
     if (!stop || typeof stop.lat !== 'number' || typeof stop.lng !== 'number') return;
 
@@ -548,7 +607,7 @@ button.driving-route-waypoint-name,
       stopMinutes: null
     });
 
-    dr.state.route = null;
+    dr.markRouteStale({ clearRoute: true });
     dr.saveStops();
     dr.redrawLabels();
     dr.renderPanel();
@@ -557,9 +616,8 @@ button.driving-route-waypoint-name,
   dr.removeStop = function(index) {
     if (index < 0 || index >= dr.state.stops.length) return;
     dr.state.stops.splice(index, 1);
-    dr.state.route = null;
+    dr.markRouteStale({ clearRoute: true });
     dr.saveStops();
-    dr.clearRouteLine();
     dr.redrawLabels();
     dr.renderPanel();
   };
@@ -567,7 +625,9 @@ button.driving-route-waypoint-name,
   dr.clearStops = function() {
     dr.state.stops = [];
     dr.state.route = null;
+    dr.state.routeDirty = false;
     dr.saveStops();
+    dr.saveRoute();
     dr.clearRouteLine();
     dr.redrawLabels();
     dr.renderPanel();
@@ -581,9 +641,8 @@ button.driving-route-waypoint-name,
     var item = dr.state.stops.splice(fromIndex, 1)[0];
     dr.state.stops.splice(toIndex, 0, item);
 
-    dr.state.route = null;
+    dr.markRouteStale({ clearRoute: true });
     dr.saveStops();
-    dr.clearRouteLine();
     dr.redrawLabels();
     dr.renderPanel();
   };
@@ -595,11 +654,7 @@ button.driving-route-waypoint-name,
     if (typeof minutes !== 'number' || !isFinite(minutes) || minutes < 0) return;
 
     dr.state.stops[index].stopMinutes = Math.round(minutes);
-
-    if (dr.state.route && dr.state.route.legs) {
-      dr.state.route.totals = dr.calculateTotals(dr.state.route.legs);
-    }
-
+    dr.markRouteStale();
     dr.saveStops();
     dr.renderPanel();
   };
@@ -738,8 +793,12 @@ button.driving-route-waypoint-name,
 
       dr.state.route = {
         legs: legs,
-        totals: dr.calculateTotals(legs)
+        totals: dr.calculateTotals(legs),
+        path: path.map(function(point) {
+          return { lat: point.lat, lng: point.lng };
+        })
       };
+      dr.markRouteCurrent();
 
       dr.drawRoutePath(path);
       dr.renderPanel();
@@ -807,7 +866,8 @@ button.driving-route-waypoint-name,
     });
   };
 
-  dr.drawRoutePath = function(path) {
+  dr.drawRoutePath = function(path, options) {
+    options = options || {};
     dr.clearRouteLine();
     if (!path || path.length < 2) return;
 
@@ -819,11 +879,24 @@ button.driving-route-waypoint-name,
       bubblingMouseEvents: false
     }).addTo(dr.routeOverlayTarget());
 
+    if (options.fitBounds === false) return;
+
     try {
       window.map.fitBounds(dr.state.layers.routeLine.getBounds(), { padding: [30, 30] });
     } catch (e) {
       console.warn('Driving Route: unable to fit route bounds', e);
     }
+  };
+
+  dr.redrawRouteLine = function() {
+    if (!window.map || !window.L) return;
+    if (!dr.state.route || !Array.isArray(dr.state.route.path)) return;
+
+    var path = dr.state.route.path.map(function(point) {
+      return L.latLng(point.lat, point.lng);
+    });
+
+    dr.drawRoutePath(path, { fitBounds: false });
   };
 
   dr.escapeHtml = function(value) {
@@ -839,6 +912,19 @@ button.driving-route-waypoint-name,
     return '<p class="driving-route-empty">There are no waypoints defined.<br>Select a portal and add it from the Driving Route control.</p>';
   };
 
+  dr.renderRouteSegment = function(leg) {
+    if (!leg) return '';
+
+    var duration = leg.durationText || dr.formatDuration(leg.durationSeconds);
+    var distance = leg.distanceText || dr.formatDistance(leg.distanceMeters);
+
+    return '<div class="driving-route-leg">' +
+      '<span>' + dr.escapeHtml(duration) + '</span>' +
+      '<span> / </span>' +
+      '<span>' + dr.escapeHtml(distance) + '</span>' +
+      '</div>';
+  };
+
   dr.renderStopsList = function(legsByToIndex) {
     var stops = dr.state.stops;
     if (stops.length === 0) return dr.renderEmptyHelp();
@@ -847,21 +933,20 @@ button.driving-route-waypoint-name,
     html += '<div class="driving-route-waypoints-list">';
 
     stops.forEach(function(stop, index) {
-      var leg = legsByToIndex[index];
       var waitValue = dr.formatDurationInput(dr.getEffectiveStopMinutes(stop));
 
       html += '<div class="driving-route-waypoint-row" data-index="' + index + '">';
       html += '<div class="driving-route-waypoint-num"><button type="button" class="driving-route-stop-num driving-route-waypoint-badge" title="Select and center portal" data-action="select-stop-center" data-index="' + index + '">' + (index + 1) + '</button></div>';
-      html += '<div class="driving-route-waypoint-name-cell"><button type="button" class="driving-route-waypoint-name" title="Select portal" data-action="select-stop" data-index="' + index + '">' + dr.escapeHtml(stop.title) + '</button>';
-      if (leg) {
-        html += '<div class="driving-route-leg">' + dr.escapeHtml(leg.durationText || dr.formatDuration(leg.durationSeconds)) + ' · ' + dr.escapeHtml(leg.distanceText || dr.formatDistance(leg.distanceMeters)) + '</div>';
-      }
-      html += '</div>';
+      html += '<div class="driving-route-waypoint-name-cell"><button type="button" class="driving-route-waypoint-name" title="Select portal" data-action="select-stop" data-index="' + index + '">' + dr.escapeHtml(stop.title) + '</button></div>';
       html += '<div class="driving-route-wait-cell"><input class="driving-route-wait-input" type="text" inputmode="decimal" value="' + dr.escapeHtml(waitValue) + '" title="Examples: 15m, 1.5h, 2d" data-field="stop-minutes" data-index="' + index + '"></div>';
       html += '<div class="driving-route-row-action"><button type="button" class="driving-route-row-button" title="Move up" data-action="move-stop-up" data-index="' + index + '" ' + (index === 0 ? 'disabled' : '') + '>&uarr;</button></div>';
       html += '<div class="driving-route-row-action"><button type="button" class="driving-route-row-button" title="Move down" data-action="move-stop-down" data-index="' + index + '" ' + (index === stops.length - 1 ? 'disabled' : '') + '>&darr;</button></div>';
       html += '<div class="driving-route-row-action"><button type="button" class="driving-route-row-button driving-route-remove-stop-button" title="Remove waypoint" data-action="remove-stop" data-index="' + index + '">X</button></div>';
       html += '</div>';
+
+      if (index < stops.length - 1) {
+        html += dr.renderRouteSegment(legsByToIndex[index + 1]);
+      }
     });
 
     html += '</div>';
@@ -890,15 +975,20 @@ button.driving-route-waypoint-name,
 
     html += '<label class="driving-route-setting">Default stop time <input type="text" inputmode="decimal" value="' + dr.escapeHtml(dr.formatDurationInput(dr.state.settings.defaultStopMinutes)) + '" title="Examples: 15m, 1.5h, 2d" data-field="default-stop-minutes"> per portal</label>';
 
+    var plotLabel = dr.state.routeDirty ? 'Replot' : 'Plot';
+
     html += '<div class="driving-route-actions">';
     html += '<button type="button" data-action="add-selected-stop">Add</button>';
-    html += '<button type="button" data-action="calculate-route">Plot</button>';
+    html += '<button type="button" data-action="calculate-route">' + plotLabel + '</button>';
     html += '<button type="button" data-action="open-google-maps">Open Maps</button>';
     html += '<button type="button" data-action="clear-route">Clear</button>';
     html += '<button type="button" data-action="close-panel">Close</button>';
     html += '</div>';
 
     html += '<div class="driving-route-bottom-summary"><b>Waypoints:</b> ' + stops.length + '</div>';
+    if (dr.state.routeDirty) {
+      html += '<div class="driving-route-stale">Route needs replot.</div>';
+    }
     html += dr.renderTotals(dr.state.route);
     if (dr.SHOW_VERSION_IN_PANEL) {
       html += '<div class="driving-route-version">Driving Route ' + dr.escapeHtml(dr.VERSION) + '</div>';
@@ -1198,10 +1288,11 @@ button.driving-route-waypoint-name,
     var addRemoveClass = selectedInRoute ? ' driving-route-mini-remove' : '';
     var addRemoveText = selectedInRoute ? '-' : '+';
     var addRemoveTitle = selectedInRoute ? 'Remove selected portal from route' : 'Add selected portal to route';
+    var plotTitle = dr.state.routeDirty ? 'Replot route on map' : 'Plot route on map';
 
     container.innerHTML = '' +
       '<a href="#" title="Open route in Google Maps" data-action="open-google-maps">M</a>' +
-      '<a href="#" title="Plot/replot route on map" data-action="calculate-route">P</a>' +
+      '<a href="#" title="' + plotTitle + '" data-action="calculate-route">P</a>' +
       '<a href="#" class="driving-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="toggle-selected-stop">' + addRemoveText + '</a>' +
       '<a href="#" title="Open Driving Route menu" data-action="open-main">' + dr.state.stops.length + '</a>' +
       '<a href="#" title="Driving Route menu" data-action="open-main">=</a>';
@@ -1283,9 +1374,7 @@ button.driving-route-waypoint-name,
 
         dr.state.settings.defaultStopMinutes = value;
         dr.saveSettings();
-        if (dr.state.route && dr.state.route.legs) {
-          dr.state.route.totals = dr.calculateTotals(dr.state.route.legs);
-        }
+        dr.markRouteStale();
         dr.renderPanel();
       } else if (target && target.getAttribute('data-field') === 'stop-minutes') {
         var stopIndex = Number(target.getAttribute('data-index'));
@@ -1417,6 +1506,7 @@ button.driving-route-waypoint-name,
       dr.renderPanel();
       dr.renderMiniControl();
       dr.redrawLabels();
+      dr.redrawRouteLine();
 
       if (typeof window.addHook === 'function' && !dr.portalHookRegistered) {
         window.addHook('portalDetailsUpdated', function() {

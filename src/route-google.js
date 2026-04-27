@@ -68,8 +68,12 @@
 
       dr.state.route = {
         legs: legs,
-        totals: dr.calculateTotals(legs)
+        totals: dr.calculateTotals(legs),
+        path: path.map(function(point) {
+          return { lat: point.lat, lng: point.lng };
+        })
       };
+      dr.markRouteCurrent();
 
       dr.drawRoutePath(path);
       dr.renderPanel();
