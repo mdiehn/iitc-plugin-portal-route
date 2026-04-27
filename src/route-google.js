@@ -47,6 +47,18 @@
       var legs = route.legs.map(function(leg, index) {
         var fromStop = stops[index];
         var toStop = stops[index + 1];
+        var legPath = [];
+
+        if (leg.steps) {
+          leg.steps.forEach(function(step) {
+            if (step.path) {
+              step.path.forEach(function(point) {
+                legPath.push({ lat: point.lat(), lng: point.lng() });
+              });
+            }
+          });
+        }
+
         return {
           fromIndex: index,
           toIndex: index + 1,
@@ -55,7 +67,8 @@
           distanceMeters: leg.distance ? leg.distance.value : 0,
           durationSeconds: leg.duration ? leg.duration.value : 0,
           distanceText: leg.distance ? leg.distance.text : '',
-          durationText: leg.duration ? leg.duration.text : ''
+          durationText: leg.duration ? leg.duration.text : '',
+          path: legPath
         };
       });
 
@@ -68,8 +81,12 @@
 
       dr.state.route = {
         legs: legs,
-        totals: dr.calculateTotals(legs)
+        totals: dr.calculateTotals(legs),
+        path: path.map(function(point) {
+          return { lat: point.lat, lng: point.lng };
+        })
       };
+      dr.markRouteCurrent();
 
       dr.drawRoutePath(path);
       dr.renderPanel();

@@ -1,6 +1,7 @@
   dr.ID = 'driving-route';
   dr.NAME = 'Driving Route';
-  dr.VERSION = '0.1.0-dev';
+  dr.VERSION = '0.1.1-dev';
+  dr.SHOW_VERSION_IN_PANEL = true;
 
   dr.DOM_IDS = {
     css: 'iitc-plugin-driving-route-css',
@@ -14,10 +15,13 @@
     stops: 'iitc-driving-route-stops',
     settings: 'iitc-driving-route-settings',
     panelOpen: 'iitc-driving-route-panel-open',
-    panelPosition: 'iitc-driving-route-panel-position'
+    panelPosition: 'iitc-driving-route-panel-position',
+    route: 'iitc-driving-route-route',
+    routeDirty: 'iitc-driving-route-route-dirty'
   };
 
   dr.DEFAULT_SETTINGS = {
     defaultStopMinutes: 5,
-    includeReturnToStart: false
+    includeReturnToStart: false,
+    showSegmentTimesOnMap: false
   };

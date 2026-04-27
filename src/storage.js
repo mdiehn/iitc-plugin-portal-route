@@ -13,6 +13,15 @@
 
       var rawPanelOpen = localStorage.getItem(dr.STORAGE_KEYS.panelOpen);
       if (rawPanelOpen !== null) dr.state.panelOpen = rawPanelOpen === 'true';
+
+      var rawRoute = localStorage.getItem(dr.STORAGE_KEYS.route);
+      if (rawRoute) {
+        var route = JSON.parse(rawRoute);
+        if (route && Array.isArray(route.legs)) dr.state.route = route;
+      }
+
+      var rawRouteDirty = localStorage.getItem(dr.STORAGE_KEYS.routeDirty);
+      if (rawRouteDirty !== null) dr.state.routeDirty = rawRouteDirty === 'true';
     } catch (e) {
       console.warn('Driving Route: failed to load saved state', e);
     }
@@ -28,4 +37,19 @@
 
   dr.savePanelOpen = function() {
     localStorage.setItem(dr.STORAGE_KEYS.panelOpen, String(dr.state.panelOpen));
+  };
+
+
+  dr.saveRoute = function() {
+    if (dr.state.route) {
+      localStorage.setItem(dr.STORAGE_KEYS.route, JSON.stringify(dr.state.route));
+    } else {
+      localStorage.removeItem(dr.STORAGE_KEYS.route);
+    }
+    localStorage.setItem(dr.STORAGE_KEYS.routeDirty, String(!!dr.state.routeDirty));
+  };
+
+  dr.clearSavedRoute = function() {
+    localStorage.removeItem(dr.STORAGE_KEYS.route);
+    localStorage.removeItem(dr.STORAGE_KEYS.routeDirty);
   };

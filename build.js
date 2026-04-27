@@ -40,4 +40,17 @@ const output = sources
 
 fs.writeFileSync(outFile, output, "utf8");
 
+const metaFile = path.join(distDir, "driving-route.meta.js");
+
+const metaMatch = output.match(
+  /\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/
+);
+
+if (!metaMatch) {
+  throw new Error("Could not find userscript metadata block");
+}
+
+fs.writeFileSync(metaFile, metaMatch[0] + "\n", "utf8");
+
 console.log(`Wrote ${path.relative(root, outFile)}`);
+console.log(`Wrote ${path.relative(root, metaFile)}`);
