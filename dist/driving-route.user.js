@@ -4,9 +4,9 @@
 // @category       Navigate
 // @version        0.2.0-dev
 // @namespace      https://github.com/mdiehn/iitc-plugin-driving-route
-// @updateURL      https://localhost:8443/iitc-plugin-driving-route.meta.js
-// @downloadURL    https://localhost:8443/iitc-plugin-driving-route.user.js
-// @description    Mobile-first route planning through selected portals with segment drive times, stop-time accounting, and Google Maps export.
+// @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-driving-route/refs/heads/main/dist/driving-route.meta.js
+// @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-driving-route/refs/heads/main/dist/driving-route.user.js
+// @description    Route planning through selected portals with segment drive times, stop-time accounting, and Google Maps export.
 // @include        https://intel.ingress.com/*
 // @include        http://intel.ingress.com/*
 // @match          https://intel.ingress.com/*
