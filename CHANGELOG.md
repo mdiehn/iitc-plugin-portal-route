@@ -2,7 +2,17 @@
 
 This project does not have a formal public release yet.
 
-Current working milestone: `0.2.0-dev`
+Current working milestone: `0.3.0-dev`
+
+## 0.3.0-dev - Unreleased
+
+### Added
+
+### Changed
+
+### Fixed
+
+### Known limitations
 
 ## 0.2.0-dev - Unreleased
 

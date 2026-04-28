@@ -6,7 +6,7 @@ It is built for mobile-first use, but works on desktop IITC too. Pick portals, k
 
 ## Status
 
-Current milestone: `0.2.0-dev`
+Current milestone: `0.3.0-dev`
 
 This is usable for testing and early public review. It is still a development build.
 
