@@ -10,7 +10,7 @@ Current milestone: `0.3.0-dev`
 
 This is usable for testing and early public review. It is still a development build.
 
-**Install:** [`range-rings.user.js`](https://github.com/mdiehn/iitc-plugin-range-rings/raw/refs/heads/main/dist/range-rings.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/main/dist/portal-route.user.js)
 
 ## Quick start
 
