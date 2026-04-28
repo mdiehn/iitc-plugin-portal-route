@@ -335,6 +335,28 @@ button.portal-route-waypoint-badge {
   outline-offset: 1px;
 }
 
+.portal-route-map-point-marker {
+  border: 0;
+  background: transparent;
+}
+
+.portal-route-map-point-marker span {
+  display: block;
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  background: rgba(80, 170, 255, 0.85);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+}
+
+.portal-route-map-point-marker-selected span {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
 .portal-route-segment-time-label {
   border: 0;
   background: transparent;

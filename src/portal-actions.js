@@ -13,6 +13,43 @@
     };
   };
 
+  pr.clearIitcPortalSelection = function() {
+    var cleared = false;
+
+    if (typeof window.renderPortalDetails === 'function') {
+      try {
+        window.renderPortalDetails(null);
+        cleared = true;
+      } catch (e) {
+        console.warn('Portal Route: unable to clear IITC portal details via renderPortalDetails', e);
+      }
+    }
+
+    if (!cleared && typeof window.selectPortal === 'function') {
+      try {
+        window.selectPortal(null, 'portal-route-map-point');
+        cleared = true;
+      } catch (e2) {
+        console.warn('Portal Route: unable to clear IITC portal selection via selectPortal', e2);
+      }
+    }
+
+    if (!cleared) {
+      window.selectedPortal = null;
+    }
+
+    var details = document.getElementById('portaldetails');
+    if (details) details.innerHTML = '';
+
+    if (typeof window.setPortalIndicators === 'function') {
+      try {
+        window.setPortalIndicators(null);
+      } catch (e3) {
+        console.warn('Portal Route: unable to clear IITC portal indicators', e3);
+      }
+    }
+  };
+
   pr.addSelectedPortal = function() {
     var guid = window.selectedPortal;
     var stop = pr.portalToStop(guid);

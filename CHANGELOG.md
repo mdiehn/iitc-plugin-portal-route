@@ -20,6 +20,7 @@ Current working milestone: `0.3.0-dev`
 - Manual map-point labels can now be selected from the map.
 - The mini-control remove button now removes a selected manual map point.
 - Manual map-point names now have a subtle editable-field style.
+- Selecting a manual map point now clears IITC portal details instead of leaving the previous portal displayed.
 
 ### Known limitations
 

@@ -47,13 +47,42 @@
     pr.clearLabels();
 
     pr.state.stops.forEach(function(stop, index) {
-      var selectedClass = pr.selectedStopIndex && pr.selectedStopIndex() === index ? ' portal-route-stop-label-selected' : '';
+      var isSelected = pr.selectedStopIndex && pr.selectedStopIndex() === index;
+      var selectedClass = isSelected ? ' portal-route-stop-label-selected' : '';
       var isMapPoint = stop.type === 'map';
+      var title = (index + 1) + '. ' + stop.title;
+
+      var selectStop = function(e) {
+        if (e.originalEvent && e.originalEvent.stopPropagation) e.originalEvent.stopPropagation();
+        if (e.originalEvent && e.originalEvent.preventDefault) e.originalEvent.preventDefault();
+        pr.selectStopPortal(index, false);
+      };
+
+      if (isMapPoint) {
+        var pointIcon = L.divIcon({
+          className: 'portal-route-map-point-marker' + (isSelected ? ' portal-route-map-point-marker-selected' : ''),
+          html: '<span></span>',
+          iconSize: [18, 18],
+          iconAnchor: [9, 9]
+        });
+
+        var pointMarker = L.marker([stop.lat, stop.lng], {
+          icon: pointIcon,
+          interactive: true,
+          keyboard: false,
+          bubblingMouseEvents: false,
+          title: title
+        });
+
+        pointMarker.on('click', selectStop);
+        pointMarker.addTo(pr.state.layers.labels);
+      }
+
       var icon = L.divIcon({
         className: 'portal-route-stop-label' + (isMapPoint ? ' portal-route-map-point-label' : '') + selectedClass,
         html: '<span>' + (index + 1) + '</span>',
         iconSize: [18, 18],
-        iconAnchor: isMapPoint ? [9, 9] : [0, 24]
+        iconAnchor: [0, 24]
       });
 
       var marker = L.marker([stop.lat, stop.lng], {
@@ -61,18 +90,14 @@
         interactive: true,
         keyboard: false,
         bubblingMouseEvents: false,
-        title: (index + 1) + '. ' + stop.title
+        title: title
       });
 
-      marker.on('click', function(e) {
-        if (e.originalEvent && e.originalEvent.stopPropagation) e.originalEvent.stopPropagation();
-        if (e.originalEvent && e.originalEvent.preventDefault) e.originalEvent.preventDefault();
-        pr.selectStopPortal(index, false);
-      });
+      marker.on('click', selectStop);
 
-      marker.bindTooltip((index + 1) + '. ' + stop.title, {
+      marker.bindTooltip(title, {
         direction: 'right',
-        offset: isMapPoint ? [12, 0] : [16, -10],
+        offset: [16, -10],
         opacity: 0.9,
         interactive: false,
         className: 'portal-route-stop-tooltip'

@@ -40,6 +40,7 @@
 
     if (stopType === 'map') {
       pr.state.selectedMapPointIndex = pr.state.stops.length - 1;
+      if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
     }
 
     pr.markRouteStale({ clearRoute: true });
@@ -188,6 +189,7 @@
 
     if (!stop.guid) {
       pr.state.selectedMapPointIndex = index;
+      if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
       if (center && window.map) {
         window.map.setView([stop.lat, stop.lng], window.map.getZoom());
       }
