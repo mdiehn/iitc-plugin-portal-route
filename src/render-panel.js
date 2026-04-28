@@ -36,8 +36,9 @@
 
     stops.forEach(function(stop, index) {
       var waitValue = pr.formatDurationInput(pr.getEffectiveStopMinutes(stop));
+      var selectedClass = pr.selectedStopIndex && pr.selectedStopIndex() === index ? ' portal-route-selected-stop' : '';
 
-      html += '<div class="portal-route-waypoint-row" data-index="' + index + '">';
+      html += '<div class="portal-route-waypoint-row' + selectedClass + '" data-index="' + index + '">';
       html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge" title="Select and center stop" data-action="select-stop-center" data-index="' + index + '">' + (index + 1) + '</button></div>';
       if (stop.type === 'map') {
         html += '<div class="portal-route-waypoint-name-cell"><input type="text" class="portal-route-waypoint-name portal-route-waypoint-name-input" title="Edit map point name" data-field="stop-title" data-index="' + index + '" value="' + pr.escapeHtml(stop.title) + '"></div>';

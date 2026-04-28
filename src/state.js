@@ -11,6 +11,7 @@
     panelOpen: false,
     panelView: 'main',
     addPointMode: false,
+    selectedMapPointIndex: null,
     miniControl: null
   };
 

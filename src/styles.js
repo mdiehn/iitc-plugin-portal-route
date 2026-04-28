@@ -84,6 +84,11 @@
   margin-top: 2px;
 }
 
+.portal-route-selected-stop {
+  background: rgba(255, 216, 0, 0.10);
+  border-radius: 4px;
+}
+
 .portal-route-waypoint-num,
 .portal-route-waypoint-name-cell,
 .portal-route-leg-cell,
@@ -321,7 +326,13 @@ button.portal-route-waypoint-badge {
 }
 
 .portal-route-stop-label span {
+  cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+}
+
+.portal-route-stop-label-selected span {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
 }
 
 .portal-route-segment-time-label {
@@ -379,6 +390,27 @@ button.portal-route-waypoint-name,
   box-shadow: none !important;
   background: transparent !important;
   background-image: none !important;
+}
+
+input.portal-route-waypoint-name-input,
+.ui-dialog input.portal-route-waypoint-name-input {
+  height: 20px;
+  line-height: 18px;
+  padding: 1px 4px !important;
+  border: 1px solid rgba(255, 216, 0, 0.35) !important;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+  cursor: text;
+}
+
+input.portal-route-waypoint-name-input:hover,
+input.portal-route-waypoint-name-input:focus,
+.ui-dialog input.portal-route-waypoint-name-input:hover,
+.ui-dialog input.portal-route-waypoint-name-input:focus {
+  border-color: rgba(255, 216, 0, 0.70) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  outline: none !important;
 }
 
 @media (max-width: 640px) {

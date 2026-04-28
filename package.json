@@ -1,6 +1,6 @@
 {
   "name": "iitc-plugin-portal-route",
-  "version": "0.2.0-dev",
+  "version": "0.3.0-dev",
   "description": "IITC plugin for planning routes through selected portals.",
   "private": true,
   "scripts": {

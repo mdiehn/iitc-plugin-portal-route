@@ -38,10 +38,15 @@
       stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null
     });
 
+    if (stopType === 'map') {
+      pr.state.selectedMapPointIndex = pr.state.stops.length - 1;
+    }
+
     pr.markRouteStale({ clearRoute: true });
     pr.saveStops();
     pr.redrawLabels();
     pr.renderPanel();
+    pr.renderMiniControl();
   };
 
   pr.nextMapPointTitle = function() {
@@ -71,22 +76,32 @@
 
   pr.removeStop = function(index) {
     if (index < 0 || index >= pr.state.stops.length) return;
+
+    if (pr.state.selectedMapPointIndex === index) {
+      pr.state.selectedMapPointIndex = null;
+    } else if (pr.state.selectedMapPointIndex > index) {
+      pr.state.selectedMapPointIndex -= 1;
+    }
+
     pr.state.stops.splice(index, 1);
     pr.markRouteStale({ clearRoute: true });
     pr.saveStops();
     pr.redrawLabels();
     pr.renderPanel();
+    pr.renderMiniControl();
   };
 
   pr.clearStops = function() {
     pr.state.stops = [];
     pr.state.route = null;
     pr.state.routeDirty = false;
+    pr.state.selectedMapPointIndex = null;
     pr.saveStops();
     pr.saveRoute();
     pr.clearRouteLine();
     pr.redrawLabels();
     pr.renderPanel();
+    pr.renderMiniControl();
   };
 
   pr.moveStop = function(fromIndex, toIndex) {
@@ -94,13 +109,25 @@
     if (toIndex < 0 || toIndex >= pr.state.stops.length) return;
     if (fromIndex === toIndex) return;
 
+    var selectedIndex = pr.state.selectedMapPointIndex;
     var item = pr.state.stops.splice(fromIndex, 1)[0];
     pr.state.stops.splice(toIndex, 0, item);
+
+    if (selectedIndex === fromIndex) {
+      pr.state.selectedMapPointIndex = toIndex;
+    } else if (selectedIndex !== null && selectedIndex !== undefined) {
+      if (fromIndex < selectedIndex && selectedIndex <= toIndex) {
+        pr.state.selectedMapPointIndex -= 1;
+      } else if (toIndex <= selectedIndex && selectedIndex < fromIndex) {
+        pr.state.selectedMapPointIndex += 1;
+      }
+    }
 
     pr.markRouteStale({ clearRoute: true });
     pr.saveStops();
     pr.redrawLabels();
     pr.renderPanel();
+    pr.renderMiniControl();
   };
 
 
@@ -160,12 +187,17 @@
     if (!stop) return;
 
     if (!stop.guid) {
+      pr.state.selectedMapPointIndex = index;
       if (center && window.map) {
         window.map.setView([stop.lat, stop.lng], window.map.getZoom());
       }
+      pr.redrawLabels();
+      pr.renderPanel();
       pr.renderMiniControl();
       return;
     }
+
+    pr.state.selectedMapPointIndex = null;
 
     var portal = window.portals && window.portals[stop.guid];
     if (center && portal && portal.getLatLng && window.map) {
@@ -178,6 +210,8 @@
       window.selectedPortal = stop.guid;
     }
 
+    pr.redrawLabels();
+    pr.renderPanel();
     pr.renderMiniControl();
   };
 

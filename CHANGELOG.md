@@ -17,6 +17,10 @@ Current working milestone: `0.3.0-dev`
 
 ### Fixed
 
+- Manual map-point labels can now be selected from the map.
+- The mini-control remove button now removes a selected manual map point.
+- Manual map-point names now have a subtle editable-field style.
+
 ### Known limitations
 
 ## 0.2.0-dev - Unreleased

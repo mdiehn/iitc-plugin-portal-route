@@ -47,23 +47,32 @@
     pr.clearLabels();
 
     pr.state.stops.forEach(function(stop, index) {
+      var selectedClass = pr.selectedStopIndex && pr.selectedStopIndex() === index ? ' portal-route-stop-label-selected' : '';
+      var isMapPoint = stop.type === 'map';
       var icon = L.divIcon({
-        className: 'portal-route-stop-label',
+        className: 'portal-route-stop-label' + (isMapPoint ? ' portal-route-map-point-label' : '') + selectedClass,
         html: '<span>' + (index + 1) + '</span>',
         iconSize: [18, 18],
-        iconAnchor: [0, 24]
+        iconAnchor: isMapPoint ? [9, 9] : [0, 24]
       });
 
       var marker = L.marker([stop.lat, stop.lng], {
         icon: icon,
         interactive: true,
         keyboard: false,
-        bubblingMouseEvents: false
+        bubblingMouseEvents: false,
+        title: (index + 1) + '. ' + stop.title
+      });
+
+      marker.on('click', function(e) {
+        if (e.originalEvent && e.originalEvent.stopPropagation) e.originalEvent.stopPropagation();
+        if (e.originalEvent && e.originalEvent.preventDefault) e.originalEvent.preventDefault();
+        pr.selectStopPortal(index, false);
       });
 
       marker.bindTooltip((index + 1) + '. ' + stop.title, {
         direction: 'right',
-        offset: [16, -10],
+        offset: isMapPoint ? [12, 0] : [16, -10],
         opacity: 0.9,
         interactive: false,
         className: 'portal-route-stop-tooltip'

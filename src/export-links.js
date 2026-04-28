@@ -87,7 +87,8 @@
       stops: pr.state.stops.map(function(stop) {
         return {
           guid: stop.guid || null,
-          title: stop.title || 'Unnamed portal',
+          type: stop.type || (stop.guid ? 'portal' : 'map'),
+          title: stop.title || ((stop.type || (stop.guid ? 'portal' : 'map')) === 'map' ? 'Map point' : 'Unnamed portal'),
           lat: Number(stop.lat),
           lng: Number(stop.lng),
           stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null
@@ -140,9 +141,12 @@
       if (stopMinutes !== null) stopMinutes = Math.round(stopMinutes);
     }
 
+    var type = stop.type || (stop.guid ? 'portal' : 'map');
+
     return {
       guid: stop.guid || null,
-      title: stop.title || 'Unnamed portal',
+      type: type,
+      title: stop.title || (type === 'map' ? 'Map point' : 'Unnamed portal'),
       lat: lat,
       lng: lng,
       stopMinutes: stopMinutes

@@ -16,27 +16,51 @@
     }
   };
 
+  pr.selectedMapPointIndex = function() {
+    var index = pr.state.selectedMapPointIndex;
+    var stop = typeof index === 'number' ? pr.state.stops[index] : null;
+
+    if (stop && stop.type === 'map') return index;
+
+    pr.state.selectedMapPointIndex = null;
+    return -1;
+  };
+
+  pr.clearSelectedMapPoint = function() {
+    if (pr.state.selectedMapPointIndex === null || pr.state.selectedMapPointIndex === undefined) return;
+    pr.state.selectedMapPointIndex = null;
+    pr.redrawLabels();
+    pr.renderPanel();
+    pr.renderMiniControl();
+  };
+
   pr.selectedStopIndex = function() {
+    var mapPointIndex = pr.selectedMapPointIndex();
+    if (mapPointIndex >= 0) return mapPointIndex;
+
     var guid = window.selectedPortal;
     if (!guid) return -1;
+
     for (var i = 0; i < pr.state.stops.length; i++) {
       if (pr.state.stops[i].guid === guid) return i;
     }
     return -1;
   };
 
-  pr.removeSelectedPortal = function() {
+  pr.removeSelectedStop = function() {
     var index = pr.selectedStopIndex();
     if (index < 0) {
-      pr.showMessage('Selected portal is not in the route.');
+      pr.showMessage('Selected portal or map point is not in the route.');
       return;
     }
     pr.removeStop(index);
   };
 
+  pr.removeSelectedPortal = pr.removeSelectedStop;
+
   pr.toggleSelectedPortalStop = function() {
     if (pr.selectedStopIndex() >= 0) {
-      pr.removeSelectedPortal();
+      pr.removeSelectedStop();
     } else {
       pr.addSelectedPortal();
     }
@@ -174,7 +198,7 @@
     var selectedInRoute = selectedIndex >= 0;
     var addRemoveClass = selectedInRoute ? ' portal-route-mini-remove' : '';
     var addRemoveText = selectedInRoute ? '-' : '+';
-    var addRemoveTitle = selectedInRoute ? 'Remove selected portal from route' : 'Add selected portal to route';
+    var addRemoveTitle = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal to route';
     var plotTitle = pr.state.routeDirty ? 'Replot route on map' : 'Plot route on map';
 
     container.innerHTML = '' +
@@ -423,6 +447,7 @@
 
       if (typeof window.addHook === 'function' && !pr.portalHookRegistered) {
         window.addHook('portalDetailsUpdated', function() {
+          pr.clearSelectedMapPoint();
           pr.injectPortalDetailsAction();
           pr.renderMiniControl();
         });
