@@ -238,6 +238,12 @@ button.portal-route-waypoint-badge {
   font-style: italic;
 }
 
+
+.portal-route-active-action {
+  font-weight: bold;
+  outline: 1px solid rgba(255, 216, 0, 0.65) !important;
+}
+
 .portal-route-actions {
   display: flex;
   flex-wrap: wrap;

@@ -10,6 +10,7 @@
     },
     panelOpen: false,
     panelView: 'main',
+    addPointMode: false,
     miniControl: null
   };
 

@@ -10,7 +10,15 @@ Current milestone: `0.3.0-dev`
 
 This is usable for testing and early public review. It is still a development build.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/main/dist/portal-route.user.js)
+## Install
+
+Install the userscript from this raw GitHub URL:
+
+```text
+https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/main/dist/portal-route.user.js
+```
+
+Then open IITC and enable the plugin if your IITC setup requires it.
 
 ## Quick start
 

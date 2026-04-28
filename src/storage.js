@@ -8,7 +8,14 @@
       var rawStops = localStorage.getItem(pr.STORAGE_KEYS.stops);
       if (rawStops) {
         var stops = JSON.parse(rawStops);
-        if (Array.isArray(stops)) pr.state.stops = stops;
+        if (Array.isArray(stops)) {
+          pr.state.stops = stops.map(function(stop) {
+            if (!stop) return stop;
+            return Object.assign({}, stop, {
+              type: stop.type || (stop.guid ? 'portal' : 'map')
+            });
+          });
+        }
       }
 
       var rawPanelOpen = localStorage.getItem(pr.STORAGE_KEYS.panelOpen);

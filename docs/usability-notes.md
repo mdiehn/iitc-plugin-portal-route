@@ -28,6 +28,8 @@ Practical UI/UX notes for `iitc-plugin-portal-route`.
 
 ### Waypoint editing
 
+- Added manual map points from map tap/click mode.
+
 - Removed the separate edit panel.
 - Moved waypoint editing into the main menu.
 - Replaced table-based rows with div/grid rows.
@@ -94,7 +96,6 @@ Saved route data can be stale after edits. The UI marks it stale and asks for Re
 ## Future ideas
 
 - Drag-and-drop waypoint reordering.
-- Freeform map waypoints by tapping anywhere on the map.
 - Snap-to-portal behavior when dragging points near portals.
 - Better naming for non-portal points using place name, street address, or coordinates.
 - IITC Sync support.

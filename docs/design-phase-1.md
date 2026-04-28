@@ -7,6 +7,7 @@ Phase 1 is the mobile-first manual route planner.
 ## Feature set
 
 - Add portals to an ordered route from the portal details panel.
+- Add manual map points by tapping/clicking the map.
 - Show a compact route panel.
 - Label route stops on the map.
 - Plot a route through selected portals.
@@ -86,7 +87,6 @@ Portal Route is a separate implementation, but its design was informed by existi
 
 - Route optimization.
 - Drag-and-drop waypoint reordering.
-- Freeform map waypoints.
 - Snap-to-portal behavior.
 - Player/map-center start location.
 - Return-to-start routing.

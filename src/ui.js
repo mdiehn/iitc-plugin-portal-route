@@ -79,6 +79,8 @@
       pr.toggleSelectedPortalStop();
     } else if (action === 'add-selected-stop') {
       pr.addSelectedPortal();
+    } else if (action === 'add-map-point') {
+      pr.setAddPointMode(!pr.state.addPointMode);
     } else if (action === 'move-stop-up') {
       pr.moveStop(Number(target.getAttribute('data-index')), Number(target.getAttribute('data-index')) - 1);
     } else if (action === 'move-stop-down') {
@@ -381,6 +383,22 @@
     pr.layerEventsRegistered = true;
   };
 
+  pr.setupMapPointEvents = function() {
+    if (pr.mapPointEventsRegistered) return;
+    if (!window.map) return;
+
+    window.map.on('click', function(e) {
+      if (!pr.state.addPointMode) return;
+      if (pr.isLayerEnabled && !pr.isLayerEnabled()) return;
+
+      pr.state.addPointMode = false;
+      pr.addMapPointAtLatLng(e.latlng);
+      pr.showMessage('Map point added.');
+    });
+
+    pr.mapPointEventsRegistered = true;
+  };
+
   pr.setup = function() {
     try {
       if (plugin_info && plugin_info.script && plugin_info.script.version) {
@@ -393,6 +411,7 @@
       pr.setupLayerEvents();
       pr.createMiniControl();
       pr.setupDialogEventHandlers();
+      pr.setupMapPointEvents();
       pr.addToolboxLink();
       pr.syncLayerUi();
       pr.renderPanel();

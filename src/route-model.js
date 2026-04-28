@@ -21,23 +21,52 @@
   pr.addStop = function(stop) {
     if (!stop || typeof stop.lat !== 'number' || typeof stop.lng !== 'number') return;
 
+    var stopType = stop.type || (stop.guid ? 'portal' : 'map');
+    var title = stop.title || (stopType === 'map' ? 'Map point' : 'Unnamed portal');
+
     if (stop.guid && pr.state.stops.some(function(existing) { return existing.guid === stop.guid; })) {
-      pr.showMessage('Already in route: ' + stop.title);
+      pr.showMessage('Already in route: ' + title);
       return;
     }
 
     pr.state.stops.push({
       guid: stop.guid || null,
-      title: stop.title || 'Unnamed portal',
+      type: stopType,
+      title: title,
       lat: stop.lat,
       lng: stop.lng,
-      stopMinutes: null
+      stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null
     });
 
     pr.markRouteStale({ clearRoute: true });
     pr.saveStops();
     pr.redrawLabels();
     pr.renderPanel();
+  };
+
+  pr.nextMapPointTitle = function() {
+    var count = pr.state.stops.filter(function(stop) {
+      return stop && stop.type === 'map';
+    }).length + 1;
+    return 'Map point ' + count;
+  };
+
+  pr.addMapPointAtLatLng = function(latlng) {
+    if (!latlng || typeof latlng.lat !== 'number' || typeof latlng.lng !== 'number') return;
+
+    pr.addStop({
+      type: 'map',
+      title: pr.nextMapPointTitle(),
+      lat: latlng.lat,
+      lng: latlng.lng
+    });
+  };
+
+  pr.setAddPointMode = function(enabled) {
+    pr.state.addPointMode = !!enabled;
+    pr.renderPanel();
+    pr.renderMiniControl();
+    pr.showMessage(pr.state.addPointMode ? 'Tap the map to add a point.' : 'Add point canceled.');
   };
 
   pr.removeStop = function(index) {
@@ -112,7 +141,15 @@
 
   pr.selectStopPortal = function(index, center) {
     var stop = pr.state.stops[index];
-    if (!stop || !stop.guid) return;
+    if (!stop) return;
+
+    if (!stop.guid) {
+      if (center && window.map) {
+        window.map.setView([stop.lat, stop.lng], window.map.getZoom());
+      }
+      pr.renderMiniControl();
+      return;
+    }
 
     var portal = window.portals && window.portals[stop.guid];
     if (center && portal && portal.getLatLng && window.map) {

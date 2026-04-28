@@ -8,7 +8,7 @@
   };
 
   pr.renderEmptyHelp = function() {
-    return '<p class="portal-route-empty">There are no waypoints defined.<br>Select a portal and add it from the Portal Route control.</p>';
+    return '<p class="portal-route-empty">There are no waypoints defined.<br>Select a portal or use Add Point to add a map point.</p>';
   };
 
   pr.renderRouteSegment = function(leg) {
@@ -38,8 +38,8 @@
       var waitValue = pr.formatDurationInput(pr.getEffectiveStopMinutes(stop));
 
       html += '<div class="portal-route-waypoint-row" data-index="' + index + '">';
-      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge" title="Select and center portal" data-action="select-stop-center" data-index="' + index + '">' + (index + 1) + '</button></div>';
-      html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Select portal" data-action="select-stop" data-index="' + index + '">' + pr.escapeHtml(stop.title) + '</button></div>';
+      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge" title="Select and center stop" data-action="select-stop-center" data-index="' + index + '">' + (index + 1) + '</button></div>';
+      html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Select stop" data-action="select-stop" data-index="' + index + '">' + pr.escapeHtml(stop.title) + '</button></div>';
       html += '<div class="portal-route-leg-cell">' + (index < stops.length - 1 ? pr.renderRouteSegment(legsByToIndex[index + 1]) : '') + '</div>';
       html += '<div class="portal-route-wait-cell"><input class="portal-route-wait-input" type="text" inputmode="decimal" value="' + pr.escapeHtml(waitValue) + '" title="Examples: 15m, 1.5h, 2d" data-field="stop-minutes" data-index="' + index + '"></div>';
       html += '<div class="portal-route-row-action"><button type="button" class="portal-route-row-button" title="Move up" data-action="move-stop-up" data-index="' + index + '" ' + (index === 0 ? 'disabled' : '') + '>&uarr;</button></div>';
@@ -80,6 +80,7 @@
 
     html += '<div class="portal-route-actions">';
     html += '<button type="button" data-action="add-selected-stop">Add</button>';
+    html += '<button type="button" data-action="add-map-point"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add Point</button>';
     html += '<button type="button" data-action="calculate-route">' + plotLabel + '</button>';
     html += '<button type="button" data-action="open-google-maps">Open Maps</button>';
     html += '<button type="button" data-action="export-route-json">Export</button>';

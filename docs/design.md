@@ -5,6 +5,7 @@ Portal Route is a mobile-first IITC plugin for planning routes through selected 
 The plugin is meant to help an agent:
 
 - add portals to an ordered route
+- add manual map points
 - label stops on the map
 - plot a driving route
 - include stop time at portals
@@ -57,7 +58,6 @@ Likely later phases:
 - split long Google Maps exports into multiple links
 - saved named routes
 - route optimization
-- freeform map waypoints
 - snap-to-portal behavior
 - better names for non-portal points
 - Apple Maps and Waze links
