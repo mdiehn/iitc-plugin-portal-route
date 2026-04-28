@@ -143,6 +143,12 @@
   -webkit-appearance: none;
 }
 
+
+.portal-route-waypoint-name-input {
+  height: 18px;
+  line-height: 18px;
+}
+
 .portal-route-waypoint-name:hover,
 .portal-route-waypoint-name:focus,
 .portal-route-waypoint-name:active {

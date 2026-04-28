@@ -8,7 +8,12 @@ Current working milestone: `0.3.0-dev`
 
 ### Added
 
+- Manual map points that can be added by tapping/clicking the map.
+- Editable names for manual map points.
+
 ### Changed
+
+- Renamed the main-panel Add button to Add Portal.
 
 ### Fixed
 
@@ -19,7 +24,6 @@ Current working milestone: `0.3.0-dev`
 ### Added
 
 - Main-panel waypoint editing.
-- Manual map points that can be added by tapping/clicking the map.
 - Add, remove, and move controls for route stops.
 - Per-stop wait time editing.
 - Flexible duration input such as `15m`, `1.5h`, and `2d`.

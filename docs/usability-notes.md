@@ -29,6 +29,7 @@ Practical UI/UX notes for `iitc-plugin-portal-route`.
 ### Waypoint editing
 
 - Added manual map points from map tap/click mode.
+- Added editable names for manual map points.
 
 - Removed the separate edit panel.
 - Moved waypoint editing into the main menu.
@@ -39,7 +40,7 @@ Practical UI/UX notes for `iitc-plugin-portal-route`.
 - Centered row controls.
 - Added per-stop wait-time editing.
 - Added flexible wait-time input such as `15m`, `1.5h`, and `2d`.
-- Added an Add button in the main panel.
+- Renamed the main-panel Add button to Add Portal.
 - Badge clicks center the map; name clicks do not.
 
 ### Route behavior

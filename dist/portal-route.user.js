@@ -165,6 +165,12 @@ function wrapper(plugin_info) {
   -webkit-appearance: none;
 }
 
+
+.portal-route-waypoint-name-input {
+  height: 18px;
+  line-height: 18px;
+}
+
 .portal-route-waypoint-name:hover,
 .portal-route-waypoint-name:focus,
 .portal-route-waypoint-name:active {
@@ -736,6 +742,22 @@ button.portal-route-waypoint-name,
   };
 
 
+  pr.setStopTitle = function(index, title) {
+    if (index < 0 || index >= pr.state.stops.length) return;
+
+    var stop = pr.state.stops[index];
+    if (!stop || stop.type !== 'map') return;
+
+    var cleanTitle = String(title == null ? '' : title).trim();
+    if (!cleanTitle) cleanTitle = pr.nextMapPointTitle();
+
+    stop.title = cleanTitle;
+    pr.saveStops();
+    pr.redrawLabels();
+    pr.redrawSegmentTimeLabels();
+    pr.renderPanel();
+  };
+
 
   pr.setStopMinutes = function(index, minutes) {
     if (index < 0 || index >= pr.state.stops.length) return;
@@ -1124,7 +1146,7 @@ button.portal-route-waypoint-name,
   };
 
   pr.renderEmptyHelp = function() {
-    return '<p class="portal-route-empty">There are no waypoints defined.<br>Select a portal or use Add Point to add a map point.</p>';
+    return '<p class="portal-route-empty">There are no waypoints defined.<br>Select a portal and use Add Portal, or use Add Point to add a map point.</p>';
   };
 
   pr.renderRouteSegment = function(leg) {
@@ -1155,7 +1177,11 @@ button.portal-route-waypoint-name,
 
       html += '<div class="portal-route-waypoint-row" data-index="' + index + '">';
       html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge" title="Select and center stop" data-action="select-stop-center" data-index="' + index + '">' + (index + 1) + '</button></div>';
-      html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Select stop" data-action="select-stop" data-index="' + index + '">' + pr.escapeHtml(stop.title) + '</button></div>';
+      if (stop.type === 'map') {
+        html += '<div class="portal-route-waypoint-name-cell"><input type="text" class="portal-route-waypoint-name portal-route-waypoint-name-input" title="Edit map point name" data-field="stop-title" data-index="' + index + '" value="' + pr.escapeHtml(stop.title) + '"></div>';
+      } else {
+        html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Select stop" data-action="select-stop" data-index="' + index + '">' + pr.escapeHtml(stop.title) + '</button></div>';
+      }
       html += '<div class="portal-route-leg-cell">' + (index < stops.length - 1 ? pr.renderRouteSegment(legsByToIndex[index + 1]) : '') + '</div>';
       html += '<div class="portal-route-wait-cell"><input class="portal-route-wait-input" type="text" inputmode="decimal" value="' + pr.escapeHtml(waitValue) + '" title="Examples: 15m, 1.5h, 2d" data-field="stop-minutes" data-index="' + index + '"></div>';
       html += '<div class="portal-route-row-action"><button type="button" class="portal-route-row-button" title="Move up" data-action="move-stop-up" data-index="' + index + '" ' + (index === 0 ? 'disabled' : '') + '>&uarr;</button></div>';
@@ -1195,7 +1221,7 @@ button.portal-route-waypoint-name,
     var plotLabel = pr.state.routeDirty ? 'Replot' : 'Plot';
 
     html += '<div class="portal-route-actions">';
-    html += '<button type="button" data-action="add-selected-stop">Add</button>';
+    html += '<button type="button" data-action="add-selected-stop">Add Portal</button>';
     html += '<button type="button" data-action="add-map-point"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add Point</button>';
     html += '<button type="button" data-action="calculate-route">' + plotLabel + '</button>';
     html += '<button type="button" data-action="open-google-maps">Open Maps</button>';
@@ -1880,6 +1906,8 @@ button.portal-route-waypoint-name,
         }
 
         pr.setStopMinutes(stopIndex, stopValue);
+      } else if (target && target.getAttribute('data-field') === 'stop-title') {
+        pr.setStopTitle(Number(target.getAttribute('data-index')), target.value);
       }
     });
   };

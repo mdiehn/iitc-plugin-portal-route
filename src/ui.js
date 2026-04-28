@@ -280,6 +280,8 @@
         }
 
         pr.setStopMinutes(stopIndex, stopValue);
+      } else if (target && target.getAttribute('data-field') === 'stop-title') {
+        pr.setStopTitle(Number(target.getAttribute('data-index')), target.value);
       }
     });
   };

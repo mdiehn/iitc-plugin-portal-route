@@ -8,6 +8,7 @@ Phase 1 is the mobile-first manual route planner.
 
 - Add portals to an ordered route from the portal details panel.
 - Add manual map points by tapping/clicking the map.
+- Rename manual map points from the waypoint list.
 - Show a compact route panel.
 - Label route stops on the map.
 - Plot a route through selected portals.

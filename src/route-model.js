@@ -104,6 +104,22 @@
   };
 
 
+  pr.setStopTitle = function(index, title) {
+    if (index < 0 || index >= pr.state.stops.length) return;
+
+    var stop = pr.state.stops[index];
+    if (!stop || stop.type !== 'map') return;
+
+    var cleanTitle = String(title == null ? '' : title).trim();
+    if (!cleanTitle) cleanTitle = pr.nextMapPointTitle();
+
+    stop.title = cleanTitle;
+    pr.saveStops();
+    pr.redrawLabels();
+    pr.redrawSegmentTimeLabels();
+    pr.renderPanel();
+  };
+
 
   pr.setStopMinutes = function(index, minutes) {
     if (index < 0 || index >= pr.state.stops.length) return;

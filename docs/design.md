@@ -6,6 +6,7 @@ The plugin is meant to help an agent:
 
 - add portals to an ordered route
 - add manual map points
+- rename manual map points
 - label stops on the map
 - plot a driving route
 - include stop time at portals
