@@ -1,6 +1,6 @@
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '0.3.0-dev';
+  pr.VERSION = '0.4.0-dev';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -23,5 +23,6 @@
   pr.DEFAULT_SETTINGS = {
     defaultStopMinutes: 5,
     includeReturnToStart: false,
+    startOnCurrentLocation: false,
     showSegmentTimesOnMap: false
   };

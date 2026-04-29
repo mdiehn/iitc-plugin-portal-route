@@ -226,6 +226,16 @@ button.portal-route-waypoint-badge {
   line-height: 16px !important;
 }
 
+.portal-route-loop-row {
+  opacity: 0.85;
+}
+
+.portal-route-loop-badge,
+.portal-route-loop-label span {
+  background: #80d8ff !important;
+  color: #111 !important;
+}
+
 .portal-route-leg {
   display: block;
   width: max-content;

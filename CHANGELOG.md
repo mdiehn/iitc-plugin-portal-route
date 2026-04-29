@@ -2,7 +2,21 @@
 
 This project does not have a formal public release yet.
 
-Current working milestone: `0.3.0-dev`
+Current working milestone: `0.4.0-dev`
+
+## 0.4.0-dev - Unreleased
+
+### Added
+
+- Start on me mode for keeping current location as the first route point.
+- Add Current Location action for adding the current location as a normal point.
+- Loop back to start mode with a generated `L` endpoint.
+
+### Changed
+
+### Fixed
+
+### Known limitations
 
 ## 0.3.0-dev - Unreleased
 

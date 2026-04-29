@@ -105,6 +105,8 @@
       pr.addSelectedPortal();
     } else if (action === 'add-map-point') {
       pr.setAddPointMode(!pr.state.addPointMode);
+    } else if (action === 'add-current-location') {
+      pr.addCurrentLocation();
     } else if (action === 'move-stop-up') {
       pr.moveStop(Number(target.getAttribute('data-index')), Number(target.getAttribute('data-index')) - 1);
     } else if (action === 'move-stop-down') {
@@ -275,6 +277,21 @@
       if (!panel) return;
 
       var target = ev.target;
+      if (target && target.getAttribute('data-field') === 'start-on-current-location') {
+        pr.setStartOnCurrentLocation(!!target.checked);
+        return;
+      }
+
+      if (target && target.getAttribute('data-field') === 'include-return-to-start') {
+        pr.state.settings.includeReturnToStart = !!target.checked;
+        pr.saveSettings();
+        pr.markRouteStale({ clearRoute: true });
+        pr.redrawLabels();
+        pr.renderPanel();
+        pr.renderMiniControl();
+        return;
+      }
+
       if (target && target.getAttribute('data-field') === 'show-segment-times-on-map') {
         pr.state.settings.showSegmentTimesOnMap = !!target.checked;
         pr.saveSettings();

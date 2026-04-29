@@ -3,7 +3,7 @@
   pr.ROUTE_EXPORT_FORMAT = 'portal-route.v1';
 
   pr.googleMapsUrl = function() {
-    var stops = pr.state.stops;
+    var stops = pr.getRouteStops();
     if (stops.length < 2) return null;
 
     var origin = stops[0];
@@ -26,7 +26,7 @@
   };
 
   pr.googleMapsOmittedStops = function() {
-    var stops = pr.state.stops || [];
+    var stops = pr.getRouteStops();
     if (stops.length <= pr.GOOGLE_MAPS_TOTAL_POINT_LIMIT) return [];
 
     // Google Maps appears to honor origin, destination, and the first 9
@@ -46,7 +46,7 @@
       'Google Maps appears to support only 11 total route points:',
       'start, final destination, and 9 intermediate stops.',
       '',
-      'This route has ' + pr.state.stops.length + ' points. These stops may be omitted by Google Maps:'
+      'This route has ' + pr.getRouteStops().length + ' points. These stops may be omitted by Google Maps:'
     ];
 
     omitted.forEach(function(stop, index) {
@@ -63,7 +63,7 @@
   pr.openGoogleMaps = function() {
     var url = pr.googleMapsUrl();
     if (!url) {
-      pr.showMessage('Add at least two portals first.');
+      pr.showMessage('Add at least two waypoints first.');
       return;
     }
 
@@ -91,7 +91,8 @@
           title: stop.title || ((stop.type || (stop.guid ? 'portal' : 'map')) === 'map' ? 'Map point' : 'Unnamed portal'),
           lat: Number(stop.lat),
           lng: Number(stop.lng),
-          stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null
+          stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null,
+          startOnMe: !!stop.startOnMe
         };
       }),
       route: pr.state.route || null,
@@ -149,7 +150,8 @@
       title: stop.title || (type === 'map' ? 'Map point' : 'Unnamed portal'),
       lat: lat,
       lng: lng,
-      stopMinutes: stopMinutes
+      stopMinutes: stopMinutes,
+      startOnMe: !!stop.startOnMe
     };
   };
 
@@ -223,7 +225,8 @@
   };
 
   pr.printRoute = function() {
-    if (!pr.state.stops.length) {
+    var stops = pr.getRouteStops();
+    if (!stops.length) {
       pr.showMessage('No route to print.');
       return;
     }
@@ -236,12 +239,12 @@
 
     var totals = route && route.totals ? route.totals : null;
     var generatedAt = new Date().toLocaleString();
-    var rows = pr.state.stops.map(function(stop, index) {
-      var wait = pr.formatDurationInput(pr.getEffectiveStopMinutes(stop));
-      var legText = index < pr.state.stops.length - 1 ? pr.printableLegText(legsByFromIndex[index]) : '';
+    var rows = stops.map(function(stop, index) {
+      var wait = stop.generatedLoop ? '0m' : pr.formatDurationInput(pr.getEffectiveStopMinutes(stop));
+      var legText = index < stops.length - 1 ? pr.printableLegText(legsByFromIndex[index]) : '';
 
       return '<tr>' +
-        '<td class="num">' + (index + 1) + '</td>' +
+        '<td class="num">' + (stop.generatedLoop ? 'L' : (index + 1)) + '</td>' +
         '<td><div class="title">' + pr.escapeHtml(stop.title) + '</div><div class="coords">' + pr.escapeHtml(stop.lat + ', ' + stop.lng) + '</div></td>' +
         '<td>' + pr.escapeHtml(wait) + '</td>' +
         '<td>' + pr.escapeHtml(legText) + '</td>' +

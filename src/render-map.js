@@ -46,11 +46,13 @@
     pr.ensureLayers();
     pr.clearLabels();
 
-    pr.state.stops.forEach(function(stop, index) {
-      var isSelected = pr.selectedStopIndex && pr.selectedStopIndex() === index;
+    pr.getRouteStops().forEach(function(stop, index) {
+      var isLoop = !!stop.generatedLoop;
+      var isSelected = !isLoop && pr.selectedStopIndex && pr.selectedStopIndex() === index;
       var selectedClass = isSelected ? ' portal-route-stop-label-selected' : '';
       var isMapPoint = stop.type === 'map';
-      var title = (index + 1) + '. ' + stop.title;
+      var label = isLoop ? 'L' : (index + 1);
+      var title = isLoop ? 'Loop back to ' + stop.title : (index + 1) + '. ' + stop.title;
 
       var selectStop = function(e) {
         if (e.originalEvent && e.originalEvent.stopPropagation) e.originalEvent.stopPropagation();
@@ -79,10 +81,10 @@
       }
 
       var icon = L.divIcon({
-        className: 'portal-route-stop-label' + (isMapPoint ? ' portal-route-map-point-label' : '') + selectedClass,
-        html: '<span>' + (index + 1) + '</span>',
+        className: 'portal-route-stop-label' + (isMapPoint ? ' portal-route-map-point-label' : '') + (isLoop ? ' portal-route-loop-label' : '') + selectedClass,
+        html: '<span>' + label + '</span>',
         iconSize: [18, 18],
-        iconAnchor: [0, 24]
+        iconAnchor: isLoop ? [-18, 24] : [0, 24]
       });
 
       var marker = L.marker([stop.lat, stop.lng], {
@@ -158,8 +160,9 @@
     var midpoint = pr.getPathMidpoint(leg && leg.path);
     if (midpoint) return midpoint;
 
-    var fromStop = pr.state.stops[leg.fromIndex];
-    var toStop = pr.state.stops[leg.toIndex];
+    var stops = pr.getRouteStops();
+    var fromStop = stops[leg.fromIndex];
+    var toStop = stops[leg.toIndex];
     if (!fromStop || !toStop) return null;
 
     return L.latLng(

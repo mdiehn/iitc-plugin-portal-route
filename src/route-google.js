@@ -3,8 +3,9 @@
   };
 
   pr.calculateRoute = function() {
-    if (pr.state.stops.length < 2) {
-      pr.showMessage('Add at least two portals to calculate a route.');
+    var stops = pr.getRouteStops();
+    if (stops.length < 2) {
+      pr.showMessage('Add at least two waypoints to calculate a route.');
       return;
     }
 
@@ -13,7 +14,6 @@
       return;
     }
 
-    var stops = pr.state.stops;
     var origin = stops[0];
     var destination = stops[stops.length - 1];
     var waypoints = stops.slice(1, -1).map(function(stop) {

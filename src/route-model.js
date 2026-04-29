@@ -18,6 +18,165 @@
     pr.saveRoute();
   };
 
+  pr.isManagedStartStop = function(stop) {
+    return !!(stop && stop.startOnMe && pr.state.settings.startOnCurrentLocation);
+  };
+
+  pr.isManagedStartIndex = function(index) {
+    return pr.isManagedStartStop(pr.state.stops[index]);
+  };
+
+  pr.findStartOnMeIndex = function() {
+    for (var i = 0; i < pr.state.stops.length; i++) {
+      if (pr.state.stops[i] && pr.state.stops[i].startOnMe) return i;
+    }
+    return -1;
+  };
+
+  pr.makeLoopStop = function() {
+    if (!pr.state.settings.includeReturnToStart) return null;
+    if (!pr.state.stops.length) return null;
+
+    var first = pr.state.stops[0];
+    return {
+      guid: first.guid || null,
+      type: 'loop',
+      title: first.title || 'Start',
+      lat: first.lat,
+      lng: first.lng,
+      stopMinutes: 0,
+      generatedLoop: true,
+      linkedStopIndex: 0,
+      linkedStopGuid: first.guid || null
+    };
+  };
+
+  pr.getRouteStops = function() {
+    var stops = pr.state.stops.slice();
+    var loopStop = pr.makeLoopStop();
+    if (loopStop && stops.length > 1) stops.push(loopStop);
+    return stops;
+  };
+
+  pr.getRouteStop = function(index) {
+    return pr.getRouteStops()[index] || null;
+  };
+
+  pr.currentLocationStopFromPosition = function(position, options) {
+    options = options || {};
+    var coords = position && position.coords;
+    if (!coords || typeof coords.latitude !== 'number' || typeof coords.longitude !== 'number') return null;
+
+    return {
+      guid: null,
+      type: 'map',
+      title: options.title || 'Current location',
+      lat: coords.latitude,
+      lng: coords.longitude,
+      stopMinutes: options.startOnMe ? 0 : null,
+      startOnMe: !!options.startOnMe,
+      accuracy: typeof coords.accuracy === 'number' ? coords.accuracy : null,
+      updatedAt: new Date().toISOString()
+    };
+  };
+
+  pr.getCurrentLocation = function(onSuccess, onError) {
+    if (!window.navigator || !navigator.geolocation) {
+      if (onError) onError(new Error('Geolocation is not available.'));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      function(position) { onSuccess(position); },
+      function(error) {
+        if (onError) onError(error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 30000
+      }
+    );
+  };
+
+  pr.applyStartOnCurrentLocation = function(position) {
+    var stop = pr.currentLocationStopFromPosition(position, { startOnMe: true });
+    if (!stop) {
+      pr.showMessage('Could not read current location.');
+      return false;
+    }
+
+    var selectedIndex = pr.state.selectedMapPointIndex;
+    var selectedStop = typeof selectedIndex === 'number' ? pr.state.stops[selectedIndex] : null;
+    var existingIndex = pr.findStartOnMeIndex();
+    var existingStop = existingIndex >= 0 ? pr.state.stops[existingIndex] : null;
+
+    if (existingStop) {
+      Object.assign(existingStop, stop);
+      pr.state.stops.splice(existingIndex, 1);
+      pr.state.stops.unshift(existingStop);
+    } else {
+      pr.state.stops.unshift(stop);
+    }
+
+    if (selectedStop) {
+      var newSelectedIndex = pr.state.stops.indexOf(selectedStop);
+      pr.state.selectedMapPointIndex = newSelectedIndex >= 0 ? newSelectedIndex : null;
+    }
+
+    pr.markRouteStale({ clearRoute: true });
+    pr.saveStops();
+    pr.redrawLabels();
+    pr.renderPanel();
+    pr.renderMiniControl();
+    return true;
+  };
+
+  pr.setStartOnCurrentLocation = function(enabled) {
+    pr.state.settings.startOnCurrentLocation = !!enabled;
+    pr.saveSettings();
+
+    if (!enabled) {
+      pr.renderPanel();
+      return;
+    }
+
+    pr.showMessage('Getting current location...');
+    pr.getCurrentLocation(
+      function(position) {
+        if (!pr.state.settings.startOnCurrentLocation) return;
+        if (pr.applyStartOnCurrentLocation(position)) {
+          pr.showMessage('Start set to current location.');
+        }
+      },
+      function(error) {
+        pr.state.settings.startOnCurrentLocation = false;
+        pr.saveSettings();
+        pr.renderPanel();
+        pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '.'));
+      }
+    );
+  };
+
+  pr.addCurrentLocation = function() {
+    pr.showMessage('Getting current location...');
+    pr.getCurrentLocation(
+      function(position) {
+        var stop = pr.currentLocationStopFromPosition(position, { title: 'Current location' });
+        if (!stop) {
+          pr.showMessage('Could not read current location.');
+          return;
+        }
+        delete stop.startOnMe;
+        pr.addStop(stop);
+        pr.showMessage('Current location added.');
+      },
+      function(error) {
+        pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '.'));
+      }
+    );
+  };
+
   pr.addStop = function(stop) {
     if (!stop || typeof stop.lat !== 'number' || typeof stop.lng !== 'number') return;
 
@@ -35,7 +194,10 @@
       title: title,
       lat: stop.lat,
       lng: stop.lng,
-      stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null
+      stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null,
+      startOnMe: !!stop.startOnMe,
+      accuracy: typeof stop.accuracy === 'number' ? stop.accuracy : null,
+      updatedAt: stop.updatedAt || null
     });
 
     if (stopType === 'map') {
@@ -52,7 +214,7 @@
 
   pr.nextMapPointTitle = function() {
     var count = pr.state.stops.filter(function(stop) {
-      return stop && stop.type === 'map';
+      return stop && stop.type === 'map' && !stop.startOnMe;
     }).length + 1;
     return 'Map point ' + count;
   };
@@ -77,6 +239,10 @@
 
   pr.removeStop = function(index) {
     if (index < 0 || index >= pr.state.stops.length) return;
+    if (pr.isManagedStartIndex(index)) {
+      pr.showMessage('Untick Start on me before removing that point.');
+      return;
+    }
 
     if (pr.state.selectedMapPointIndex === index) {
       pr.state.selectedMapPointIndex = null;
@@ -93,6 +259,8 @@
   };
 
   pr.clearStops = function() {
+    var restoreStartOnMe = !!pr.state.settings.startOnCurrentLocation;
+
     pr.state.stops = [];
     pr.state.route = null;
     pr.state.routeDirty = false;
@@ -103,11 +271,18 @@
     pr.redrawLabels();
     pr.renderPanel();
     pr.renderMiniControl();
+
+    if (restoreStartOnMe) {
+      pr.setStartOnCurrentLocation(true);
+    }
   };
 
   pr.moveStop = function(fromIndex, toIndex) {
     if (fromIndex < 0 || fromIndex >= pr.state.stops.length) return;
     if (toIndex < 0 || toIndex >= pr.state.stops.length) return;
+    if (fromIndex === toIndex) return;
+    if (pr.isManagedStartIndex(fromIndex)) return;
+    if (pr.state.settings.startOnCurrentLocation && toIndex === 0) toIndex = 1;
     if (fromIndex === toIndex) return;
 
     var selectedIndex = pr.state.selectedMapPointIndex;
@@ -137,6 +312,7 @@
 
     var stop = pr.state.stops[index];
     if (!stop || stop.type !== 'map') return;
+    if (pr.isManagedStartStop(stop)) return;
 
     var cleanTitle = String(title == null ? '' : title).trim();
     if (!cleanTitle) cleanTitle = pr.nextMapPointTitle();
@@ -151,6 +327,7 @@
 
   pr.setStopMinutes = function(index, minutes) {
     if (index < 0 || index >= pr.state.stops.length) return;
+    if (pr.isManagedStartIndex(index)) return;
     if (typeof minutes !== 'number' || !isFinite(minutes) || minutes < 0) return;
 
     pr.state.stops[index].stopMinutes = Math.round(minutes);
@@ -184,8 +361,16 @@
   };
 
   pr.selectStopPortal = function(index, center) {
-    var stop = pr.state.stops[index];
+    var stop = pr.getRouteStop(index);
     if (!stop) return;
+
+    if (stop.generatedLoop) {
+      if (center && window.map) {
+        window.map.setView([stop.lat, stop.lng], window.map.getZoom());
+      }
+      pr.showMessage('Loop endpoint returns to the first waypoint.');
+      return;
+    }
 
     if (!stop.guid) {
       pr.state.selectedMapPointIndex = index;
