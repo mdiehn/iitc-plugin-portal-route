@@ -60,15 +60,39 @@ function wrapper(plugin_info) {
   margin-top: 4px;
 }
 
+.portal-route-list-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 0 6px;
+}
+
 .portal-route-setting {
   display: flex;
   align-items: center;
   gap: 5px;
-  margin: 8px 0 8px;
+  margin: 0;
 }
 
 .portal-route-setting input {
   width: 4.5em;
+}
+
+.portal-route-default-stop-setting {
+  flex: 1 1 auto;
+}
+
+.portal-route-clear-list-button {
+  flex: 0 0 auto;
+}
+
+.portal-route-settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-top: 8px;
 }
 
 .portal-route-checkbox-setting {
@@ -292,6 +316,32 @@ button.portal-route-waypoint-badge {
   flex-wrap: wrap;
   gap: 5px;
   margin-top: 8px;
+}
+
+.portal-route-control-groups {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 0.75fr);
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.portal-route-control-group {
+  min-width: 0;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.portal-route-control-group-title {
+  margin-bottom: 4px;
+  font-weight: bold;
+  opacity: 0.9;
+}
+
+.portal-route-control-group-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .portal-route-footer-actions {
@@ -519,6 +569,14 @@ input.portal-route-waypoint-name-input:focus,
     width: 20px !important;
     min-width: 20px !important;
     max-width: 20px !important;
+  }
+
+  .portal-route-control-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-route-list-options {
+    align-items: flex-start;
   }
 
 }
@@ -1580,31 +1638,14 @@ input.portal-route-waypoint-name-input:focus,
   };
 
   pr.renderMainPanel = function(legsByToIndex) {
-    var stops = pr.state.stops;
     var html = '';
 
     html += '<div class="portal-route-body">';
     html += pr.renderStopsList(legsByToIndex);
 
-    html += '<label class="portal-route-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" title="Examples: 15m, 1.5h, 2d" data-field="default-stop-minutes"> per portal</label>';
-
-    html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="start-on-current-location" ' + (pr.state.settings.startOnCurrentLocation ? 'checked ' : '') + '> Start on me</label>';
-    html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="include-return-to-start" ' + (pr.state.settings.includeReturnToStart ? 'checked ' : '') + '> Loop back to start</label>';
-    html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-segment-times-on-map" ' + (pr.state.settings.showSegmentTimesOnMap ? 'checked ' : '') + '> Show segment times on map</label>';
-
-    var plotLabel = pr.state.routeDirty ? 'Replot' : 'Plot';
-
-    html += '<div class="portal-route-actions">';
-    html += '<button type="button" data-action="add-selected-stop">Add Portal</button>';
-    html += '<button type="button" data-action="add-map-point"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add Point</button>';
-    html += '<button type="button" data-action="add-current-location">Add Current Location</button>';
-    html += '<button type="button" data-action="calculate-route">' + plotLabel + '</button>';
-    html += '<button type="button" data-action="open-google-maps">Open Maps</button>';
-    html += '<button type="button" data-action="export-route-json">Export</button>';
-    html += '<button type="button" data-action="import-route-json">Import</button>';
-    html += '<button type="button" data-action="print-route">Print</button>';
-    html += '<button type="button" data-action="clear-route">Clear</button>';
-    html += '<button type="button" data-action="close-panel">Close</button>';
+    html += '<div class="portal-route-list-options">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" title="Examples: 15m, 1.5h, 2d" data-field="default-stop-minutes"> per portal</label>';
+    html += '<button type="button" class="portal-route-clear-list-button" data-action="clear-route">Clear list</button>';
     html += '</div>';
 
     html += '<div class="portal-route-bottom-summary"><b>Waypoints:</b> ' + pr.state.stops.length + (pr.makeLoopStop() && pr.state.stops.length > 1 ? ' + loop' : '') + '</div>';
@@ -1612,6 +1653,34 @@ input.portal-route-waypoint-name-input:focus,
       html += '<div class="portal-route-stale">Route needs replot.</div>';
     }
     html += pr.renderTotals(pr.state.route);
+
+    html += '<div class="portal-route-settings-row">';
+    html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="start-on-current-location" ' + (pr.state.settings.startOnCurrentLocation ? 'checked ' : '') + '> Start on me</label>';
+    html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="include-return-to-start" ' + (pr.state.settings.includeReturnToStart ? 'checked ' : '') + '> Loop back to start</label>';
+    html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-segment-times-on-map" ' + (pr.state.settings.showSegmentTimesOnMap ? 'checked ' : '') + '> Show segment times on map</label>';
+    html += '</div>';
+
+    var plotLabel = pr.state.routeDirty ? 'Replot Route' : 'Plot Route';
+
+    html += '<div class="portal-route-control-groups">';
+    html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Add</div><div class="portal-route-control-group-buttons">';
+    html += '<button type="button" data-action="add-selected-stop">Add Portal</button>';
+    html += '<button type="button" data-action="add-map-point"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add Point</button>';
+    html += '<button type="button" data-action="add-current-location">Add Current Location</button>';
+    html += '</div></div>';
+
+    html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Route</div><div class="portal-route-control-group-buttons">';
+    html += '<button type="button" data-action="calculate-route">' + plotLabel + '</button>';
+    html += '<button type="button" data-action="open-google-maps">Open Maps</button>';
+    html += '<button type="button" data-action="print-route">Print</button>';
+    html += '</div></div>';
+
+    html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Data</div><div class="portal-route-control-group-buttons">';
+    html += '<button type="button" data-action="export-route-json">Export</button>';
+    html += '<button type="button" data-action="import-route-json">Import</button>';
+    html += '</div></div>';
+    html += '</div>';
+
     if (pr.SHOW_VERSION_IN_PANEL) {
       html += '<div class="portal-route-version">Portal Route ' + pr.escapeHtml(pr.VERSION) + '</div>';
     }

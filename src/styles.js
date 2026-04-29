@@ -38,15 +38,39 @@
   margin-top: 4px;
 }
 
+.portal-route-list-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 0 6px;
+}
+
 .portal-route-setting {
   display: flex;
   align-items: center;
   gap: 5px;
-  margin: 8px 0 8px;
+  margin: 0;
 }
 
 .portal-route-setting input {
   width: 4.5em;
+}
+
+.portal-route-default-stop-setting {
+  flex: 1 1 auto;
+}
+
+.portal-route-clear-list-button {
+  flex: 0 0 auto;
+}
+
+.portal-route-settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-top: 8px;
 }
 
 .portal-route-checkbox-setting {
@@ -270,6 +294,32 @@ button.portal-route-waypoint-badge {
   flex-wrap: wrap;
   gap: 5px;
   margin-top: 8px;
+}
+
+.portal-route-control-groups {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 0.75fr);
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.portal-route-control-group {
+  min-width: 0;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.portal-route-control-group-title {
+  margin-bottom: 4px;
+  font-weight: bold;
+  opacity: 0.9;
+}
+
+.portal-route-control-group-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .portal-route-footer-actions {
@@ -497,6 +547,14 @@ input.portal-route-waypoint-name-input:focus,
     width: 20px !important;
     min-width: 20px !important;
     max-width: 20px !important;
+  }
+
+  .portal-route-control-groups {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-route-list-options {
+    align-items: flex-start;
   }
 
 }
