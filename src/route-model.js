@@ -158,6 +158,19 @@
     );
   };
 
+  pr.setLoopBackToStart = function(enabled) {
+    pr.state.settings.includeReturnToStart = !!enabled;
+    pr.saveSettings();
+    pr.markRouteStale({ clearRoute: true });
+    pr.redrawLabels();
+    pr.renderPanel();
+    pr.renderMiniControl();
+  };
+
+  pr.toggleLoopBackToStart = function() {
+    pr.setLoopBackToStart(!pr.state.settings.includeReturnToStart);
+  };
+
   pr.addCurrentLocation = function() {
     pr.showMessage('Getting current location...');
     pr.getCurrentLocation(
@@ -175,53 +188,6 @@
         pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '.'));
       }
     );
-  };
-
-  pr.replaceStops = function(stops, options) {
-    options = options || {};
-    if (!Array.isArray(stops)) return false;
-
-    var seenGuids = {};
-    var normalized = [];
-
-    stops.forEach(function(stop) {
-      var normalizedStop = pr.normalizeImportedStop ? pr.normalizeImportedStop(stop) : null;
-      if (!normalizedStop) return;
-
-      if (normalizedStop.guid) {
-        if (seenGuids[normalizedStop.guid]) return;
-        seenGuids[normalizedStop.guid] = true;
-      }
-
-      normalized.push(normalizedStop);
-    });
-
-    pr.state.stops = normalized;
-    pr.state.route = null;
-    pr.state.routeDirty = false;
-    pr.state.selectedMapPointIndex = null;
-
-    if (options.disableStartOnCurrentLocation !== false && pr.state.settings) {
-      pr.state.settings.startOnCurrentLocation = false;
-      pr.saveSettings();
-    }
-
-    pr.saveStops();
-    pr.saveRoute();
-    pr.clearRouteLine();
-    pr.redrawLabels();
-    pr.redrawSegmentTimeLabels();
-
-    if (options.openPanel) {
-      pr.state.panelView = 'main';
-      pr.state.panelOpen = true;
-      pr.savePanelOpen();
-    }
-
-    pr.renderPanel();
-    pr.renderMiniControl();
-    pr.showMessage('Imported ' + normalized.length + ' stops.');
-    return true;
   };
 
   pr.addStop = function(stop) {

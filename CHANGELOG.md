@@ -8,16 +8,33 @@ Current working milestone: `0.4.0-dev`
 
 ### Added
 
-- Start on me mode for keeping current location as the first route point.
-- Add Current Location action for adding the current location as a normal point.
-- Loop back to start mode with a generated `L` endpoint.
-- Add external route import API so other IITC plugins can replace the current route stop list.
+- Start on me option that adds the current browser/device location as the first stop and keeps it first while enabled.
+- Add Current Location action for adding the current browser/device location as a normal manual point.
+- Loop back to start option with a generated final loop endpoint.
+- Generated loop endpoint marker labeled `L`.
+- Mini-control `L` button for toggling loop back to start.
+- README usage notes and real UI screenshots.
 
 ### Changed
 
+- Reorganized the main panel controls into Add, Route, and Data sections.
+- Moved route summary information above the action buttons.
+- Moved Clear list next to the default stop time control.
+- Moved route settings into a single checkbox row.
+- Removed the duplicate Close button from the panel body.
+- Replaced the duplicate mini-control bottom action with the loop toggle.
+- Updated route plotting, labels, Google Maps export, print output, JSON export, and JSON import to handle generated loop endpoints.
+
 ### Fixed
 
+- Avoided forcing current location into the route when adding the first portal.
+- Kept generated Start on me and loop endpoints from being directly edited, moved, or removed while managed by their settings.
+
 ### Known limitations
+
+- Browser/device location may be inaccurate, especially on desktop systems.
+- The generated loop endpoint is managed by the loop option, not edited as a normal waypoint.
+- Saved route library is planned for a later milestone.
 
 ## 0.3.0-dev - Unreleased
 

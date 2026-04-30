@@ -107,6 +107,8 @@
       pr.setAddPointMode(!pr.state.addPointMode);
     } else if (action === 'add-current-location') {
       pr.addCurrentLocation();
+    } else if (action === 'toggle-loop-back') {
+      pr.toggleLoopBackToStart();
     } else if (action === 'move-stop-up') {
       pr.moveStop(Number(target.getAttribute('data-index')), Number(target.getAttribute('data-index')) - 1);
     } else if (action === 'move-stop-down') {
@@ -202,13 +204,15 @@
     var addRemoveText = selectedInRoute ? '-' : '+';
     var addRemoveTitle = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal to route';
     var plotTitle = pr.state.routeDirty ? 'Replot route on map' : 'Plot route on map';
+    var loopClass = pr.state.settings.includeReturnToStart ? ' portal-route-mini-active' : '';
+    var loopTitle = pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start';
 
     container.innerHTML = '' +
       '<a href="#" title="Open route in Google Maps" data-action="open-google-maps">M</a>' +
       '<a href="#" title="' + plotTitle + '" data-action="calculate-route">P</a>' +
       '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="toggle-selected-stop">' + addRemoveText + '</a>' +
       '<a href="#" title="Open Portal Route menu" data-action="open-main">' + pr.state.stops.length + '</a>' +
-      '<a href="#" title="Portal Route menu" data-action="open-main">=</a>';
+      '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>';
   };
 
   pr.setupDialogEventHandlers = function() {
@@ -283,12 +287,7 @@
       }
 
       if (target && target.getAttribute('data-field') === 'include-return-to-start') {
-        pr.state.settings.includeReturnToStart = !!target.checked;
-        pr.saveSettings();
-        pr.markRouteStale({ clearRoute: true });
-        pr.redrawLabels();
-        pr.renderPanel();
-        pr.renderMiniControl();
+        pr.setLoopBackToStart(!!target.checked);
         return;
       }
 
