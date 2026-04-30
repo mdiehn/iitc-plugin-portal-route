@@ -26,6 +26,10 @@
   color: #c00000;
 }
 
+.portal-route-mini-control .portal-route-mini-active {
+  text-decoration: underline;
+}
+
 .portal-route-dialog-content * {
   box-sizing: border-box;
 }

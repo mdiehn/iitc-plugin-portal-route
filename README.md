@@ -1,12 +1,12 @@
 # IITC plugin: Portal Route
 
-Portal Route is an IITC plugin for planning a route through selected Ingress portals.
+Portal Route is an IITC plugin for planning a driving route through selected Ingress portals and manual map points.
 
-It is built for mobile-first use, but works on desktop IITC too. Pick portals, keep them in order, plot the route, track stop time, and send the route to Google Maps when you are ready.
+It is built for mobile-first use, but works on desktop IITC too. Build a stop list, plot the route, account for stop time, export to Google Maps, or print a route summary.
 
 ## Status
 
-Current milestone: `0.3.0-dev`
+Current milestone: `0.4.0-dev`
 
 This is usable for testing and early public review. It is still a development build.
 
@@ -15,18 +15,93 @@ This is usable for testing and early public review. It is still a development bu
 ## Quick start
 
 1. Select a portal in IITC.
-2. Use **Add to Portal Route**.
-3. Add more portals.
-4. Open the Portal Route panel.
-5. Adjust stop times if needed.
-6. Click **Plot**.
-7. Use **Maps**, **Print**, or **Export** as needed.
+2. Click **Add Portal**.
+3. Add more portals, manual points, or your current location.
+4. Adjust stop times if needed.
+5. Click **Plot Route**.
+6. Use **Open Maps**, **Print**, **Export**, or **Import** as needed.
+
+## Main panel
+
+![Portal Route main panel](docs/images/mainpanel.png)
+
+The main panel is where you manage the route.
+
+### Stop list
+
+The stop list shows the current route order. Use the row controls to move or remove stops. Manual points can also be renamed.
+
+**Default stop time** applies to stops that do not have their own stop time. **Clear list** removes the current route.
+
+### Settings
+
+- **Start on me** adds your current browser/device location as the first stop and keeps it first while enabled. When disabled, it leaves the route alone.
+- **Loop back to start** adds a generated final stop linked to the first stop. The generated loop endpoint is labeled `L` and is not directly edited or removed.
+- **Show segment times on map** shows per-leg labels on the route line when route data is available.
+
+### Add
+
+- **Add Portal** adds the selected portal.
+- **Add Point** lets you add a manual point from the map.
+- **Add Current Location** adds your current browser/device location as a normal manual point.
+
+### Route
+
+- **Plot Route** plots or replots the route on the IITC map.
+- **Open Maps** opens the route in Google Maps.
+- **Print** opens a printable route summary.
+
+When route data is available, the panel shows drive time, stop time, trip time, and distance.
+
+![Portal Route panel with route data](docs/images/mainpanel-with-route-data.png)
+
+### Data
+
+- **Export** downloads the current route as JSON.
+- **Import** loads a route from JSON.
+
+## Mini control
+
+The mini control is for quick route actions while mostly staying on the map.
+
+<img src="docs/images/minicontrol.png" alt="Portal Route mini control" width="82">
+
+- **M** opens the current route in Google Maps.
+- **P** plots or replots the route.
+- **+ / -** adds or removes the selected portal or manual point.
+- **count button** opens the full Portal Route panel.
+- **L** toggles loop back to start.
+
+## Location notes
+
+Browser location can be very accurate on a phone and very wrong on a desktop. Desktop browsers may report the location of a network exit point instead of your real position.
+
+Use **Start on me** when you are on the device you will actually navigate from. Use **Add Current Location** when you want to add your location as a normal route point.
+
+## Map views
+
+Picked stops appear as numbered markers before routing.
+
+![Portal Route with picked stops](docs/images/iitc-with-points-picked.png)
+
+After plotting, Portal Route draws the route line and fills in drive time, trip time, and distance. With **Loop back to start** enabled, the generated loop endpoint is labeled `L`.
+
+![Portal Route with route plotted and loop enabled](docs/images/iitc-with-route-plotted-and-loop-enabled.png)
+
+## Empty route
+
+After clearing the list, the panel keeps the route controls available and shows that there are no waypoints.
+
+![Portal Route empty panel](docs/images/mainpanel-cleared.png)
 
 ## Main features
 
 - Add selected portals as route stops.
-- Edit stops in the main route panel.
-- Remove and reorder stops.
+- Add manual map points.
+- Add your current location as a route stop.
+- Optionally keep your current location as the first stop.
+- Optionally loop back to the first stop.
+- Edit, remove, and reorder stops.
 - Set a default stop time.
 - Override stop time per stop.
 - Use flexible stop times like `15m`, `1.5h`, and `2d`.
@@ -39,7 +114,6 @@ This is usable for testing and early public review. It is still a development bu
 - Optionally show segment time labels on the map.
 - Export the route to Google Maps.
 - Export and import route JSON.
-- Accept ordered route stops from other IITC plugins through a small external import API.
 - Open a printable route summary.
 
 ## Known limits
@@ -50,6 +124,10 @@ Google Maps appears to plot the first point, final point, and up to 9 intermedia
 
 Portal Route warns before opening Google Maps with more than 11 route points and lists the stops Google Maps may omit. Route splitting is planned for later.
 
+### Browser/device location
+
+Current location depends on browser geolocation. On desktop, this may be coarse or wrong.
+
 ### Mobile hover behavior
 
 Hover labels are limited on mobile because touch devices do not have reliable hover.
@@ -57,38 +135,6 @@ Hover labels are limited on mobile because touch devices do not have reliable ho
 ### Stale route data
 
 Changing stops or stop times marks the plotted route stale. Replot before trusting totals, segment data, or the route line.
-
-## External route import API
-
-Portal Route exposes a small import API so other IITC plugins can send it an ordered list of route stops.
-
-```js
-window.plugin.portalRoute.replaceStops(stops, options);
-```
-
-`stops` should be an array of objects:
-
-```js
-[
-  {
-    guid: 'portal-guid-if-known',
-    title: 'Portal name',
-    lat: 43.12345,
-    lng: -72.12345
-  }
-]
-```
-
-`options` is optional:
-
-```js
-{
-  clearRoute: true,
-  openPanel: true
-}
-```
-
-This replaces the current stop list with the imported stops. It is meant for integrations with other planning plugins, bookmark workflows, or route-building tools.
 
 ## Build
 
@@ -127,7 +173,7 @@ node --check dist/portal-route.user.js
 
 ```text
 dist/                 built userscript files
-docs/                 design and usability notes
+docs/                 design notes and images
 src/                  plugin source files
 CHANGELOG.md          changes by milestone
 README.md             this file
@@ -146,7 +192,7 @@ src/banner.js
 package.json
 ```
 
-## Docs
+## More docs
 
 - [Design overview](docs/design.md)
 - [Phase 1 design](docs/design-phase-1.md)
@@ -154,4 +200,4 @@ package.json
 
 ## Credits
 
-Portal Route is a separate implementation inspired in part by the IITC Traveling Agent plugin by yavidor and the Map Route Planner plugin.
+Portal Route is a separate implementation inspired in part by the IITC plugins [Map Route Planner](https://softspot.nl/ingress/plugins/documentation/iitc-plugin-maps-route-planner.user.js.html), by DanielOnDiordona, and [Traveling Agent](https://github.com/yavidor/traveling-agent-plugin), by yavidor.
