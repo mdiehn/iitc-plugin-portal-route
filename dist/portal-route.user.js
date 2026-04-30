@@ -976,6 +976,53 @@ input.portal-route-waypoint-name-input:focus,
     );
   };
 
+  pr.replaceStops = function(stops, options) {
+    options = options || {};
+    if (!Array.isArray(stops)) return false;
+
+    var seenGuids = {};
+    var normalized = [];
+
+    stops.forEach(function(stop) {
+      var normalizedStop = pr.normalizeImportedStop ? pr.normalizeImportedStop(stop) : null;
+      if (!normalizedStop) return;
+
+      if (normalizedStop.guid) {
+        if (seenGuids[normalizedStop.guid]) return;
+        seenGuids[normalizedStop.guid] = true;
+      }
+
+      normalized.push(normalizedStop);
+    });
+
+    pr.state.stops = normalized;
+    pr.state.route = null;
+    pr.state.routeDirty = false;
+    pr.state.selectedMapPointIndex = null;
+
+    if (options.disableStartOnCurrentLocation !== false && pr.state.settings) {
+      pr.state.settings.startOnCurrentLocation = false;
+      pr.saveSettings();
+    }
+
+    pr.saveStops();
+    pr.saveRoute();
+    pr.clearRouteLine();
+    pr.redrawLabels();
+    pr.redrawSegmentTimeLabels();
+
+    if (options.openPanel) {
+      pr.state.panelView = 'main';
+      pr.state.panelOpen = true;
+      pr.savePanelOpen();
+    }
+
+    pr.renderPanel();
+    pr.renderMiniControl();
+    pr.showMessage('Imported ' + normalized.length + ' stops.');
+    return true;
+  };
+
   pr.addStop = function(stop) {
     if (!stop || typeof stop.lat !== 'number' || typeof stop.lng !== 'number') return;
 

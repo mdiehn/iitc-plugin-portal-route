@@ -11,6 +11,7 @@ Current working milestone: `0.4.0-dev`
 - Start on me mode for keeping current location as the first route point.
 - Add Current Location action for adding the current location as a normal point.
 - Loop back to start mode with a generated `L` endpoint.
+- Add external route import API so other IITC plugins can replace the current route stop list.
 
 ### Changed
 

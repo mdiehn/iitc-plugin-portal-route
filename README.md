@@ -39,6 +39,7 @@ This is usable for testing and early public review. It is still a development bu
 - Optionally show segment time labels on the map.
 - Export the route to Google Maps.
 - Export and import route JSON.
+- Accept ordered route stops from other IITC plugins through a small external import API.
 - Open a printable route summary.
 
 ## Known limits
@@ -56,6 +57,38 @@ Hover labels are limited on mobile because touch devices do not have reliable ho
 ### Stale route data
 
 Changing stops or stop times marks the plotted route stale. Replot before trusting totals, segment data, or the route line.
+
+## External route import API
+
+Portal Route exposes a small import API so other IITC plugins can send it an ordered list of route stops.
+
+```js
+window.plugin.portalRoute.replaceStops(stops, options);
+```
+
+`stops` should be an array of objects:
+
+```js
+[
+  {
+    guid: 'portal-guid-if-known',
+    title: 'Portal name',
+    lat: 43.12345,
+    lng: -72.12345
+  }
+]
+```
+
+`options` is optional:
+
+```js
+{
+  clearRoute: true,
+  openPanel: true
+}
+```
+
+This replaces the current stop list with the imported stops. It is meant for integrations with other planning plugins, bookmark workflows, or route-building tools.
 
 ## Build
 
