@@ -64,12 +64,13 @@
         var pointIcon = L.divIcon({
           className: 'portal-route-map-point-marker' + (isSelected ? ' portal-route-map-point-marker-selected' : ''),
           html: '<span></span>',
-          iconSize: [18, 18],
-          iconAnchor: [9, 9]
+          iconSize: [16, 16],
+          iconAnchor: [8, 8]
         });
 
         var pointMarker = L.marker([stop.lat, stop.lng], {
           icon: pointIcon,
+          draggable: !pr.isManagedStartStop(stop),
           interactive: true,
           keyboard: false,
           bubblingMouseEvents: false,
@@ -77,6 +78,22 @@
         });
 
         pointMarker.on('click', selectStop);
+        pointMarker.on('dragstart', function(e) {
+          if (e.target && e.target._icon) e.target._icon.classList.add('portal-route-map-point-marker-dragging');
+          pr.state.selectedMapPointIndex = index;
+          if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
+          pr.renderPanel();
+          pr.renderMiniControl();
+        });
+        pointMarker.on('drag', function(e) {
+          var latlng = e.target.getLatLng();
+          pr.updateMapPointPosition(index, latlng, { live: true });
+          marker.setLatLng(latlng);
+        });
+        pointMarker.on('dragend', function(e) {
+          if (e.target && e.target._icon) e.target._icon.classList.remove('portal-route-map-point-marker-dragging');
+          pr.updateMapPointPosition(index, e.target.getLatLng());
+        });
         pointMarker.addTo(pr.state.layers.labels);
       }
 

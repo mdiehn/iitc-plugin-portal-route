@@ -243,6 +243,29 @@
     });
   };
 
+  pr.updateMapPointPosition = function(index, latlng, options) {
+    options = options || {};
+    if (index < 0 || index >= pr.state.stops.length) return false;
+    if (!latlng || typeof latlng.lat !== 'number' || typeof latlng.lng !== 'number') return false;
+
+    var stop = pr.state.stops[index];
+    if (!stop || stop.type !== 'map') return false;
+    if (pr.isManagedStartStop(stop)) return false;
+
+    stop.lat = latlng.lat;
+    stop.lng = latlng.lng;
+
+    if (options.live) return true;
+
+    pr.state.selectedMapPointIndex = index;
+    pr.markRouteStale({ clearRoute: true });
+    pr.saveStops();
+    pr.redrawLabels();
+    pr.renderPanel();
+    pr.renderMiniControl();
+    return true;
+  };
+
   pr.setAddPointMode = function(enabled) {
     pr.state.addPointMode = !!enabled;
     pr.renderPanel();

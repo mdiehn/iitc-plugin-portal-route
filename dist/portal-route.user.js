@@ -428,19 +428,25 @@ button.portal-route-waypoint-badge {
 
 .portal-route-map-point-marker span {
   display: block;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   box-sizing: border-box;
-  border: 2px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.95);
   border-radius: 50%;
-  background: rgba(80, 170, 255, 0.85);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
-  cursor: pointer;
+  background: rgba(80, 170, 255, 0.72);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  cursor: grab;
 }
 
 .portal-route-map-point-marker-selected span {
-  outline: 2px solid #fff;
+  outline: 1px solid #fff;
   outline-offset: 2px;
+}
+
+.portal-route-map-point-marker-dragging span {
+  background: rgba(255, 216, 0, 0.88);
+  cursor: grabbing;
+  transform: scale(1.15);
 }
 
 .portal-route-segment-time-label {
@@ -1046,6 +1052,29 @@ input.portal-route-waypoint-name-input:focus,
     });
   };
 
+  pr.updateMapPointPosition = function(index, latlng, options) {
+    options = options || {};
+    if (index < 0 || index >= pr.state.stops.length) return false;
+    if (!latlng || typeof latlng.lat !== 'number' || typeof latlng.lng !== 'number') return false;
+
+    var stop = pr.state.stops[index];
+    if (!stop || stop.type !== 'map') return false;
+    if (pr.isManagedStartStop(stop)) return false;
+
+    stop.lat = latlng.lat;
+    stop.lng = latlng.lng;
+
+    if (options.live) return true;
+
+    pr.state.selectedMapPointIndex = index;
+    pr.markRouteStale({ clearRoute: true });
+    pr.saveStops();
+    pr.redrawLabels();
+    pr.renderPanel();
+    pr.renderMiniControl();
+    return true;
+  };
+
   pr.setAddPointMode = function(enabled) {
     pr.state.addPointMode = !!enabled;
     pr.renderPanel();
@@ -1401,12 +1430,13 @@ input.portal-route-waypoint-name-input:focus,
         var pointIcon = L.divIcon({
           className: 'portal-route-map-point-marker' + (isSelected ? ' portal-route-map-point-marker-selected' : ''),
           html: '<span></span>',
-          iconSize: [18, 18],
-          iconAnchor: [9, 9]
+          iconSize: [16, 16],
+          iconAnchor: [8, 8]
         });
 
         var pointMarker = L.marker([stop.lat, stop.lng], {
           icon: pointIcon,
+          draggable: !pr.isManagedStartStop(stop),
           interactive: true,
           keyboard: false,
           bubblingMouseEvents: false,
@@ -1414,6 +1444,22 @@ input.portal-route-waypoint-name-input:focus,
         });
 
         pointMarker.on('click', selectStop);
+        pointMarker.on('dragstart', function(e) {
+          if (e.target && e.target._icon) e.target._icon.classList.add('portal-route-map-point-marker-dragging');
+          pr.state.selectedMapPointIndex = index;
+          if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
+          pr.renderPanel();
+          pr.renderMiniControl();
+        });
+        pointMarker.on('drag', function(e) {
+          var latlng = e.target.getLatLng();
+          pr.updateMapPointPosition(index, latlng, { live: true });
+          marker.setLatLng(latlng);
+        });
+        pointMarker.on('dragend', function(e) {
+          if (e.target && e.target._icon) e.target._icon.classList.remove('portal-route-map-point-marker-dragging');
+          pr.updateMapPointPosition(index, e.target.getLatLng());
+        });
         pointMarker.addTo(pr.state.layers.labels);
       }
 

@@ -406,19 +406,25 @@ button.portal-route-waypoint-badge {
 
 .portal-route-map-point-marker span {
   display: block;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   box-sizing: border-box;
-  border: 2px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.95);
   border-radius: 50%;
-  background: rgba(80, 170, 255, 0.85);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
-  cursor: pointer;
+  background: rgba(80, 170, 255, 0.72);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  cursor: grab;
 }
 
 .portal-route-map-point-marker-selected span {
-  outline: 2px solid #fff;
+  outline: 1px solid #fff;
   outline-offset: 2px;
+}
+
+.portal-route-map-point-marker-dragging span {
+  background: rgba(255, 216, 0, 0.88);
+  cursor: grabbing;
+  transform: scale(1.15);
 }
 
 .portal-route-segment-time-label {
