@@ -6,7 +6,7 @@ It is built for mobile-first use, but works on desktop IITC too. Build a stop li
 
 ## Status
 
-Current milestone: `0.4.0-dev`
+Current milestone: `0.4.0`
 
 This is usable for testing and early public review. It is still a development build.
 

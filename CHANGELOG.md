@@ -2,9 +2,9 @@
 
 This project does not have a formal public release yet.
 
-Current working milestone: `0.4.0-dev`
+Current working milestone: `0.4.0`
 
-## 0.4.0-dev - Unreleased
+## 0.4.0 - Unreleased
 
 ### Added
 
