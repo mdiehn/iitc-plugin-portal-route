@@ -10,11 +10,13 @@
       pr.state.route.totals = pr.calculateTotals(pr.state.route.legs);
     }
 
+    if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
     pr.saveRoute();
   };
 
   pr.markRouteCurrent = function() {
     pr.state.routeDirty = false;
+    if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
     pr.saveRoute();
   };
 
@@ -252,17 +254,20 @@
     if (!stop || stop.type !== 'map') return false;
     if (pr.isManagedStartStop(stop)) return false;
 
+    var shouldReplot = !!(options.replot && pr.state.route);
+
     stop.lat = latlng.lat;
     stop.lng = latlng.lng;
 
     if (options.live) return true;
 
     pr.state.selectedMapPointIndex = index;
-    pr.markRouteStale({ clearRoute: true });
+    pr.markRouteStale();
     pr.saveStops();
     pr.redrawLabels();
     pr.renderPanel();
     pr.renderMiniControl();
+    if (shouldReplot && pr.calculateRoute) pr.calculateRoute();
     return true;
   };
 

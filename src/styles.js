@@ -399,6 +399,16 @@ button.portal-route-waypoint-badge {
   outline-offset: 1px;
 }
 
+.portal-route-map-point-label-draggable span {
+  cursor: grab;
+}
+
+.portal-route-stop-label-dragging span {
+  background: #ffd800;
+  cursor: grabbing;
+  transform: scale(1.12);
+}
+
 .portal-route-map-point-marker {
   border: 0;
   background: transparent;
