@@ -628,7 +628,8 @@ input.portal-route-waypoint-name-input:focus,
     defaultStopMinutes: 5,
     includeReturnToStart: false,
     startOnCurrentLocation: false,
-    showSegmentTimesOnMap: false
+    showSegmentTimesOnMap: false,
+    autoReplotOnEdit: true
   };
 
   pr.state = {
@@ -820,9 +821,10 @@ input.portal-route-waypoint-name-input:focus,
   pr.markRouteStale = function(options) {
     options = options || {};
     var hadRouteState = !!pr.state.route || !!pr.state.routeDirty;
+    var shouldAutoReplot = hadRouteState && pr.state.settings.autoReplotOnEdit && !options.skipAutoReplot;
     pr.state.routeDirty = hadRouteState;
 
-    if (options.clearRoute) {
+    if (options.clearRoute && !shouldAutoReplot) {
       pr.state.route = null;
       pr.clearRouteLine();
     } else if (pr.state.route && pr.state.route.legs) {
@@ -831,6 +833,19 @@ input.portal-route-waypoint-name-input:focus,
 
     if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
     pr.saveRoute();
+    if (shouldAutoReplot) pr.queueAutoReplot();
+  };
+
+  pr.queueAutoReplot = function() {
+    if (!pr.calculateRoute || !window.setTimeout) return;
+    if (pr.state.autoReplotTimer) window.clearTimeout(pr.state.autoReplotTimer);
+
+    pr.state.autoReplotTimer = window.setTimeout(function() {
+      pr.state.autoReplotTimer = null;
+      if (!pr.state.settings.autoReplotOnEdit) return;
+      if (!pr.state.routeDirty) return;
+      pr.calculateRoute();
+    }, 0);
   };
 
   pr.markRouteCurrent = function() {
@@ -1073,8 +1088,6 @@ input.portal-route-waypoint-name-input:focus,
     if (!stop || stop.type !== 'map') return false;
     if (pr.isManagedStartStop(stop)) return false;
 
-    var shouldReplot = !!(options.replot && pr.state.route);
-
     stop.lat = latlng.lat;
     stop.lng = latlng.lng;
 
@@ -1086,7 +1099,6 @@ input.portal-route-waypoint-name-input:focus,
     pr.redrawLabels();
     pr.renderPanel();
     pr.renderMiniControl();
-    if (shouldReplot && pr.calculateRoute) pr.calculateRoute();
     return true;
   };
 
@@ -1527,7 +1539,7 @@ input.portal-route-waypoint-name-input:focus,
           });
           dragMarker.on('dragend', function(e) {
             if (e.target && e.target._icon) e.target._icon.classList.remove(draggingClass);
-            pr.updateMapPointPosition(index, e.target.getLatLng(), { replot: true });
+            pr.updateMapPointPosition(index, e.target.getLatLng());
           });
         };
 
@@ -1665,21 +1677,26 @@ input.portal-route-waypoint-name-input:focus,
     pr.state.layers.routeLine.setStyle(pr.getRouteLineStyle());
   };
 
-  pr.drawRoutePath = function(path, options) {
-    options = options || {};
+  pr.drawRoutePath = function(path) {
     pr.clearRouteLine();
     if (!path || path.length < 2) return;
 
     pr.state.layers.routeLine = L.polyline(path, pr.getRouteLineStyle()).addTo(pr.routeOverlayTarget());
 
     pr.redrawSegmentTimeLabels();
+  };
 
-    if (options.fitBounds === false) return;
+  pr.fitRouteToMap = function() {
+    if (!window.map || !pr.state.layers.routeLine || !pr.state.layers.routeLine.getBounds) {
+      pr.showMessage('Plot a route first.');
+      return;
+    }
 
     try {
       window.map.fitBounds(pr.state.layers.routeLine.getBounds(), { padding: [30, 30] });
     } catch (e) {
       console.warn('Portal Route: unable to fit route bounds', e);
+      pr.showMessage('Could not fit route.');
     }
   };
 
@@ -1691,7 +1708,7 @@ input.portal-route-waypoint-name-input:focus,
       return L.latLng(point.lat, point.lng);
     });
 
-    pr.drawRoutePath(path, { fitBounds: false });
+    pr.drawRoutePath(path);
   };
 
   pr.escapeHtml = function(value) {
@@ -1796,6 +1813,7 @@ input.portal-route-waypoint-name-input:focus,
     html += '<div class="portal-route-settings-row">';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="start-on-current-location" ' + (pr.state.settings.startOnCurrentLocation ? 'checked ' : '') + '> Start on me</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="include-return-to-start" ' + (pr.state.settings.includeReturnToStart ? 'checked ' : '') + '> Loop back to start</label>';
+    html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="auto-replot-on-edit" ' + (pr.state.settings.autoReplotOnEdit ? 'checked ' : '') + '> Auto-replot</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-segment-times-on-map" ' + (pr.state.settings.showSegmentTimesOnMap ? 'checked ' : '') + '> Show segment times on map</label>';
     html += '</div>';
 
@@ -1810,6 +1828,7 @@ input.portal-route-waypoint-name-input:focus,
 
     html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Route</div><div class="portal-route-control-group-buttons">';
     html += '<button type="button" data-action="calculate-route">' + plotLabel + '</button>';
+    html += '<button type="button" data-action="fit-route">Fit Route</button>';
     html += '<button type="button" data-action="open-google-maps">Open Maps</button>';
     html += '<button type="button" data-action="print-route">Print</button>';
     html += '</div></div>';
@@ -2337,6 +2356,8 @@ input.portal-route-waypoint-name-input:focus,
       pr.selectStopPortal(Number(target.getAttribute('data-index')), true);
     } else if (action === 'calculate-route') {
       pr.calculateRoute();
+    } else if (action === 'fit-route') {
+      pr.fitRouteToMap();
     } else if (action === 'open-google-maps') {
       pr.openGoogleMaps();
     } else if (action === 'export-route-json') {
@@ -2511,6 +2532,19 @@ input.portal-route-waypoint-name-input:focus,
         pr.state.settings.showSegmentTimesOnMap = !!target.checked;
         pr.saveSettings();
         pr.redrawSegmentTimeLabels();
+        return;
+      }
+
+      if (target && target.getAttribute('data-field') === 'auto-replot-on-edit') {
+        pr.state.settings.autoReplotOnEdit = !!target.checked;
+        pr.saveSettings();
+        if (!pr.state.settings.autoReplotOnEdit && pr.state.autoReplotTimer) {
+          window.clearTimeout(pr.state.autoReplotTimer);
+          pr.state.autoReplotTimer = null;
+        }
+        if (pr.state.settings.autoReplotOnEdit && pr.state.routeDirty && pr.calculateRoute) {
+          pr.queueAutoReplot();
+        }
         return;
       }
 

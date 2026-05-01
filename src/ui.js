@@ -121,6 +121,8 @@
       pr.selectStopPortal(Number(target.getAttribute('data-index')), true);
     } else if (action === 'calculate-route') {
       pr.calculateRoute();
+    } else if (action === 'fit-route') {
+      pr.fitRouteToMap();
     } else if (action === 'open-google-maps') {
       pr.openGoogleMaps();
     } else if (action === 'export-route-json') {
@@ -295,6 +297,19 @@
         pr.state.settings.showSegmentTimesOnMap = !!target.checked;
         pr.saveSettings();
         pr.redrawSegmentTimeLabels();
+        return;
+      }
+
+      if (target && target.getAttribute('data-field') === 'auto-replot-on-edit') {
+        pr.state.settings.autoReplotOnEdit = !!target.checked;
+        pr.saveSettings();
+        if (!pr.state.settings.autoReplotOnEdit && pr.state.autoReplotTimer) {
+          window.clearTimeout(pr.state.autoReplotTimer);
+          pr.state.autoReplotTimer = null;
+        }
+        if (pr.state.settings.autoReplotOnEdit && pr.state.routeDirty && pr.calculateRoute) {
+          pr.queueAutoReplot();
+        }
         return;
       }
 

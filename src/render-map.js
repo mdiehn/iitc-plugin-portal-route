@@ -146,7 +146,7 @@
           });
           dragMarker.on('dragend', function(e) {
             if (e.target && e.target._icon) e.target._icon.classList.remove(draggingClass);
-            pr.updateMapPointPosition(index, e.target.getLatLng(), { replot: true });
+            pr.updateMapPointPosition(index, e.target.getLatLng());
           });
         };
 
@@ -284,21 +284,26 @@
     pr.state.layers.routeLine.setStyle(pr.getRouteLineStyle());
   };
 
-  pr.drawRoutePath = function(path, options) {
-    options = options || {};
+  pr.drawRoutePath = function(path) {
     pr.clearRouteLine();
     if (!path || path.length < 2) return;
 
     pr.state.layers.routeLine = L.polyline(path, pr.getRouteLineStyle()).addTo(pr.routeOverlayTarget());
 
     pr.redrawSegmentTimeLabels();
+  };
 
-    if (options.fitBounds === false) return;
+  pr.fitRouteToMap = function() {
+    if (!window.map || !pr.state.layers.routeLine || !pr.state.layers.routeLine.getBounds) {
+      pr.showMessage('Plot a route first.');
+      return;
+    }
 
     try {
       window.map.fitBounds(pr.state.layers.routeLine.getBounds(), { padding: [30, 30] });
     } catch (e) {
       console.warn('Portal Route: unable to fit route bounds', e);
+      pr.showMessage('Could not fit route.');
     }
   };
 
@@ -310,5 +315,5 @@
       return L.latLng(point.lat, point.lng);
     });
 
-    pr.drawRoutePath(path, { fitBounds: false });
+    pr.drawRoutePath(path);
   };

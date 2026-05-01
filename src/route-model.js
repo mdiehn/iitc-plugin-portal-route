@@ -1,9 +1,10 @@
   pr.markRouteStale = function(options) {
     options = options || {};
     var hadRouteState = !!pr.state.route || !!pr.state.routeDirty;
+    var shouldAutoReplot = hadRouteState && pr.state.settings.autoReplotOnEdit && !options.skipAutoReplot;
     pr.state.routeDirty = hadRouteState;
 
-    if (options.clearRoute) {
+    if (options.clearRoute && !shouldAutoReplot) {
       pr.state.route = null;
       pr.clearRouteLine();
     } else if (pr.state.route && pr.state.route.legs) {
@@ -12,6 +13,19 @@
 
     if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
     pr.saveRoute();
+    if (shouldAutoReplot) pr.queueAutoReplot();
+  };
+
+  pr.queueAutoReplot = function() {
+    if (!pr.calculateRoute || !window.setTimeout) return;
+    if (pr.state.autoReplotTimer) window.clearTimeout(pr.state.autoReplotTimer);
+
+    pr.state.autoReplotTimer = window.setTimeout(function() {
+      pr.state.autoReplotTimer = null;
+      if (!pr.state.settings.autoReplotOnEdit) return;
+      if (!pr.state.routeDirty) return;
+      pr.calculateRoute();
+    }, 0);
   };
 
   pr.markRouteCurrent = function() {
@@ -254,8 +268,6 @@
     if (!stop || stop.type !== 'map') return false;
     if (pr.isManagedStartStop(stop)) return false;
 
-    var shouldReplot = !!(options.replot && pr.state.route);
-
     stop.lat = latlng.lat;
     stop.lng = latlng.lng;
 
@@ -267,7 +279,6 @@
     pr.redrawLabels();
     pr.renderPanel();
     pr.renderMiniControl();
-    if (shouldReplot && pr.calculateRoute) pr.calculateRoute();
     return true;
   };
 

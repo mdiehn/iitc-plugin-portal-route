@@ -100,6 +100,7 @@
     html += '<div class="portal-route-settings-row">';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="start-on-current-location" ' + (pr.state.settings.startOnCurrentLocation ? 'checked ' : '') + '> Start on me</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="include-return-to-start" ' + (pr.state.settings.includeReturnToStart ? 'checked ' : '') + '> Loop back to start</label>';
+    html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="auto-replot-on-edit" ' + (pr.state.settings.autoReplotOnEdit ? 'checked ' : '') + '> Auto-replot</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-segment-times-on-map" ' + (pr.state.settings.showSegmentTimesOnMap ? 'checked ' : '') + '> Show segment times on map</label>';
     html += '</div>';
 
@@ -114,6 +115,7 @@
 
     html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Route</div><div class="portal-route-control-group-buttons">';
     html += '<button type="button" data-action="calculate-route">' + plotLabel + '</button>';
+    html += '<button type="button" data-action="fit-route">Fit Route</button>';
     html += '<button type="button" data-action="open-google-maps">Open Maps</button>';
     html += '<button type="button" data-action="print-route">Print</button>';
     html += '</div></div>';

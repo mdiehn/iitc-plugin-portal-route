@@ -24,5 +24,6 @@
     defaultStopMinutes: 5,
     includeReturnToStart: false,
     startOnCurrentLocation: false,
-    showSegmentTimesOnMap: false
+    showSegmentTimesOnMap: false,
+    autoReplotOnEdit: true
   };
