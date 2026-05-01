@@ -161,6 +161,71 @@
     }
   };
 
+  pr.shouldRestorePanelPosition = function() {
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 520;
+    return viewportWidth > 640;
+  };
+
+  pr.clampPanelPosition = function(position, wrapper) {
+    if (!position || !wrapper || !wrapper.length) return null;
+
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 520;
+    var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 640;
+    var width = wrapper.outerWidth() || pr.getDialogWidth();
+    var height = wrapper.outerHeight() || 220;
+    var maxLeft = Math.max(0, viewportWidth - Math.min(width, viewportWidth));
+    var maxTop = Math.max(0, viewportHeight - Math.min(height, viewportHeight));
+
+    return {
+      left: Math.min(Math.max(0, position.left), maxLeft),
+      top: Math.min(Math.max(0, position.top), maxTop)
+    };
+  };
+
+  pr.saveCurrentPanelPosition = function(wrapper) {
+    if (!wrapper || !wrapper.length || !pr.shouldRestorePanelPosition()) return;
+
+    var offset = wrapper.offset();
+    if (!offset) return;
+
+    pr.state.panelPosition = {
+      left: Math.round(offset.left),
+      top: Math.round(offset.top)
+    };
+    pr.savePanelPosition();
+  };
+
+  pr.restorePanelPosition = function(wrapper) {
+    if (!wrapper || !wrapper.length || !pr.shouldRestorePanelPosition()) return;
+
+    var position = pr.clampPanelPosition(pr.state.panelPosition, wrapper);
+    if (!position) return;
+
+    wrapper.css({
+      left: position.left + 'px',
+      top: position.top + 'px',
+      right: 'auto',
+      bottom: 'auto'
+    });
+  };
+
+  pr.attachPanelPositionHandlers = function(content) {
+    if (!content || !window.jQuery) return;
+
+    try {
+      var dialogContent = window.jQuery(content).closest('.ui-dialog-content');
+      var wrapper = dialogContent.closest('.ui-dialog');
+      pr.restorePanelPosition(wrapper);
+      dialogContent
+        .off('dialogdragstop.portalRoute dialogresizestop.portalRoute')
+        .on('dialogdragstop.portalRoute dialogresizestop.portalRoute', function() {
+          pr.saveCurrentPanelPosition(wrapper);
+        });
+    } catch (e) {
+      console.warn('Portal Route: failed to attach dialog position handler', e);
+    }
+  };
+
   pr.renderPanel = function() {
     if (pr.isLayerEnabled && !pr.isLayerEnabled()) {
       pr.closeDialog();
@@ -202,10 +267,12 @@
       var newContent = document.getElementById(pr.DOM_IDS.dialogContent);
       if (newContent && window.jQuery) {
         try {
+          pr.attachPanelPositionHandlers(newContent);
           window.jQuery(newContent)
             .closest('.ui-dialog-content')
             .off('dialogclose.portalRoute')
             .on('dialogclose.portalRoute', function() {
+              pr.saveCurrentPanelPosition(window.jQuery(this).closest('.ui-dialog'));
               pr.state.panelOpen = false;
               pr.savePanelOpen();
             });

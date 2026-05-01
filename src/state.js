@@ -9,6 +9,7 @@
       segmentLabels: null
     },
     panelOpen: false,
+    panelPosition: null,
     panelView: 'main',
     addPointMode: false,
     selectedMapPointIndex: null,

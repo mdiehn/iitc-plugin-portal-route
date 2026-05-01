@@ -21,6 +21,14 @@
       var rawPanelOpen = localStorage.getItem(pr.STORAGE_KEYS.panelOpen);
       if (rawPanelOpen !== null) pr.state.panelOpen = rawPanelOpen === 'true';
 
+      var rawPanelPosition = localStorage.getItem(pr.STORAGE_KEYS.panelPosition);
+      if (rawPanelPosition) {
+        var panelPosition = JSON.parse(rawPanelPosition);
+        if (panelPosition && typeof panelPosition.left === 'number' && typeof panelPosition.top === 'number') {
+          pr.state.panelPosition = panelPosition;
+        }
+      }
+
       var rawRoute = localStorage.getItem(pr.STORAGE_KEYS.route);
       if (rawRoute) {
         var route = JSON.parse(rawRoute);
@@ -46,6 +54,13 @@
     localStorage.setItem(pr.STORAGE_KEYS.panelOpen, String(pr.state.panelOpen));
   };
 
+  pr.savePanelPosition = function() {
+    if (pr.state.panelPosition) {
+      localStorage.setItem(pr.STORAGE_KEYS.panelPosition, JSON.stringify(pr.state.panelPosition));
+    } else {
+      localStorage.removeItem(pr.STORAGE_KEYS.panelPosition);
+    }
+  };
 
   pr.saveRoute = function() {
     if (pr.state.route) {

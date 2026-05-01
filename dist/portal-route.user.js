@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version        0.4.0
+// @version        0.5.0
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
 // @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/main/dist/portal-route.meta.js
 // @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/main/dist/portal-route.user.js
@@ -604,7 +604,7 @@ input.portal-route-waypoint-name-input:focus,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '0.4.0';
+  pr.VERSION = '0.5.0';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -643,6 +643,7 @@ input.portal-route-waypoint-name-input:focus,
       segmentLabels: null
     },
     panelOpen: false,
+    panelPosition: null,
     panelView: 'main',
     addPointMode: false,
     selectedMapPointIndex: null,
@@ -679,6 +680,14 @@ input.portal-route-waypoint-name-input:focus,
       var rawPanelOpen = localStorage.getItem(pr.STORAGE_KEYS.panelOpen);
       if (rawPanelOpen !== null) pr.state.panelOpen = rawPanelOpen === 'true';
 
+      var rawPanelPosition = localStorage.getItem(pr.STORAGE_KEYS.panelPosition);
+      if (rawPanelPosition) {
+        var panelPosition = JSON.parse(rawPanelPosition);
+        if (panelPosition && typeof panelPosition.left === 'number' && typeof panelPosition.top === 'number') {
+          pr.state.panelPosition = panelPosition;
+        }
+      }
+
       var rawRoute = localStorage.getItem(pr.STORAGE_KEYS.route);
       if (rawRoute) {
         var route = JSON.parse(rawRoute);
@@ -704,6 +713,13 @@ input.portal-route-waypoint-name-input:focus,
     localStorage.setItem(pr.STORAGE_KEYS.panelOpen, String(pr.state.panelOpen));
   };
 
+  pr.savePanelPosition = function() {
+    if (pr.state.panelPosition) {
+      localStorage.setItem(pr.STORAGE_KEYS.panelPosition, JSON.stringify(pr.state.panelPosition));
+    } else {
+      localStorage.removeItem(pr.STORAGE_KEYS.panelPosition);
+    }
+  };
 
   pr.saveRoute = function() {
     if (pr.state.route) {
@@ -1454,10 +1470,14 @@ input.portal-route-waypoint-name-input:focus,
         pr.selectStopPortal(index, false);
       };
 
-      var openRouteList = function(e) {
+      var stopMarkerEvent = function(e) {
         var originalEvent = e && e.originalEvent ? e.originalEvent : e;
         if (originalEvent && originalEvent.stopPropagation) originalEvent.stopPropagation();
         if (originalEvent && originalEvent.preventDefault) originalEvent.preventDefault();
+      };
+
+      var openRouteList = function(e) {
+        stopMarkerEvent(e);
         pr.selectStopPortal(index, false);
         pr.state.panelView = 'main';
         pr.state.panelOpen = true;
@@ -1466,18 +1486,27 @@ input.portal-route-waypoint-name-input:focus,
       };
 
       var makeClickHandler = function() {
-        var lastClickAt = 0;
+        var clickTimer = null;
 
         return function(e) {
-          var now = Date.now();
-          if (now - lastClickAt < 400) {
-            lastClickAt = 0;
+          stopMarkerEvent(e);
+
+          if (!window.setTimeout || !window.clearTimeout) {
+            selectStop(e);
+            return;
+          }
+
+          if (clickTimer) {
+            window.clearTimeout(clickTimer);
+            clickTimer = null;
             openRouteList(e);
             return;
           }
 
-          lastClickAt = now;
-          selectStop(e);
+          clickTimer = window.setTimeout(function() {
+            clickTimer = null;
+            selectStop(e);
+          }, 300);
         };
       };
 
@@ -1874,6 +1903,71 @@ input.portal-route-waypoint-name-input:focus,
     }
   };
 
+  pr.shouldRestorePanelPosition = function() {
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 520;
+    return viewportWidth > 640;
+  };
+
+  pr.clampPanelPosition = function(position, wrapper) {
+    if (!position || !wrapper || !wrapper.length) return null;
+
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 520;
+    var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 640;
+    var width = wrapper.outerWidth() || pr.getDialogWidth();
+    var height = wrapper.outerHeight() || 220;
+    var maxLeft = Math.max(0, viewportWidth - Math.min(width, viewportWidth));
+    var maxTop = Math.max(0, viewportHeight - Math.min(height, viewportHeight));
+
+    return {
+      left: Math.min(Math.max(0, position.left), maxLeft),
+      top: Math.min(Math.max(0, position.top), maxTop)
+    };
+  };
+
+  pr.saveCurrentPanelPosition = function(wrapper) {
+    if (!wrapper || !wrapper.length || !pr.shouldRestorePanelPosition()) return;
+
+    var offset = wrapper.offset();
+    if (!offset) return;
+
+    pr.state.panelPosition = {
+      left: Math.round(offset.left),
+      top: Math.round(offset.top)
+    };
+    pr.savePanelPosition();
+  };
+
+  pr.restorePanelPosition = function(wrapper) {
+    if (!wrapper || !wrapper.length || !pr.shouldRestorePanelPosition()) return;
+
+    var position = pr.clampPanelPosition(pr.state.panelPosition, wrapper);
+    if (!position) return;
+
+    wrapper.css({
+      left: position.left + 'px',
+      top: position.top + 'px',
+      right: 'auto',
+      bottom: 'auto'
+    });
+  };
+
+  pr.attachPanelPositionHandlers = function(content) {
+    if (!content || !window.jQuery) return;
+
+    try {
+      var dialogContent = window.jQuery(content).closest('.ui-dialog-content');
+      var wrapper = dialogContent.closest('.ui-dialog');
+      pr.restorePanelPosition(wrapper);
+      dialogContent
+        .off('dialogdragstop.portalRoute dialogresizestop.portalRoute')
+        .on('dialogdragstop.portalRoute dialogresizestop.portalRoute', function() {
+          pr.saveCurrentPanelPosition(wrapper);
+        });
+    } catch (e) {
+      console.warn('Portal Route: failed to attach dialog position handler', e);
+    }
+  };
+
   pr.renderPanel = function() {
     if (pr.isLayerEnabled && !pr.isLayerEnabled()) {
       pr.closeDialog();
@@ -1915,10 +2009,12 @@ input.portal-route-waypoint-name-input:focus,
       var newContent = document.getElementById(pr.DOM_IDS.dialogContent);
       if (newContent && window.jQuery) {
         try {
+          pr.attachPanelPositionHandlers(newContent);
           window.jQuery(newContent)
             .closest('.ui-dialog-content')
             .off('dialogclose.portalRoute')
             .on('dialogclose.portalRoute', function() {
+              pr.saveCurrentPanelPosition(window.jQuery(this).closest('.ui-dialog'));
               pr.state.panelOpen = false;
               pr.savePanelOpen();
             });

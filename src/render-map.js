@@ -61,10 +61,14 @@
         pr.selectStopPortal(index, false);
       };
 
-      var openRouteList = function(e) {
+      var stopMarkerEvent = function(e) {
         var originalEvent = e && e.originalEvent ? e.originalEvent : e;
         if (originalEvent && originalEvent.stopPropagation) originalEvent.stopPropagation();
         if (originalEvent && originalEvent.preventDefault) originalEvent.preventDefault();
+      };
+
+      var openRouteList = function(e) {
+        stopMarkerEvent(e);
         pr.selectStopPortal(index, false);
         pr.state.panelView = 'main';
         pr.state.panelOpen = true;
@@ -73,18 +77,27 @@
       };
 
       var makeClickHandler = function() {
-        var lastClickAt = 0;
+        var clickTimer = null;
 
         return function(e) {
-          var now = Date.now();
-          if (now - lastClickAt < 400) {
-            lastClickAt = 0;
+          stopMarkerEvent(e);
+
+          if (!window.setTimeout || !window.clearTimeout) {
+            selectStop(e);
+            return;
+          }
+
+          if (clickTimer) {
+            window.clearTimeout(clickTimer);
+            clickTimer = null;
             openRouteList(e);
             return;
           }
 
-          lastClickAt = now;
-          selectStop(e);
+          clickTimer = window.setTimeout(function() {
+            clickTimer = null;
+            selectStop(e);
+          }, 300);
         };
       };
 

@@ -1,10 +1,22 @@
 # Changelog
 
-This project does not have a formal public release yet.
+This project is in active development.
 
-Current working milestone: `0.4.0`
+Current working milestone: `0.5.0`
 
-## 0.4.0 - Unreleased
+## 0.5.0 - Unreleased
+
+### Added
+
+- Manual map point dragging from map handles and numbered labels.
+- Fit Route action for explicitly fitting the plotted route on the map.
+- Auto-replot setting for refreshing an existing route after edits.
+
+### Changed
+
+- Plotting and replotting no longer move the map automatically.
+
+## 0.4.0 - Released
 
 ### Added
 

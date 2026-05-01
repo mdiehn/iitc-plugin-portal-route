@@ -1,6 +1,6 @@
 # docs/ROADMAP.md
 
-## Current release: 0.4.0-dev
+## Current release: 0.5.0
 
 Main goal: improve route point handling and map interaction.
 
@@ -8,6 +8,9 @@ Already done or mostly done:
 - manual map points
 - editable manual point names
 - selectable manual point handles
+- draggable manual point handles and labels
+- explicit Fit Route action
+- optional auto-replot after route edits
 - route panel layout updates
 - external route import API
 - start-on-me control
@@ -17,7 +20,7 @@ Already done or mostly done:
 - input field behavior fixed
 
 Current task:
-- implement dragging for manual point markers
+- polish route editing behavior
 
 Manual dragging expectations:
 - manual markers should be draggable
