@@ -11,11 +11,12 @@ Already done or mostly done:
 - draggable manual point handles and labels
 - explicit Fit Route action
 - optional auto-replot after route edits
+- Google Maps stage links for long routes
 - route panel layout updates
 - external route import API
 - start-on-me control
 - loop-back-to-start control
-- Google Maps export warning for the 11-point practical limit
+- Google Maps stage links for the 11-point practical limit
 - mobile delete buttons fixed
 - input field behavior fixed
 
@@ -45,7 +46,7 @@ Open design questions:
 - how to show snap target feedback
 - whether snapping happens live during drag or only on drag end
 
-## Later: route splitting / export limits
+## Google Maps route splitting
 
 Google Maps behavior observed:
 - first route point is used
@@ -54,13 +55,11 @@ Google Maps behavior observed:
 - with more than 11 total points, Google Maps leaves off everything between the ninth stop and final destination
 
 Current state:
-- warning already exists
+- long routes are split into multiple Google Maps stage links
+- each stage stays within the practical Google Maps point limit
 
 Future work:
-- split exports into multiple Google Maps route stages
-- possibly generate several links
-- keep each link within the practical Google Maps point limit
-- make the split understandable in the UI
+- improve stage naming and handoff polish if needed
 
 ## Later: route-building from selected portals
 
@@ -81,11 +80,10 @@ Likely path:
 1. Finish manual point dragging.
 2. Clean up docs/changelog.
 3. Close current dev release.
-4. Implement route splitting/export limit handling.
-5. Implement portal waypoint dragging/snap behavior.
-6. Improve selection/import/export polish.
-7. Do a compatibility pass across desktop/mobile IITC.
-8. Release 1.0.0 when route creation, editing, dragging, import/export, and mobile use are reliable.
+4. Implement portal waypoint dragging/snap behavior.
+5. Improve selection/import/export polish.
+6. Do a compatibility pass across desktop/mobile IITC.
+7. Release 1.0.0 when route creation, editing, dragging, import/export, and mobile use are reliable.
 
 ## Release habits
 

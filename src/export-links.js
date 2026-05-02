@@ -2,10 +2,8 @@
   pr.GOOGLE_MAPS_INTERMEDIATE_STOP_LIMIT = 9;
   pr.ROUTE_EXPORT_FORMAT = 'portal-route.v1';
 
-  pr.googleMapsUrl = function() {
-    var stops = pr.getRouteStops();
-    if (stops.length < 2) return null;
-
+  pr.googleMapsUrlForStops = function(stops) {
+    if (!stops || stops.length < 2) return null;
     var origin = stops[0];
     var destination = stops[stops.length - 1];
     var waypoints = stops.slice(1, -1);
@@ -25,55 +23,93 @@
     return 'https://www.google.com/maps/dir/?' + params.toString();
   };
 
-  pr.googleMapsOmittedStops = function() {
+  pr.googleMapsUrl = function() {
     var stops = pr.getRouteStops();
-    if (stops.length <= pr.GOOGLE_MAPS_TOTAL_POINT_LIMIT) return [];
-
-    // Google Maps appears to honor origin, destination, and the first 9
-    // intermediate stops. The stops after that, before the final destination,
-    // are the ones most likely to be omitted.
-    return stops.slice(
-      pr.GOOGLE_MAPS_INTERMEDIATE_STOP_LIMIT + 1,
-      stops.length - 1
-    );
+    return pr.googleMapsUrlForStops(stops);
   };
 
-  pr.googleMapsExportWarning = function() {
-    var omitted = pr.googleMapsOmittedStops();
-    if (omitted.length === 0) return null;
+  pr.googleMapsStages = function() {
+    var stops = pr.getRouteStops();
+    if (stops.length < 2) return [];
+    if (stops.length <= pr.GOOGLE_MAPS_TOTAL_POINT_LIMIT) {
+      return [{
+        number: 1,
+        fromIndex: 0,
+        toIndex: stops.length - 1,
+        stops: stops,
+        url: pr.googleMapsUrlForStops(stops)
+      }];
+    }
 
-    var lines = [
-      'Google Maps appears to support only 11 total route points:',
-      'start, final destination, and 9 intermediate stops.',
-      '',
-      'This route has ' + pr.getRouteStops().length + ' points. These stops may be omitted by Google Maps:'
-    ];
+    var stages = [];
+    var fromIndex = 0;
+    while (fromIndex < stops.length - 1) {
+      var toIndex = Math.min(fromIndex + pr.GOOGLE_MAPS_TOTAL_POINT_LIMIT - 1, stops.length - 1);
+      var stageStops = stops.slice(fromIndex, toIndex + 1);
+      stages.push({
+        number: stages.length + 1,
+        fromIndex: fromIndex,
+        toIndex: toIndex,
+        stops: stageStops,
+        url: pr.googleMapsUrlForStops(stageStops)
+      });
+      fromIndex = toIndex;
+    }
+    return stages;
+  };
 
-    omitted.forEach(function(stop, index) {
-      var stopNumber = pr.GOOGLE_MAPS_INTERMEDIATE_STOP_LIMIT + 2 + index;
-      lines.push(stopNumber + '. ' + stop.title);
+  pr.formatGoogleMapsStageNumber = function(number) {
+    return number < 10 ? '0' + number : String(number);
+  };
+
+  pr.openGoogleMapsStagesDialog = function(stages) {
+    var html = '<div class="portal-route-dialog-content portal-route-maps-stages">';
+    html += '<p class="portal-route-empty">Google Maps uses up to 11 route points per link. Open each stage in order.</p>';
+    html += '<div class="portal-route-control-group-buttons">';
+    var longestTextLength = 0;
+    stages.forEach(function(stage) {
+      var fromStop = stage.stops[0];
+      var toStop = stage.stops[stage.stops.length - 1];
+      var label = 'Stage ' + stage.number + ': ' + pr.formatGoogleMapsStageNumber(stage.fromIndex + 1) + '-' + pr.formatGoogleMapsStageNumber(stage.toIndex + 1);
+      var title = fromStop.title + ' to ' + toStop.title;
+      longestTextLength = Math.max(longestTextLength, label.length, title.length);
+      html += '<div class="portal-route-stage-item">';
+      html += '<a class="portal-route-stage-link" target="_blank" rel="noopener" href="' + pr.escapeHtml(stage.url) + '" aria-label="' + pr.escapeHtml(label + ' - ' + title) + '" onclick="this.blur()">' + pr.escapeHtml(label) + '</a>';
+      html += '<div class="portal-route-stage-summary">' + pr.escapeHtml(title) + '</div>';
+      html += '</div>';
     });
+    html += '</div></div>';
 
-    lines.push('');
-    lines.push('Open Google Maps anyway?');
-
-    return lines.join('\n');
+    if (typeof window.dialog === 'function') {
+      var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 520;
+      var maxWidth = Math.min(520, Math.max(320, viewportWidth - 40));
+      var width = Math.min(maxWidth, Math.max(320, longestTextLength * 6 + 50));
+      window.dialog({
+        id: 'iitc-plugin-portal-route-google-maps-stages',
+        title: 'Google Maps stages',
+        html: html,
+        dialogClass: 'portal-route-dialog',
+        width: width
+      });
+    } else {
+      pr.showMessage('Route split into ' + stages.length + ' Google Maps stages.');
+      window.open(stages[0].url, '_blank', 'noopener');
+    }
   };
 
   pr.openGoogleMaps = function() {
-    var url = pr.googleMapsUrl();
-    if (!url) {
+    var stages = pr.googleMapsStages();
+    if (!stages.length) {
       pr.showMessage('Add at least two waypoints first.');
       return;
     }
 
-    var warning = pr.googleMapsExportWarning();
-    if (warning && !window.confirm(warning)) {
-      pr.showMessage('Google Maps export canceled.');
+    if (stages.length > 1) {
+      pr.openGoogleMapsStagesDialog(stages);
       return;
     }
 
-    window.open(url, '_blank', 'noopener');
+    window.open(stages[0].url, '_blank', 'noopener');
   };
 
   pr.routeExportData = function() {

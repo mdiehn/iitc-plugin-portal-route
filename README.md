@@ -48,7 +48,7 @@ The stop list shows the current route order. Use the row controls to move or rem
 ### Route
 
 - **Plot Route** plots or replots the route on the IITC map.
-- **Open Maps** opens the route in Google Maps.
+- **Open Maps** opens the route in Google Maps. Long routes are split into stage links.
 - **Print** opens a printable route summary.
 
 When route data is available, the panel shows drive time, stop time, trip time, and distance.
@@ -112,7 +112,7 @@ After clearing the list, the panel keeps the route controls available and shows 
 - Show **Replot** when the route needs recalculation.
 - Persist waypoints and plotted route data across IITC reloads.
 - Optionally show segment time labels on the map.
-- Export the route to Google Maps.
+- Export the route to Google Maps, with staged links for long routes.
 - Export and import route JSON.
 - Open a printable route summary.
 
@@ -122,7 +122,7 @@ After clearing the list, the panel keeps the route controls available and shows 
 
 Google Maps appears to plot the first point, final point, and up to 9 intermediate stops. That means routes with more than 11 total points may export incompletely.
 
-Portal Route warns before opening Google Maps with more than 11 route points and lists the stops Google Maps may omit. Route splitting is planned for later.
+Portal Route splits longer routes into multiple Google Maps stage links. Open the stages in order.
 
 ### Browser/device location
 

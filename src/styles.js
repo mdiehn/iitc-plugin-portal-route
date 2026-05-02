@@ -326,6 +326,55 @@ button.portal-route-waypoint-badge {
   gap: 4px;
 }
 
+.portal-route-maps-stages .portal-route-control-group-buttons {
+  display: block;
+}
+
+.portal-route-stage-item + .portal-route-stage-item {
+  margin-top: 6px;
+}
+
+.portal-route-stage-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.portal-route-stage-link,
+.portal-route-stage-link:link,
+.portal-route-stage-link:visited,
+.portal-route-stage-link:focus {
+  flex: 0 0 auto;
+  display: inline-block;
+  padding: 3px 7px;
+  border: 1px solid rgba(255, 216, 0, 0.45);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.18);
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  outline: none;
+}
+
+.portal-route-stage-summary {
+  min-width: 0;
+  opacity: 0.78;
+  font-size: 10px;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.portal-route-stage-link:hover,
+.portal-route-stage-link:active {
+  border-color: rgba(255, 216, 0, 0.75);
+  background: rgba(255, 255, 255, 0.24);
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+
 .portal-route-footer-actions {
   justify-content: flex-end;
   border-top: 1px solid rgba(255, 255, 255, 0.25);

@@ -11,6 +11,7 @@ Current working milestone: `0.5.0`
 - Manual map point dragging from map handles and numbered labels.
 - Fit Route action for explicitly fitting the plotted route on the map.
 - Auto-replot setting for refreshing an existing route after edits.
+- Split Google Maps exports into stage links when routes exceed the practical point limit.
 
 ### Changed
 
