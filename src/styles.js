@@ -430,6 +430,25 @@ button.portal-route-waypoint-badge-wide {
   justify-content: space-between;
 }
 
+.portal-route-points-dialog-content {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 120px);
+  overflow: hidden !important;
+}
+
+.portal-route-points-list-body {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: visible;
+}
+
+.portal-route-points-panel-actions {
+  flex: 0 0 auto;
+  justify-content: space-between;
+  margin-top: 7px;
+}
+
 .portal-route-bottom-summary {
   margin-top: 8px;
   opacity: 0.9;

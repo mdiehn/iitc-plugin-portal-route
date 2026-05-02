@@ -7,6 +7,8 @@
     css: 'iitc-plugin-portal-route-css',
     dialog: 'iitc-plugin-portal-route-dialog',
     dialogContent: 'iitc-plugin-portal-route-dialog-content',
+    pointsDialog: 'iitc-plugin-portal-route-points-dialog',
+    pointsDialogContent: 'iitc-plugin-portal-route-points-dialog-content',
     miniControl: 'iitc-plugin-portal-route-mini-control',
     toolboxLink: 'iitc-plugin-portal-route-toolbox-link'
   };

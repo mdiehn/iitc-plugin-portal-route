@@ -79,6 +79,19 @@
     if (content) content.style.display = 'none';
   };
 
+  pr.closePointsDialog = function() {
+    var content = document.getElementById(pr.DOM_IDS.pointsDialogContent);
+    if (content && window.jQuery) {
+      try {
+        window.jQuery(content).closest('.ui-dialog-content').dialog('close');
+        return;
+      } catch (e) {
+        // Fall through to hiding the content if the IITC dialog wrapper is unavailable.
+      }
+    }
+    if (content) content.style.display = 'none';
+  };
+
   pr.handleAction = function(action, target) {
     if (pr.isLayerEnabled && !pr.isLayerEnabled()) {
       pr.syncLayerUi();
@@ -136,7 +149,8 @@
     } else if (action === 'print-route') {
       pr.printRoute();
     } else if (action === 'open-points-list') {
-      pr.showMessage('Points list panel is not wired yet.');
+      pr.state.pointsPanelOpen = true;
+      pr.renderPointsPanel();
     } else if (action === 'clear-route') {
       if (pr.state.stops.length && window.confirm && !window.confirm('Clear all points from the route?')) return;
       pr.clearStops();
@@ -219,9 +233,10 @@
     container.innerHTML = '' +
       '<a href="#" title="Open route in Google Maps" data-action="open-google-maps">M</a>' +
       '<a href="#" title="' + plotTitle + '" data-action="calculate-route">P</a>' +
+      '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
       '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="toggle-selected-stop">' + addRemoveText + '</a>' +
-      '<a href="#" title="Open Portal Route menu" data-action="open-main">' + pr.state.stops.length + '</a>' +
-      '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>';
+      '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
+      '<a href="#" title="Open Portal Route menu" data-action="open-main">=</a>';
   };
 
   pr.setupDialogEventHandlers = function() {
@@ -229,7 +244,7 @@
     pr.dialogEventsRegistered = true;
 
     document.addEventListener('click', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent);
+      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
       if (!panel) return;
 
       var target = ev.target.closest('[data-action]');
@@ -241,7 +256,7 @@
     });
 
     document.addEventListener('dragstart', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent);
+      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
       if (!panel) return;
 
       var item = ev.target.closest('.portal-route-stop');
@@ -259,7 +274,7 @@
     });
 
     document.addEventListener('dragover', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent);
+      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
       if (!panel) return;
 
       var item = ev.target.closest('.portal-route-stop');
@@ -270,7 +285,7 @@
     });
 
     document.addEventListener('drop', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent);
+      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
       if (!panel) return;
 
       var item = ev.target.closest('.portal-route-stop');
@@ -286,7 +301,7 @@
     });
 
     document.addEventListener('change', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent);
+      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
       if (!panel) return;
 
       var target = ev.target;
@@ -410,6 +425,8 @@
     pr.state.panelOpen = false;
     pr.savePanelOpen();
     pr.closeDialog();
+    pr.state.pointsPanelOpen = false;
+    pr.closePointsDialog();
     pr.setMiniControlVisible(false);
     pr.removeToolboxLink();
   };
@@ -426,6 +443,8 @@
     pr.state.panelOpen = false;
     pr.savePanelOpen();
     pr.closeDialog();
+    pr.state.pointsPanelOpen = false;
+    pr.closePointsDialog();
     pr.setMiniControlVisible(false);
     pr.removeToolboxLink();
   };

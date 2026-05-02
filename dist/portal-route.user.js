@@ -452,6 +452,25 @@ button.portal-route-waypoint-badge-wide {
   justify-content: space-between;
 }
 
+.portal-route-points-dialog-content {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 120px);
+  overflow: hidden !important;
+}
+
+.portal-route-points-list-body {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: visible;
+}
+
+.portal-route-points-panel-actions {
+  flex: 0 0 auto;
+  justify-content: space-between;
+  margin-top: 7px;
+}
+
 .portal-route-bottom-summary {
   margin-top: 8px;
   opacity: 0.9;
@@ -708,6 +727,8 @@ input.portal-route-waypoint-name-input:focus,
     css: 'iitc-plugin-portal-route-css',
     dialog: 'iitc-plugin-portal-route-dialog',
     dialogContent: 'iitc-plugin-portal-route-dialog-content',
+    pointsDialog: 'iitc-plugin-portal-route-points-dialog',
+    pointsDialogContent: 'iitc-plugin-portal-route-points-dialog-content',
     miniControl: 'iitc-plugin-portal-route-mini-control',
     toolboxLink: 'iitc-plugin-portal-route-toolbox-link'
   };
@@ -743,6 +764,7 @@ input.portal-route-waypoint-name-input:focus,
     panelOpen: false,
     panelPosition: null,
     panelSize: null,
+    pointsPanelOpen: false,
     panelView: 'main',
     addPointMode: false,
     selectedMapPointIndex: null,
@@ -2136,8 +2158,6 @@ input.portal-route-waypoint-name-input:focus,
     var html = '';
 
     html += '<div class="portal-route-body">';
-    html += pr.renderStopsList(legsByToIndex);
-
     html += '<div class="portal-route-list-options">';
     html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" title="Examples: 15m, 1.5h, 2d" data-field="default-stop-minutes"> per portal</label>';
     html += '</div>';
@@ -2155,8 +2175,6 @@ input.portal-route-waypoint-name-input:focus,
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-segment-times-on-map" ' + (pr.state.settings.showSegmentTimesOnMap ? 'checked ' : '') + '> Show segment times on map</label>';
     html += '</div>';
 
-    var plotLabel = pr.state.routeDirty ? 'Replot Route' : 'Plot Route';
-
     html += '<div class="portal-route-control-groups">';
     html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Add</div><div class="portal-route-control-group-buttons">';
     html += '<button type="button" data-action="add-selected-stop">Portal</button>';
@@ -2168,7 +2186,6 @@ input.portal-route-waypoint-name-input:focus,
     html += '<button type="button" data-action="calculate-route">' + (pr.state.routeDirty ? 'Replot' : 'Plot') + '</button>';
     html += '<button type="button" data-action="fit-route">Fit</button>';
     html += '<button type="button" data-action="open-google-maps">Maps</button>';
-    html += '<button type="button" data-action="print-route">Print</button>';
     html += '</div></div>';
 
     html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Data</div><div class="portal-route-control-group-buttons">';
@@ -2206,6 +2223,16 @@ input.portal-route-waypoint-name-input:focus,
     }
 
     return Math.min(560, Math.max(460, viewportWidth - 40));
+  };
+
+  pr.getPointsDialogWidth = function() {
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 640;
+
+    if (viewportWidth <= 640) {
+      return Math.max(320, viewportWidth);
+    }
+
+    return Math.min(760, Math.max(520, viewportWidth - 80));
   };
 
   pr.isDialogOpen = function(content) {
@@ -2330,6 +2357,7 @@ input.portal-route-waypoint-name-input:focus,
   pr.renderPanel = function() {
     if (pr.isLayerEnabled && !pr.isLayerEnabled()) {
       pr.closeDialog();
+      pr.closePointsDialog();
       return;
     }
 
@@ -2337,6 +2365,7 @@ input.portal-route-waypoint-name-input:focus,
 
     if (!pr.state.panelOpen) {
       pr.closeDialog();
+      if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
       return;
     }
 
@@ -2351,6 +2380,7 @@ input.portal-route-waypoint-name-input:focus,
 
     if (pr.isDialogOpen(existingContent)) {
       existingContent.innerHTML = contentHtml;
+      if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
       return;
     }
 
@@ -2379,6 +2409,71 @@ input.portal-route-waypoint-name-input:focus,
             });
         } catch (e) {
           console.warn('Portal Route: failed to attach dialog close handler', e);
+        }
+      }
+    } else {
+      console.log('Portal Route: IITC dialog API is unavailable.');
+    }
+
+    if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
+  };
+
+  pr.renderPointsPanel = function() {
+    if (pr.isLayerEnabled && !pr.isLayerEnabled()) {
+      pr.closePointsDialog();
+      return;
+    }
+
+    if (!pr.state.pointsPanelOpen) {
+      pr.closePointsDialog();
+      return;
+    }
+
+    var route = pr.state.route;
+    var legsByToIndex = {};
+    if (route && route.legs) {
+      route.legs.forEach(function(leg) { legsByToIndex[leg.toIndex] = leg; });
+    }
+
+    var contentHtml = '';
+    contentHtml += '<div class="portal-route-points-list-body">';
+    contentHtml += '<div class="portal-route-body">' + pr.renderStopsList(legsByToIndex) + '</div>';
+    contentHtml += '</div>';
+    contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-panel-actions">';
+    contentHtml += '<button type="button" data-action="clear-route">Clear Points</button>';
+    contentHtml += '<button type="button" data-action="open-main">Main Panel</button>';
+    contentHtml += '<button type="button" data-action="calculate-route">' + (pr.state.routeDirty ? 'Replot' : 'Plot') + '</button>';
+    contentHtml += '<button type="button" data-action="print-route">Print</button>';
+    contentHtml += '</div>';
+    var existingContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);
+
+    if (pr.isDialogOpen(existingContent)) {
+      existingContent.innerHTML = contentHtml;
+      return;
+    }
+
+    var html = '<div id="' + pr.DOM_IDS.pointsDialogContent + '" class="portal-route-dialog-content portal-route-points-dialog-content">' + contentHtml + '</div>';
+
+    if (typeof window.dialog === 'function') {
+      window.dialog({
+        id: pr.DOM_IDS.pointsDialog,
+        title: 'Portal Route Points',
+        html: html,
+        dialogClass: 'portal-route-dialog portal-route-points-dialog',
+        width: pr.getPointsDialogWidth()
+      });
+
+      var newContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);
+      if (newContent && window.jQuery) {
+        try {
+          window.jQuery(newContent)
+            .closest('.ui-dialog-content')
+            .off('dialogclose.portalRoutePoints')
+            .on('dialogclose.portalRoutePoints', function() {
+              pr.state.pointsPanelOpen = false;
+            });
+        } catch (e) {
+          console.warn('Portal Route: failed to attach points dialog close handler', e);
         }
       }
     } else {
@@ -2807,6 +2902,19 @@ input.portal-route-waypoint-name-input:focus,
     if (content) content.style.display = 'none';
   };
 
+  pr.closePointsDialog = function() {
+    var content = document.getElementById(pr.DOM_IDS.pointsDialogContent);
+    if (content && window.jQuery) {
+      try {
+        window.jQuery(content).closest('.ui-dialog-content').dialog('close');
+        return;
+      } catch (e) {
+        // Fall through to hiding the content if the IITC dialog wrapper is unavailable.
+      }
+    }
+    if (content) content.style.display = 'none';
+  };
+
   pr.handleAction = function(action, target) {
     if (pr.isLayerEnabled && !pr.isLayerEnabled()) {
       pr.syncLayerUi();
@@ -2864,7 +2972,8 @@ input.portal-route-waypoint-name-input:focus,
     } else if (action === 'print-route') {
       pr.printRoute();
     } else if (action === 'open-points-list') {
-      pr.showMessage('Points list panel is not wired yet.');
+      pr.state.pointsPanelOpen = true;
+      pr.renderPointsPanel();
     } else if (action === 'clear-route') {
       if (pr.state.stops.length && window.confirm && !window.confirm('Clear all points from the route?')) return;
       pr.clearStops();
@@ -2947,9 +3056,10 @@ input.portal-route-waypoint-name-input:focus,
     container.innerHTML = '' +
       '<a href="#" title="Open route in Google Maps" data-action="open-google-maps">M</a>' +
       '<a href="#" title="' + plotTitle + '" data-action="calculate-route">P</a>' +
+      '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
       '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="toggle-selected-stop">' + addRemoveText + '</a>' +
-      '<a href="#" title="Open Portal Route menu" data-action="open-main">' + pr.state.stops.length + '</a>' +
-      '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>';
+      '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
+      '<a href="#" title="Open Portal Route menu" data-action="open-main">=</a>';
   };
 
   pr.setupDialogEventHandlers = function() {
@@ -2957,7 +3067,7 @@ input.portal-route-waypoint-name-input:focus,
     pr.dialogEventsRegistered = true;
 
     document.addEventListener('click', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent);
+      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
       if (!panel) return;
 
       var target = ev.target.closest('[data-action]');
@@ -2969,7 +3079,7 @@ input.portal-route-waypoint-name-input:focus,
     });
 
     document.addEventListener('dragstart', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent);
+      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
       if (!panel) return;
 
       var item = ev.target.closest('.portal-route-stop');
@@ -2987,7 +3097,7 @@ input.portal-route-waypoint-name-input:focus,
     });
 
     document.addEventListener('dragover', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent);
+      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
       if (!panel) return;
 
       var item = ev.target.closest('.portal-route-stop');
@@ -2998,7 +3108,7 @@ input.portal-route-waypoint-name-input:focus,
     });
 
     document.addEventListener('drop', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent);
+      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
       if (!panel) return;
 
       var item = ev.target.closest('.portal-route-stop');
@@ -3014,7 +3124,7 @@ input.portal-route-waypoint-name-input:focus,
     });
 
     document.addEventListener('change', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent);
+      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
       if (!panel) return;
 
       var target = ev.target;
@@ -3138,6 +3248,8 @@ input.portal-route-waypoint-name-input:focus,
     pr.state.panelOpen = false;
     pr.savePanelOpen();
     pr.closeDialog();
+    pr.state.pointsPanelOpen = false;
+    pr.closePointsDialog();
     pr.setMiniControlVisible(false);
     pr.removeToolboxLink();
   };
@@ -3154,6 +3266,8 @@ input.portal-route-waypoint-name-input:focus,
     pr.state.panelOpen = false;
     pr.savePanelOpen();
     pr.closeDialog();
+    pr.state.pointsPanelOpen = false;
+    pr.closePointsDialog();
     pr.setMiniControlVisible(false);
     pr.removeToolboxLink();
   };

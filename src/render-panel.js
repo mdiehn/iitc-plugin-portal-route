@@ -85,8 +85,6 @@
     var html = '';
 
     html += '<div class="portal-route-body">';
-    html += pr.renderStopsList(legsByToIndex);
-
     html += '<div class="portal-route-list-options">';
     html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" title="Examples: 15m, 1.5h, 2d" data-field="default-stop-minutes"> per portal</label>';
     html += '</div>';
@@ -104,8 +102,6 @@
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-segment-times-on-map" ' + (pr.state.settings.showSegmentTimesOnMap ? 'checked ' : '') + '> Show segment times on map</label>';
     html += '</div>';
 
-    var plotLabel = pr.state.routeDirty ? 'Replot Route' : 'Plot Route';
-
     html += '<div class="portal-route-control-groups">';
     html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Add</div><div class="portal-route-control-group-buttons">';
     html += '<button type="button" data-action="add-selected-stop">Portal</button>';
@@ -117,7 +113,6 @@
     html += '<button type="button" data-action="calculate-route">' + (pr.state.routeDirty ? 'Replot' : 'Plot') + '</button>';
     html += '<button type="button" data-action="fit-route">Fit</button>';
     html += '<button type="button" data-action="open-google-maps">Maps</button>';
-    html += '<button type="button" data-action="print-route">Print</button>';
     html += '</div></div>';
 
     html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Data</div><div class="portal-route-control-group-buttons">';
@@ -155,6 +150,16 @@
     }
 
     return Math.min(560, Math.max(460, viewportWidth - 40));
+  };
+
+  pr.getPointsDialogWidth = function() {
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 640;
+
+    if (viewportWidth <= 640) {
+      return Math.max(320, viewportWidth);
+    }
+
+    return Math.min(760, Math.max(520, viewportWidth - 80));
   };
 
   pr.isDialogOpen = function(content) {
@@ -279,6 +284,7 @@
   pr.renderPanel = function() {
     if (pr.isLayerEnabled && !pr.isLayerEnabled()) {
       pr.closeDialog();
+      pr.closePointsDialog();
       return;
     }
 
@@ -286,6 +292,7 @@
 
     if (!pr.state.panelOpen) {
       pr.closeDialog();
+      if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
       return;
     }
 
@@ -300,6 +307,7 @@
 
     if (pr.isDialogOpen(existingContent)) {
       existingContent.innerHTML = contentHtml;
+      if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
       return;
     }
 
@@ -328,6 +336,71 @@
             });
         } catch (e) {
           console.warn('Portal Route: failed to attach dialog close handler', e);
+        }
+      }
+    } else {
+      console.log('Portal Route: IITC dialog API is unavailable.');
+    }
+
+    if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
+  };
+
+  pr.renderPointsPanel = function() {
+    if (pr.isLayerEnabled && !pr.isLayerEnabled()) {
+      pr.closePointsDialog();
+      return;
+    }
+
+    if (!pr.state.pointsPanelOpen) {
+      pr.closePointsDialog();
+      return;
+    }
+
+    var route = pr.state.route;
+    var legsByToIndex = {};
+    if (route && route.legs) {
+      route.legs.forEach(function(leg) { legsByToIndex[leg.toIndex] = leg; });
+    }
+
+    var contentHtml = '';
+    contentHtml += '<div class="portal-route-points-list-body">';
+    contentHtml += '<div class="portal-route-body">' + pr.renderStopsList(legsByToIndex) + '</div>';
+    contentHtml += '</div>';
+    contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-panel-actions">';
+    contentHtml += '<button type="button" data-action="clear-route">Clear Points</button>';
+    contentHtml += '<button type="button" data-action="open-main">Main Panel</button>';
+    contentHtml += '<button type="button" data-action="calculate-route">' + (pr.state.routeDirty ? 'Replot' : 'Plot') + '</button>';
+    contentHtml += '<button type="button" data-action="print-route">Print</button>';
+    contentHtml += '</div>';
+    var existingContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);
+
+    if (pr.isDialogOpen(existingContent)) {
+      existingContent.innerHTML = contentHtml;
+      return;
+    }
+
+    var html = '<div id="' + pr.DOM_IDS.pointsDialogContent + '" class="portal-route-dialog-content portal-route-points-dialog-content">' + contentHtml + '</div>';
+
+    if (typeof window.dialog === 'function') {
+      window.dialog({
+        id: pr.DOM_IDS.pointsDialog,
+        title: 'Portal Route Points',
+        html: html,
+        dialogClass: 'portal-route-dialog portal-route-points-dialog',
+        width: pr.getPointsDialogWidth()
+      });
+
+      var newContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);
+      if (newContent && window.jQuery) {
+        try {
+          window.jQuery(newContent)
+            .closest('.ui-dialog-content')
+            .off('dialogclose.portalRoutePoints')
+            .on('dialogclose.portalRoutePoints', function() {
+              pr.state.pointsPanelOpen = false;
+            });
+        } catch (e) {
+          console.warn('Portal Route: failed to attach points dialog close handler', e);
         }
       }
     } else {

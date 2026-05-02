@@ -11,6 +11,7 @@
     panelOpen: false,
     panelPosition: null,
     panelSize: null,
+    pointsPanelOpen: false,
     panelView: 'main',
     addPointMode: false,
     selectedMapPointIndex: null,
