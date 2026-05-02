@@ -117,6 +117,34 @@
   border-radius: 4px;
 }
 
+.portal-route-waypoint-row-draggable {
+  cursor: grab;
+}
+
+.portal-route-waypoint-row-draggable .portal-route-wait-cell,
+.portal-route-waypoint-row-draggable .portal-route-row-action,
+.portal-route-waypoint-row-draggable .portal-route-wait-cell *,
+.portal-route-waypoint-row-draggable .portal-route-row-action * {
+  cursor: auto;
+}
+
+.portal-route-waypoint-row-draggable.portal-route-dragging {
+  opacity: 0.55;
+}
+
+.portal-route-stop.portal-route-drop-target {
+  background: rgba(255, 216, 0, 0.16);
+  border-radius: 4px;
+}
+
+.portal-route-stop.portal-route-drop-target .portal-route-waypoint-name-cell {
+  box-shadow: inset 0 1px 0 rgba(255, 216, 0, 0.75);
+}
+
+.portal-route-stop.portal-route-drop-target.portal-route-drop-after .portal-route-waypoint-name-cell {
+  box-shadow: inset 0 -1px 0 rgba(255, 216, 0, 0.75);
+}
+
 .portal-route-waypoint-num,
 .portal-route-waypoint-name-cell,
 .portal-route-leg-cell,

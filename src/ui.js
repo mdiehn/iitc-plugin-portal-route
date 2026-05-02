@@ -92,6 +92,38 @@
     if (content) content.style.display = 'none';
   };
 
+  pr.listDropTarget = function(ev, item) {
+    if (!item) return null;
+
+    var targetIndex = Number(item.getAttribute('data-index'));
+    if (!isFinite(targetIndex)) return null;
+
+    var rect = item.getBoundingClientRect ? item.getBoundingClientRect() : null;
+    var after = rect ? ev.clientY > rect.top + rect.height / 2 : false;
+    var insertIndex = after ? targetIndex + 1 : targetIndex;
+
+    if (targetIndex >= pr.state.stops.length) {
+      insertIndex = pr.state.stops.length;
+      after = false;
+    }
+
+    return {
+      after: after,
+      index: insertIndex
+    };
+  };
+
+  pr.moveStopToInsertIndex = function(fromIndex, insertIndex) {
+    if (!isFinite(fromIndex) || !isFinite(insertIndex)) return;
+    if (fromIndex < 0 || fromIndex >= pr.state.stops.length) return;
+
+    var toIndex = fromIndex < insertIndex ? insertIndex - 1 : insertIndex;
+    toIndex = Math.min(Math.max(0, toIndex), pr.state.stops.length - 1);
+    if (toIndex === fromIndex) return;
+
+    pr.moveStop(fromIndex, toIndex);
+  };
+
   pr.handleAction = function(action, target) {
     if (pr.isLayerEnabled && !pr.isLayerEnabled()) {
       pr.syncLayerUi();
@@ -261,15 +293,29 @@
 
       var item = ev.target.closest('.portal-route-stop');
       if (!item) return;
+      if (ev.target.closest('.portal-route-wait-cell, .portal-route-row-action')) {
+        ev.preventDefault();
+        return;
+      }
 
       pr.state.dragStopIndex = Number(item.getAttribute('data-index'));
+      if (!isFinite(pr.state.dragStopIndex)) {
+        pr.state.dragStopIndex = null;
+        ev.preventDefault();
+        return;
+      }
+
       ev.dataTransfer.effectAllowed = 'move';
+      ev.dataTransfer.setData('text/plain', String(pr.state.dragStopIndex));
       item.classList.add('portal-route-dragging');
     });
 
     document.addEventListener('dragend', function(ev) {
       var item = ev.target.closest('.portal-route-stop');
       if (item) item.classList.remove('portal-route-dragging');
+      document.querySelectorAll('.portal-route-drop-target').forEach(function(row) {
+        row.classList.remove('portal-route-drop-target', 'portal-route-drop-after');
+      });
       pr.state.dragStopIndex = null;
     });
 
@@ -279,9 +325,16 @@
 
       var item = ev.target.closest('.portal-route-stop');
       if (!item) return;
+      if (pr.state.dragStopIndex === null || pr.state.dragStopIndex === undefined) return;
 
       ev.preventDefault();
       ev.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.portal-route-drop-target').forEach(function(row) {
+        if (row !== item) row.classList.remove('portal-route-drop-target', 'portal-route-drop-after');
+      });
+      var dropTarget = pr.listDropTarget(ev, item);
+      item.classList.add('portal-route-drop-target');
+      item.classList.toggle('portal-route-drop-after', !!(dropTarget && dropTarget.after));
     });
 
     document.addEventListener('drop', function(ev) {
@@ -292,12 +345,14 @@
       if (!item) return;
 
       ev.preventDefault();
+      item.classList.remove('portal-route-drop-target', 'portal-route-drop-after');
 
       var fromIndex = pr.state.dragStopIndex;
-      var toIndex = Number(item.getAttribute('data-index'));
+      var dropTarget = pr.listDropTarget(ev, item);
       pr.state.dragStopIndex = null;
 
-      pr.moveStop(fromIndex, toIndex);
+      if (!dropTarget) return;
+      pr.moveStopToInsertIndex(fromIndex, dropTarget.index);
     });
 
     document.addEventListener('change', function(ev) {

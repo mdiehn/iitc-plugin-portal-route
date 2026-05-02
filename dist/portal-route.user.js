@@ -139,6 +139,34 @@ function wrapper(plugin_info) {
   border-radius: 4px;
 }
 
+.portal-route-waypoint-row-draggable {
+  cursor: grab;
+}
+
+.portal-route-waypoint-row-draggable .portal-route-wait-cell,
+.portal-route-waypoint-row-draggable .portal-route-row-action,
+.portal-route-waypoint-row-draggable .portal-route-wait-cell *,
+.portal-route-waypoint-row-draggable .portal-route-row-action * {
+  cursor: auto;
+}
+
+.portal-route-waypoint-row-draggable.portal-route-dragging {
+  opacity: 0.55;
+}
+
+.portal-route-stop.portal-route-drop-target {
+  background: rgba(255, 216, 0, 0.16);
+  border-radius: 4px;
+}
+
+.portal-route-stop.portal-route-drop-target .portal-route-waypoint-name-cell {
+  box-shadow: inset 0 1px 0 rgba(255, 216, 0, 0.75);
+}
+
+.portal-route-stop.portal-route-drop-target.portal-route-drop-after .portal-route-waypoint-name-cell {
+  box-shadow: inset 0 -1px 0 rgba(255, 216, 0, 0.75);
+}
+
 .portal-route-waypoint-num,
 .portal-route-waypoint-name-cell,
 .portal-route-leg-cell,
@@ -2116,10 +2144,15 @@ input.portal-route-waypoint-name-input:focus,
       var rowClass = selectedClass + (isLoop ? ' portal-route-loop-row' : '');
       var badge = isLoop ? 'L' : (index + 1);
       var badgeClass = String(badge).length > 2 ? ' portal-route-waypoint-badge-wide' : '';
+      var canDragRow = !isLoop && !isManagedStart;
+      var dragClass = canDragRow ? ' portal-route-waypoint-row-draggable' : '';
+      var dragAttr = canDragRow ? ' draggable="true"' : '';
+      var dragHandleAttr = canDragRow ? ' draggable="true"' : '';
       var selectTitle = isLoop ? 'Loop back to start' : 'Select and center stop';
+      var badgeTitle = canDragRow ? 'Drag to reorder; click to select and center' : selectTitle;
 
-      html += '<div class="portal-route-waypoint-row' + rowClass + '" data-index="' + index + '">';
-      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge' + badgeClass + (isLoop ? ' portal-route-loop-badge' : '') + '" title="' + selectTitle + '" data-action="select-stop-center" data-index="' + index + '">' + badge + '</button></div>';
+      html += '<div class="portal-route-waypoint-row portal-route-stop' + rowClass + dragClass + '" data-index="' + index + '"' + dragAttr + '>';
+      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge portal-route-waypoint-drag-handle' + badgeClass + (isLoop ? ' portal-route-loop-badge' : '') + '" title="' + badgeTitle + '" data-action="select-stop-center" data-index="' + index + '"' + dragHandleAttr + '>' + badge + '</button></div>';
 
       if (isLoop) {
         html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Loop back to first waypoint" data-action="select-stop-center" data-index="' + index + '">Loop back to ' + pr.escapeHtml(stop.title) + '</button></div>';
@@ -2915,6 +2948,38 @@ input.portal-route-waypoint-name-input:focus,
     if (content) content.style.display = 'none';
   };
 
+  pr.listDropTarget = function(ev, item) {
+    if (!item) return null;
+
+    var targetIndex = Number(item.getAttribute('data-index'));
+    if (!isFinite(targetIndex)) return null;
+
+    var rect = item.getBoundingClientRect ? item.getBoundingClientRect() : null;
+    var after = rect ? ev.clientY > rect.top + rect.height / 2 : false;
+    var insertIndex = after ? targetIndex + 1 : targetIndex;
+
+    if (targetIndex >= pr.state.stops.length) {
+      insertIndex = pr.state.stops.length;
+      after = false;
+    }
+
+    return {
+      after: after,
+      index: insertIndex
+    };
+  };
+
+  pr.moveStopToInsertIndex = function(fromIndex, insertIndex) {
+    if (!isFinite(fromIndex) || !isFinite(insertIndex)) return;
+    if (fromIndex < 0 || fromIndex >= pr.state.stops.length) return;
+
+    var toIndex = fromIndex < insertIndex ? insertIndex - 1 : insertIndex;
+    toIndex = Math.min(Math.max(0, toIndex), pr.state.stops.length - 1);
+    if (toIndex === fromIndex) return;
+
+    pr.moveStop(fromIndex, toIndex);
+  };
+
   pr.handleAction = function(action, target) {
     if (pr.isLayerEnabled && !pr.isLayerEnabled()) {
       pr.syncLayerUi();
@@ -3084,15 +3149,29 @@ input.portal-route-waypoint-name-input:focus,
 
       var item = ev.target.closest('.portal-route-stop');
       if (!item) return;
+      if (ev.target.closest('.portal-route-wait-cell, .portal-route-row-action')) {
+        ev.preventDefault();
+        return;
+      }
 
       pr.state.dragStopIndex = Number(item.getAttribute('data-index'));
+      if (!isFinite(pr.state.dragStopIndex)) {
+        pr.state.dragStopIndex = null;
+        ev.preventDefault();
+        return;
+      }
+
       ev.dataTransfer.effectAllowed = 'move';
+      ev.dataTransfer.setData('text/plain', String(pr.state.dragStopIndex));
       item.classList.add('portal-route-dragging');
     });
 
     document.addEventListener('dragend', function(ev) {
       var item = ev.target.closest('.portal-route-stop');
       if (item) item.classList.remove('portal-route-dragging');
+      document.querySelectorAll('.portal-route-drop-target').forEach(function(row) {
+        row.classList.remove('portal-route-drop-target', 'portal-route-drop-after');
+      });
       pr.state.dragStopIndex = null;
     });
 
@@ -3102,9 +3181,16 @@ input.portal-route-waypoint-name-input:focus,
 
       var item = ev.target.closest('.portal-route-stop');
       if (!item) return;
+      if (pr.state.dragStopIndex === null || pr.state.dragStopIndex === undefined) return;
 
       ev.preventDefault();
       ev.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.portal-route-drop-target').forEach(function(row) {
+        if (row !== item) row.classList.remove('portal-route-drop-target', 'portal-route-drop-after');
+      });
+      var dropTarget = pr.listDropTarget(ev, item);
+      item.classList.add('portal-route-drop-target');
+      item.classList.toggle('portal-route-drop-after', !!(dropTarget && dropTarget.after));
     });
 
     document.addEventListener('drop', function(ev) {
@@ -3115,12 +3201,14 @@ input.portal-route-waypoint-name-input:focus,
       if (!item) return;
 
       ev.preventDefault();
+      item.classList.remove('portal-route-drop-target', 'portal-route-drop-after');
 
       var fromIndex = pr.state.dragStopIndex;
-      var toIndex = Number(item.getAttribute('data-index'));
+      var dropTarget = pr.listDropTarget(ev, item);
       pr.state.dragStopIndex = null;
 
-      pr.moveStop(fromIndex, toIndex);
+      if (!dropTarget) return;
+      pr.moveStopToInsertIndex(fromIndex, dropTarget.index);
     });
 
     document.addEventListener('change', function(ev) {

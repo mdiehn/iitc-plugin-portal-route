@@ -43,10 +43,15 @@
       var rowClass = selectedClass + (isLoop ? ' portal-route-loop-row' : '');
       var badge = isLoop ? 'L' : (index + 1);
       var badgeClass = String(badge).length > 2 ? ' portal-route-waypoint-badge-wide' : '';
+      var canDragRow = !isLoop && !isManagedStart;
+      var dragClass = canDragRow ? ' portal-route-waypoint-row-draggable' : '';
+      var dragAttr = canDragRow ? ' draggable="true"' : '';
+      var dragHandleAttr = canDragRow ? ' draggable="true"' : '';
       var selectTitle = isLoop ? 'Loop back to start' : 'Select and center stop';
+      var badgeTitle = canDragRow ? 'Drag to reorder; click to select and center' : selectTitle;
 
-      html += '<div class="portal-route-waypoint-row' + rowClass + '" data-index="' + index + '">';
-      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge' + badgeClass + (isLoop ? ' portal-route-loop-badge' : '') + '" title="' + selectTitle + '" data-action="select-stop-center" data-index="' + index + '">' + badge + '</button></div>';
+      html += '<div class="portal-route-waypoint-row portal-route-stop' + rowClass + dragClass + '" data-index="' + index + '"' + dragAttr + '>';
+      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge portal-route-waypoint-drag-handle' + badgeClass + (isLoop ? ' portal-route-loop-badge' : '') + '" title="' + badgeTitle + '" data-action="select-stop-center" data-index="' + index + '"' + dragHandleAttr + '>' + badge + '</button></div>';
 
       if (isLoop) {
         html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Loop back to first waypoint" data-action="select-stop-center" data-index="' + index + '">Loop back to ' + pr.escapeHtml(stop.title) + '</button></div>';
