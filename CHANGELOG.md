@@ -6,6 +6,10 @@ Current release: `1.0.0`
 
 ## 1.1.0-dev - Unreleased
 
+### Added
+
+- Added route library design notes for the planned v1.1.0 save/load and Google Drive shared storage work.
+
 ### Changed
 
 - Refactored route panel event handling and map marker rendering into smaller helpers.

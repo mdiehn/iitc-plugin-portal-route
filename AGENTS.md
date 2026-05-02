@@ -4,7 +4,7 @@
 
 This repo contains an IITC plugin called **Driving Route**.
 
-Current version: `1.0.0`.
+Current version: `1.1.0-dev` planning after the `1.0.0` release.
 
 ## Working style
 
@@ -18,23 +18,22 @@ Current version: `1.0.0`.
 
 ## Current focus
 
-Implement **manual point dragging** on the map.
+Plan and implement the **v1.1.0 route library with Google Drive shared storage**.
 
-Manual points currently:
-- can be added
-- appear in the waypoint list
-- are selectable
-- have map markers / selectable handles
-- do not yet drag properly
+Start with:
 
-Dragging behavior:
-- manual point markers should be draggable
-- dragging should update the stored point coordinates
-- dragging should update marker position and waypoint state
-- selection should remain sane after drag
-- use thin marker/handle styling
-- provide visual feedback while dragging
+- route record schema
+- local save/load of named routes
+- local storage backend
+- conservative UI wiring for the existing Save and Load buttons
+- JSON import/export for saved routes and route libraries
 
-## Do not get distracted by later portal dragging yet
+Then add:
 
-Portal waypoint dragging is planned, but not part of the current push unless explicitly requested.
+- storage backend shape shared by local and external storage
+- Google Drive backend using a visible user-selected Drive folder
+- `route-library.json` in that folder
+
+Do not start with automatic polling, live sync, or hidden `appDataFolder` storage. Before implementing Drive directly, inspect IITC's existing Google Drive sync code to see whether Portal Route can reuse its auth/session/sync machinery or at least follow its working assumptions.
+
+See `docs/route-library-design.md` for the current design notes and open questions.
