@@ -42,10 +42,11 @@
       var selectedClass = !isLoop && pr.selectedStopIndex && pr.selectedStopIndex() === index ? ' portal-route-selected-stop' : '';
       var rowClass = selectedClass + (isLoop ? ' portal-route-loop-row' : '');
       var badge = isLoop ? 'L' : (index + 1);
+      var badgeClass = String(badge).length > 2 ? ' portal-route-waypoint-badge-wide' : '';
       var selectTitle = isLoop ? 'Loop back to start' : 'Select and center stop';
 
       html += '<div class="portal-route-waypoint-row' + rowClass + '" data-index="' + index + '">';
-      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge' + (isLoop ? ' portal-route-loop-badge' : '') + '" title="' + selectTitle + '" data-action="select-stop-center" data-index="' + index + '">' + badge + '</button></div>';
+      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge' + badgeClass + (isLoop ? ' portal-route-loop-badge' : '') + '" title="' + selectTitle + '" data-action="select-stop-center" data-index="' + index + '">' + badge + '</button></div>';
 
       if (isLoop) {
         html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Loop back to first waypoint" data-action="select-stop-center" data-index="' + index + '">Loop back to ' + pr.escapeHtml(stop.title) + '</button></div>';

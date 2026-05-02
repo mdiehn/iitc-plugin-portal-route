@@ -53,6 +53,7 @@
       var isMapPoint = stop.type === 'map';
       var canDragMapPoint = isMapPoint && !pr.isManagedStartStop(stop);
       var label = isLoop ? 'L' : (index + 1);
+      var labelClass = String(label).length > 2 ? ' portal-route-stop-label-wide' : '';
       var title = isLoop ? 'Loop back to ' + stop.title : (index + 1) + '. ' + stop.title;
 
       var selectStop = function(e) {
@@ -125,7 +126,7 @@
       }
 
       var icon = L.divIcon({
-        className: 'portal-route-stop-label' + (isMapPoint ? ' portal-route-map-point-label' : '') + (canDragMapPoint ? ' portal-route-map-point-label-draggable' : '') + (isLoop ? ' portal-route-loop-label' : '') + selectedClass,
+        className: 'portal-route-stop-label' + labelClass + (isMapPoint ? ' portal-route-map-point-label' : '') + (canDragMapPoint ? ' portal-route-map-point-label-draggable' : '') + (isLoop ? ' portal-route-loop-label' : '') + selectedClass,
         html: '<span>' + label + '</span>',
         iconSize: [18, 18],
         iconAnchor: isLoop ? [-18, 24] : [0, 24]

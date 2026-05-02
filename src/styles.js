@@ -99,7 +99,7 @@
 
 .portal-route-waypoint-row {
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) max-content 42px 22px 22px 22px;
+  grid-template-columns: max-content minmax(0, 1fr) max-content 42px 22px 22px 22px;
   gap: 2px;
   align-items: center;
   width: 100%;
@@ -129,7 +129,7 @@
 }
 
 .portal-route-waypoint-num {
-  width: 20px;
+  min-width: 20px;
   text-align: center;
 }
 
@@ -252,6 +252,14 @@ button.portal-route-waypoint-badge {
   color: #111 !important;
   cursor: pointer;
   line-height: 16px !important;
+}
+
+.portal-route-stop-label-wide span,
+button.portal-route-waypoint-badge-wide {
+  width: auto !important;
+  min-width: 23px !important;
+  padding: 0 3px !important;
+  border-radius: 8px !important;
 }
 
 .portal-route-loop-row {

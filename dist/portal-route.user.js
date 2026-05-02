@@ -121,7 +121,7 @@ function wrapper(plugin_info) {
 
 .portal-route-waypoint-row {
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) max-content 42px 22px 22px 22px;
+  grid-template-columns: max-content minmax(0, 1fr) max-content 42px 22px 22px 22px;
   gap: 2px;
   align-items: center;
   width: 100%;
@@ -151,7 +151,7 @@ function wrapper(plugin_info) {
 }
 
 .portal-route-waypoint-num {
-  width: 20px;
+  min-width: 20px;
   text-align: center;
 }
 
@@ -274,6 +274,14 @@ button.portal-route-waypoint-badge {
   color: #111 !important;
   cursor: pointer;
   line-height: 16px !important;
+}
+
+.portal-route-stop-label-wide span,
+button.portal-route-waypoint-badge-wide {
+  width: auto !important;
+  min-width: 23px !important;
+  padding: 0 3px !important;
+  border-radius: 8px !important;
 }
 
 .portal-route-loop-row {
@@ -1699,6 +1707,7 @@ input.portal-route-waypoint-name-input:focus,
       var isMapPoint = stop.type === 'map';
       var canDragMapPoint = isMapPoint && !pr.isManagedStartStop(stop);
       var label = isLoop ? 'L' : (index + 1);
+      var labelClass = String(label).length > 2 ? ' portal-route-stop-label-wide' : '';
       var title = isLoop ? 'Loop back to ' + stop.title : (index + 1) + '. ' + stop.title;
 
       var selectStop = function(e) {
@@ -1771,7 +1780,7 @@ input.portal-route-waypoint-name-input:focus,
       }
 
       var icon = L.divIcon({
-        className: 'portal-route-stop-label' + (isMapPoint ? ' portal-route-map-point-label' : '') + (canDragMapPoint ? ' portal-route-map-point-label-draggable' : '') + (isLoop ? ' portal-route-loop-label' : '') + selectedClass,
+        className: 'portal-route-stop-label' + labelClass + (isMapPoint ? ' portal-route-map-point-label' : '') + (canDragMapPoint ? ' portal-route-map-point-label-draggable' : '') + (isLoop ? ' portal-route-loop-label' : '') + selectedClass,
         html: '<span>' + label + '</span>',
         iconSize: [18, 18],
         iconAnchor: isLoop ? [-18, 24] : [0, 24]
@@ -2021,10 +2030,11 @@ input.portal-route-waypoint-name-input:focus,
       var selectedClass = !isLoop && pr.selectedStopIndex && pr.selectedStopIndex() === index ? ' portal-route-selected-stop' : '';
       var rowClass = selectedClass + (isLoop ? ' portal-route-loop-row' : '');
       var badge = isLoop ? 'L' : (index + 1);
+      var badgeClass = String(badge).length > 2 ? ' portal-route-waypoint-badge-wide' : '';
       var selectTitle = isLoop ? 'Loop back to start' : 'Select and center stop';
 
       html += '<div class="portal-route-waypoint-row' + rowClass + '" data-index="' + index + '">';
-      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge' + (isLoop ? ' portal-route-loop-badge' : '') + '" title="' + selectTitle + '" data-action="select-stop-center" data-index="' + index + '">' + badge + '</button></div>';
+      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge' + badgeClass + (isLoop ? ' portal-route-loop-badge' : '') + '" title="' + selectTitle + '" data-action="select-stop-center" data-index="' + index + '">' + badge + '</button></div>';
 
       if (isLoop) {
         html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Loop back to first waypoint" data-action="select-stop-center" data-index="' + index + '">Loop back to ' + pr.escapeHtml(stop.title) + '</button></div>';
