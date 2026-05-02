@@ -360,7 +360,7 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-control-groups {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   margin-top: 7px;
 }
@@ -370,6 +370,10 @@ button.portal-route-waypoint-badge-wide {
   padding: 5px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(0, 0, 0, 0.12);
+}
+
+.portal-route-control-group-wide {
+  grid-column: 1 / -1;
 }
 
 .portal-route-control-group-title {
@@ -495,8 +499,17 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-points-panel-actions {
   flex: 0 0 auto;
+  gap: 4px;
   justify-content: space-between;
   margin-top: 7px;
+}
+
+.portal-route-button-divider {
+  align-self: stretch;
+  width: 1px;
+  min-height: 20px;
+  margin: 0 2px;
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .portal-route-library-source {
@@ -556,6 +569,10 @@ button.portal-route-waypoint-badge-wide {
   grid-template-columns: 1fr 1fr;
   gap: 6px;
   margin-top: 8px;
+}
+
+.portal-route-points-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .portal-route-totals div {
@@ -1072,6 +1089,13 @@ input.portal-route-waypoint-name-input:focus,
     var miles = meters / 1609.344;
     if (miles >= 10) return miles.toFixed(0) + ' mi';
     return miles.toFixed(1) + ' mi';
+  };
+
+  pr.formatDistanceKm = function(meters) {
+    meters = Math.max(0, Number(meters || 0));
+    var km = meters / 1000;
+    if (km >= 10) return km.toFixed(0) + ' km';
+    return km.toFixed(1) + ' km';
   };
 
   pr.portalToStop = function(guid) {
@@ -2560,7 +2584,7 @@ input.portal-route-waypoint-name-input:focus,
   };
 
   pr.renderEmptyHelp = function() {
-    return '<p class="portal-route-empty">There are no waypoints defined.<br>Select a portal and use Add Portal, use Add Point, add your current location, or tick Start on me.</p>';
+    return '<p class="portal-route-empty">There are no waypoints defined.<br>Select a portal and use Add Portal, Add Point, or Add Me.</p>';
   };
 
   pr.renderRouteSegment = function(leg) {
@@ -2638,6 +2662,19 @@ input.portal-route-waypoint-name-input:focus,
     return html;
   };
 
+  pr.renderPointsSummary = function(route) {
+    if (!route || !route.totals) return '';
+
+    var html = '';
+    html += '<div class="portal-route-totals portal-route-points-summary">';
+    html += '<div><span>Trip</span><strong>' + pr.formatDuration(route.totals.tripSeconds) + '</strong></div>';
+    html += '<div><span>Driving</span><strong>' + pr.formatDuration(route.totals.driveSeconds) + '</strong></div>';
+    html += '<div><span>Stops</span><strong>' + pr.formatDuration(route.totals.stopSeconds) + '</strong></div>';
+    html += '<div><span>Distance</span><strong>' + pr.formatDistance(route.totals.distanceMeters) + ' / ' + pr.formatDistanceKm(route.totals.distanceMeters) + '</strong></div>';
+    html += '</div>';
+    return html;
+  };
+
   pr.renderMainPanel = function(legsByToIndex) {
     var html = '';
 
@@ -2646,15 +2683,7 @@ input.portal-route-waypoint-name-input:focus,
     html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" title="Examples: 15m, 1.5h, 2d" data-field="default-stop-minutes"> per portal</label>';
     html += '</div>';
 
-    html += '<div class="portal-route-bottom-summary"><b>Waypoints:</b> ' + pr.state.stops.length + (pr.makeLoopStop() && pr.state.stops.length > 1 ? ' + loop' : '') + '</div>';
-    if (pr.state.routeDirty) {
-      html += '<div class="portal-route-stale">Route needs replot.</div>';
-    }
-    html += pr.renderTotals(pr.state.route);
-
     html += '<div class="portal-route-settings-row">';
-    html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="start-on-current-location" ' + (pr.state.settings.startOnCurrentLocation ? 'checked ' : '') + '> Start on me</label>';
-    html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="include-return-to-start" ' + (pr.state.settings.includeReturnToStart ? 'checked ' : '') + '> Loop back to start</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="auto-replot-on-edit" ' + (pr.state.settings.autoReplotOnEdit ? 'checked ' : '') + '> Auto-replot</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-segment-times-on-map" ' + (pr.state.settings.showSegmentTimesOnMap ? 'checked ' : '') + '> Show segment times on map</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-mini-control" ' + (pr.state.settings.showMiniControl ? 'checked ' : '') + '> Mini control</label>';
@@ -2662,29 +2691,19 @@ input.portal-route-waypoint-name-input:focus,
     html += '</div>';
 
     html += '<div class="portal-route-control-groups">';
-    html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Add</div><div class="portal-route-control-group-buttons">';
-    html += '<button type="button" data-action="add-selected-stop">Portal</button>';
-    html += '<button type="button" data-action="add-map-point"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Point</button>';
-    html += '<button type="button" data-action="add-current-location">Current</button>';
-    html += '</div></div>';
-
-    html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Route</div><div class="portal-route-control-group-buttons">';
-    html += '<button type="button" data-action="calculate-route">' + (pr.state.routeDirty ? 'Replot' : 'Plot') + '</button>';
-    html += '<button type="button" data-action="fit-route">Fit</button>';
-    html += '<button type="button" data-action="open-google-maps">Maps</button>';
-    html += '</div></div>';
-
-    html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Data</div><div class="portal-route-control-group-buttons">';
+    html += '<div class="portal-route-control-group portal-route-control-group-wide"><div class="portal-route-control-group-title">Data</div><div class="portal-route-control-group-buttons">';
     html += '<button type="button" data-action="save-route">Save</button>';
     html += '<button type="button" data-action="load-route">Load</button>';
+    html += '<button type="button" data-action="print-route">Print</button>';
+    html += '<button type="button" data-action="open-google-maps">Send to Maps</button>';
     html += '<button type="button" data-action="export-route-json">Export</button>';
     html += '<button type="button" data-action="import-route-json">Import</button>';
+    html += '<button type="button" data-action="clear-route">Clear Route</button>';
     html += '</div></div>';
     html += '</div>';
 
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
     html += '<button type="button" data-action="open-points-list">Open Route List</button>';
-    html += '<button type="button" data-action="clear-route">Delete All Route Points</button>';
     html += '</div>';
 
     if (pr.SHOW_VERSION_IN_PANEL) {
@@ -2704,7 +2723,7 @@ input.portal-route-waypoint-name-input:focus,
       return Math.max(320, viewportWidth);
     }
 
-    return Math.min(560, Math.max(460, viewportWidth - 40));
+    return Math.min(480, Math.max(380, viewportWidth - 40));
   };
 
   pr.getPointsDialogWidth = function() {
@@ -2884,7 +2903,7 @@ input.portal-route-waypoint-name-input:focus,
     if (typeof window.dialog === 'function') {
       window.dialog({
         id: pr.DOM_IDS.dialog,
-        title: 'Portal Route',
+        title: 'Portal Route Settings',
         html: html,
         dialogClass: 'portal-route-dialog',
         width: pr.getDialogWidth()
@@ -2932,14 +2951,29 @@ input.portal-route-waypoint-name-input:focus,
     }
 
     var contentHtml = '';
+    contentHtml += pr.renderPointsSummary(route);
+    if (pr.state.routeDirty) {
+      contentHtml += '<div class="portal-route-stale">Route needs replot.</div>';
+    }
+    contentHtml += '<div class="portal-route-bottom-summary"><b>Waypoints:</b> ' + pr.state.stops.length + (pr.makeLoopStop() && pr.state.stops.length > 1 ? ' + loop' : '') + '</div>';
     contentHtml += '<div class="portal-route-points-list-body">';
     contentHtml += '<div class="portal-route-body">' + pr.renderStopsList(legsByToIndex) + '</div>';
     contentHtml += '</div>';
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-panel-actions">';
-    contentHtml += '<button type="button" data-action="clear-route">Clear Points</button>';
-    contentHtml += '<button type="button" data-action="open-main">Main Panel</button>';
+    contentHtml += '<button type="button" data-action="add-selected-stop">Add Portal</button>';
+    contentHtml += '<button type="button" data-action="add-map-point"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add Point</button>';
+    contentHtml += '<button type="button" data-action="add-current-location">Add Me</button>';
+    contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
+    contentHtml += '<button type="button" data-action="toggle-loop-back"' + (pr.state.settings.includeReturnToStart ? ' class="portal-route-active-action"' : '') + '>Loop</button>';
     contentHtml += '<button type="button" data-action="calculate-route">' + (pr.state.routeDirty ? 'Replot' : 'Plot') + '</button>';
+    contentHtml += '<button type="button" data-action="fit-route">Fit</button>';
+    contentHtml += '<button type="button" data-action="open-google-maps">Maps</button>';
+    contentHtml += '<button type="button" data-action="clear-route">Clear</button>';
+    contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';
+    contentHtml += '<button type="button" data-action="save-route">Save</button>';
+    contentHtml += '<button type="button" data-action="load-route">Load</button>';
+    contentHtml += '<button type="button" data-action="open-main">Settings</button>';
     contentHtml += '</div>';
     var existingContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);
 

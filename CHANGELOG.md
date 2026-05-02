@@ -16,6 +16,10 @@ Current release: `1.0.0`
 
 - Refactored route panel event handling and map marker rendering into smaller helpers.
 - Tightened imported settings handling so only known settings are applied.
+- Moved day-to-day route actions onto the route list footer, grouped the footer actions, and shortened route-list labels.
+- Tightened the app panel width and added Clear Route to the Data group.
+- Moved route summary info to the top of the route list panel and show distance in miles and kilometers.
+- Slimmed the settings panel by moving route actions and summary details into the route list workflow.
 
 ## 1.0.0 - Released - 2026-05-02
 

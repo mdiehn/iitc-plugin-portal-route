@@ -15,3 +15,10 @@
     if (miles >= 10) return miles.toFixed(0) + ' mi';
     return miles.toFixed(1) + ' mi';
   };
+
+  pr.formatDistanceKm = function(meters) {
+    meters = Math.max(0, Number(meters || 0));
+    var km = meters / 1000;
+    if (km >= 10) return km.toFixed(0) + ' km';
+    return km.toFixed(1) + ' km';
+  };

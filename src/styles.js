@@ -338,7 +338,7 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-control-groups {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   margin-top: 7px;
 }
@@ -348,6 +348,10 @@ button.portal-route-waypoint-badge-wide {
   padding: 5px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(0, 0, 0, 0.12);
+}
+
+.portal-route-control-group-wide {
+  grid-column: 1 / -1;
 }
 
 .portal-route-control-group-title {
@@ -473,8 +477,17 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-points-panel-actions {
   flex: 0 0 auto;
+  gap: 4px;
   justify-content: space-between;
   margin-top: 7px;
+}
+
+.portal-route-button-divider {
+  align-self: stretch;
+  width: 1px;
+  min-height: 20px;
+  margin: 0 2px;
+  background: rgba(255, 255, 255, 0.28);
 }
 
 .portal-route-library-source {
@@ -534,6 +547,10 @@ button.portal-route-waypoint-badge-wide {
   grid-template-columns: 1fr 1fr;
   gap: 6px;
   margin-top: 8px;
+}
+
+.portal-route-points-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .portal-route-totals div {
