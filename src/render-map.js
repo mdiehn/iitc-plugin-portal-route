@@ -430,7 +430,7 @@
 
   pr.fitRouteToMap = function() {
     if (!window.map || !pr.state.layers.routeLine || !pr.state.layers.routeLine.getBounds) {
-      pr.showMessage('Plot a route first.');
+      pr.showMessage('Add at least two waypoints first.');
       return;
     }
 

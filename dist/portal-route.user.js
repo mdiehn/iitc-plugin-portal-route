@@ -121,7 +121,7 @@ function wrapper(plugin_info) {
 
 .portal-route-waypoint-row {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr) max-content 42px 22px 22px 22px;
+  grid-template-columns: max-content minmax(0, 1fr) max-content 42px;
   gap: 2px;
   align-items: center;
   width: 100%;
@@ -144,9 +144,7 @@ function wrapper(plugin_info) {
 }
 
 .portal-route-waypoint-row-draggable .portal-route-wait-cell,
-.portal-route-waypoint-row-draggable .portal-route-row-action,
-.portal-route-waypoint-row-draggable .portal-route-wait-cell *,
-.portal-route-waypoint-row-draggable .portal-route-row-action * {
+.portal-route-waypoint-row-draggable .portal-route-wait-cell * {
   cursor: auto;
 }
 
@@ -170,8 +168,7 @@ function wrapper(plugin_info) {
 .portal-route-waypoint-num,
 .portal-route-waypoint-name-cell,
 .portal-route-leg-cell,
-.portal-route-wait-cell,
-.portal-route-row-action {
+.portal-route-wait-cell {
   min-width: 0;
   border: 0 !important;
   outline: 0 !important;
@@ -200,12 +197,6 @@ function wrapper(plugin_info) {
   text-align: center;
 }
 
-.portal-route-row-action {
-  width: 22px;
-  text-align: center;
-  overflow: visible;
-}
-
 .portal-route-waypoint-name {
   display: block;
   width: 100%;
@@ -227,11 +218,6 @@ function wrapper(plugin_info) {
 }
 
 
-.portal-route-waypoint-name-input {
-  height: 18px;
-  line-height: 18px;
-}
-
 .portal-route-waypoint-name:hover,
 .portal-route-waypoint-name:focus,
 .portal-route-waypoint-name:active {
@@ -245,30 +231,6 @@ function wrapper(plugin_info) {
 .portal-route-wait-input {
   width: 42px;
   padding: 1px 2px;
-}
-
-.portal-route-row-button {
-  width: 22px !important;
-  min-width: 22px !important;
-  max-width: 22px !important;
-  height: 20px;
-  min-height: 20px;
-  padding: 0 !important;
-  border: 0 !important;
-  background: transparent !important;
-  color: inherit !important;
-  text-align: center;
-  line-height: 20px;
-  font-size: 14px !important;
-  font-weight: bold !important;
-}
-
-.portal-route-row-button:disabled {
-  opacity: 0.35;
-}
-
-.portal-route-remove-stop-button {
-  color: #ff8080 !important;
 }
 
 .portal-route-stop-num,
@@ -827,17 +789,65 @@ button.portal-route-waypoint-badge-wide {
   display: flex;
   flex-wrap: wrap;
   flex: 0 0 100%;
-  justify-content: space-evenly;
+  gap: 4px;
+  justify-content: center;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .portal-route-portal-action-links a {
   flex: 0 0 auto;
-  margin: 0 4px;
+  margin: 0;
+  padding: 2px 6px;
+  border: 1px solid rgba(255, 216, 0, 0.45);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.14);
   overflow: hidden;
   text-align: center;
+  text-decoration: none;
   text-overflow: ellipsis;
+}
+
+.portal-route-context-menu {
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 150px;
+  padding: 5px;
+  border: 1px solid rgba(32, 168, 204, 0.8);
+  background: rgba(8, 45, 62, 0.96);
+  color: #ffd800;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+}
+
+.portal-route-context-menu button {
+  display: block;
+  width: 100%;
+  padding: 4px 6px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  font: inherit;
+  text-align: left;
+}
+
+.portal-route-context-menu button:hover,
+.portal-route-context-menu button:focus {
+  background: rgba(255, 255, 255, 0.12) !important;
+  outline: none !important;
+}
+
+.portal-route-context-menu button:disabled {
+  color: rgba(255, 255, 255, 0.42) !important;
+}
+
+.portal-route-context-divider {
+  height: 1px;
+  margin: 3px 0;
+  background: rgba(32, 168, 204, 0.5);
 }
 
 
@@ -870,27 +880,6 @@ button.portal-route-waypoint-name,
   background-image: none !important;
 }
 
-input.portal-route-waypoint-name-input,
-.ui-dialog input.portal-route-waypoint-name-input {
-  height: 20px;
-  line-height: 18px;
-  padding: 1px 4px !important;
-  border: 1px solid rgba(255, 216, 0, 0.35) !important;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.08) !important;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25) !important;
-  cursor: text;
-}
-
-input.portal-route-waypoint-name-input:hover,
-input.portal-route-waypoint-name-input:focus,
-.ui-dialog input.portal-route-waypoint-name-input:hover,
-.ui-dialog input.portal-route-waypoint-name-input:focus {
-  border-color: rgba(255, 216, 0, 0.70) !important;
-  background: rgba(255, 255, 255, 0.12) !important;
-  outline: none !important;
-}
-
 @media (max-width: 640px) {
   .ui-dialog.portal-route-dialog {
     position: fixed !important;
@@ -915,7 +904,7 @@ input.portal-route-waypoint-name-input:focus,
   }
 
   .portal-route-waypoint-row {
-    grid-template-columns: 18px minmax(0, 1fr) max-content 38px 20px 20px 20px;
+    grid-template-columns: 18px minmax(0, 1fr) max-content 38px;
     gap: 1px;
   }
 
@@ -933,16 +922,6 @@ input.portal-route-waypoint-name-input:focus,
 
   .portal-route-wait-input {
     width: 38px;
-  }
-
-  .portal-route-row-action {
-    width: 20px;
-  }
-
-  .portal-route-row-button {
-    width: 20px !important;
-    min-width: 20px !important;
-    max-width: 20px !important;
   }
 
   .portal-route-control-groups {
@@ -1313,61 +1292,48 @@ input.portal-route-waypoint-name-input:focus,
     var links = document.createElement('div');
     links.className = 'portal-route-portal-action-links';
 
-    var toggleLink = document.createElement('a');
-    toggleLink.href = '#';
-    toggleLink.textContent = isInRoute ? 'Remove' : 'Add';
-    toggleLink.addEventListener('click', function(ev) {
-      ev.preventDefault();
+    function addActionLink(label, handler) {
+      var link = document.createElement('a');
+      link.href = '#';
+      link.textContent = label;
+      if (label === 'Add') link.setAttribute('data-add-menu', 'true');
+      link.addEventListener('click', function(ev) {
+        ev.preventDefault();
+        handler();
+      });
+      links.appendChild(link);
+      return link;
+    }
+
+    if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) addActionLink(isInRoute ? 'Remove' : 'Add', function() {
       if (isInRoute) {
         pr.removeStop(selectedIndex);
-      } else if (!hasSelectedMapPoint) {
+      } else if (window.selectedPortal) {
         pr.addSelectedPortal();
+      } else {
+        pr.setAddPointMode(true);
       }
       pr.injectPortalDetailsAction();
     });
-    if (isInRoute || window.selectedPortal) links.appendChild(toggleLink);
 
-    var menuLink = document.createElement('a');
-    menuLink.href = '#';
-    menuLink.textContent = 'Menu';
-    menuLink.addEventListener('click', function(ev) {
-      ev.preventDefault();
+    addActionLink('List', function() {
+      pr.state.pointsPanelOpen = true;
+      pr.renderPointsPanel();
+    });
+
+    addActionLink('Maps', function() {
+      pr.openGoogleMaps();
+    });
+
+    addActionLink('Settings', function() {
       pr.state.panelOpen = true;
       pr.savePanelOpen();
       pr.renderPanel();
     });
-    links.appendChild(menuLink);
 
-    var listLink = document.createElement('a');
-    listLink.href = '#';
-    listLink.textContent = 'List';
-    listLink.addEventListener('click', function(ev) {
-      ev.preventDefault();
-      pr.state.pointsPanelOpen = true;
-      pr.renderPointsPanel();
+    addActionLink('Library', function() {
+      pr.openRouteLibraryPanel();
     });
-    links.appendChild(listLink);
-
-    var plotLink = document.createElement('a');
-    plotLink.href = '#';
-    plotLink.textContent = pr.state.routeDirty ? 'Replot' : 'Plot';
-    plotLink.addEventListener('click', function(ev) {
-      ev.preventDefault();
-      pr.calculateRoute();
-      pr.injectPortalDetailsAction();
-    });
-    links.appendChild(plotLink);
-
-    var clearLink = document.createElement('a');
-    clearLink.href = '#';
-    clearLink.textContent = 'Clear';
-    clearLink.addEventListener('click', function(ev) {
-      ev.preventDefault();
-      if (pr.state.stops.length && window.confirm && !window.confirm('Clear all points from the route?')) return;
-      pr.clearStops();
-      pr.injectPortalDetailsAction();
-    });
-    links.appendChild(clearLink);
 
     wrapper.appendChild(links);
   };
@@ -1375,8 +1341,9 @@ input.portal-route-waypoint-name-input:focus,
   pr.markRouteStale = function(options) {
     options = options || {};
     var hadRouteState = !!pr.state.route || !!pr.state.routeDirty;
-    var shouldAutoReplot = hadRouteState && pr.state.settings.autoReplotOnEdit && !options.skipAutoReplot;
-    pr.state.routeDirty = hadRouteState;
+    var hasRouteableStops = pr.getRouteStops().length >= 2;
+    var shouldAutoReplot = hasRouteableStops && !options.skipAutoReplot;
+    pr.state.routeDirty = hadRouteState || hasRouteableStops;
 
     if (options.clearRoute && !shouldAutoReplot) {
       pr.state.route = null;
@@ -1396,7 +1363,6 @@ input.portal-route-waypoint-name-input:focus,
 
     pr.state.autoReplotTimer = window.setTimeout(function() {
       pr.state.autoReplotTimer = null;
-      if (!pr.state.settings.autoReplotOnEdit) return;
       if (!pr.state.routeDirty) return;
       pr.calculateRoute();
     }, 0);
@@ -1578,6 +1544,37 @@ input.portal-route-waypoint-name-input:focus,
         pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '.'));
       }
     );
+  };
+
+  pr.smartAdd = function() {
+    if (!pr.state.stops.length) {
+      pr.showMessage('Getting current location...');
+      pr.getCurrentLocation(
+        function(position) {
+          var stop = pr.currentLocationStopFromPosition(position, { title: 'Current location' });
+          if (!stop) {
+            pr.setAddPointMode(true);
+            pr.showMessage('Could not read current location. Tap the map to add a point.');
+            return;
+          }
+          delete stop.startOnMe;
+          pr.addStop(stop);
+          pr.showMessage('Current location added.');
+        },
+        function(error) {
+          pr.setAddPointMode(true);
+          pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '') + '. Tap the map to add a point.');
+        }
+      );
+      return;
+    }
+
+    if (window.selectedPortal && pr.portalToStop && pr.portalToStop(window.selectedPortal)) {
+      pr.addSelectedPortal();
+      return;
+    }
+
+    pr.setAddPointMode(true);
   };
 
   pr.stopTitleNeedsHydration = function(title) {
@@ -1903,6 +1900,61 @@ input.portal-route-waypoint-name-input:focus,
     if (restoreStartOnMe) {
       pr.setStartOnCurrentLocation(true);
     }
+  };
+
+  pr.clearRouteWithConfirm = function() {
+    if (pr.state.stops.length && window.confirm && !window.confirm('Clear all points from the route?')) return;
+    pr.clearStops();
+  };
+
+  pr.reverseRoute = function() {
+    if (pr.state.stops.length < 2) {
+      pr.showMessage('Add at least two waypoints to reverse.');
+      return;
+    }
+
+    var selectedStop = typeof pr.state.selectedMapPointIndex === 'number' ? pr.state.stops[pr.state.selectedMapPointIndex] : null;
+    var pinnedStart = pr.isManagedStartIndex(0) ? pr.state.stops.slice(0, 1) : [];
+    var routeStops = pr.state.stops.slice(pinnedStart.length).reverse();
+
+    pr.state.stops = pinnedStart.concat(routeStops);
+    pr.state.selectedMapPointIndex = selectedStop ? pr.state.stops.indexOf(selectedStop) : null;
+    if (pr.state.selectedMapPointIndex < 0) pr.state.selectedMapPointIndex = null;
+
+    pr.markRouteStale({ clearRoute: true });
+    pr.saveStops();
+    pr.redrawLabels();
+    pr.renderPanel();
+    pr.renderMiniControl();
+    pr.showMessage('Route reversed.');
+  };
+
+  pr.renameStop = function(index) {
+    if (index < 0 || index >= pr.state.stops.length) return;
+    var stop = pr.state.stops[index];
+    if (!stop || pr.isManagedStartStop(stop)) return;
+
+    var title = window.prompt ? window.prompt('Waypoint name', stop.title || '') : null;
+    if (title === null) return;
+
+    title = String(title).trim();
+    if (!title) title = stop.type === 'map' ? pr.nextMapPointTitle() : 'Unnamed portal';
+
+    stop.title = title;
+    pr.saveStops();
+    pr.redrawLabels();
+    pr.redrawSegmentTimeLabels();
+    pr.renderPanel();
+    pr.renderMiniControl();
+  };
+
+  pr.moveStopToEdge = function(index, edge) {
+    if (index < 0 || index >= pr.state.stops.length) return;
+    if (pr.isManagedStartIndex(index)) return;
+
+    var toIndex = edge === 'end' ? pr.state.stops.length - 1 : 0;
+    if (edge === 'start' && pr.state.settings.startOnCurrentLocation) toIndex = 1;
+    pr.moveStop(index, toIndex);
   };
 
   pr.replaceStops = function(stops, options) {
@@ -2621,7 +2673,7 @@ input.portal-route-waypoint-name-input:focus,
 
   pr.fitRouteToMap = function() {
     if (!window.map || !pr.state.layers.routeLine || !pr.state.layers.routeLine.getBounds) {
-      pr.showMessage('Plot a route first.');
+      pr.showMessage('Add at least two waypoints first.');
       return;
     }
 
@@ -2654,7 +2706,7 @@ input.portal-route-waypoint-name-input:focus,
   };
 
   pr.renderEmptyHelp = function() {
-    return '<p class="portal-route-empty">There are no waypoints defined.<br>Select a portal and use Add Portal, Add Point, or Add Me.</p>';
+    return '<p class="portal-route-empty">There are no waypoints defined.<br>Use Add to start a route.</p>';
   };
 
   pr.renderRouteSegment = function(leg) {
@@ -2675,7 +2727,6 @@ input.portal-route-waypoint-name-input:focus,
 
   pr.renderStopsList = function(legsByToIndex) {
     var stops = pr.getRouteStops();
-    var realStops = pr.state.stops;
     if (stops.length === 0) return pr.renderEmptyHelp();
 
     var html = '';
@@ -2701,17 +2752,12 @@ input.portal-route-waypoint-name-input:focus,
 
       if (isLoop) {
         html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Loop back to first waypoint" data-action="select-stop-center" data-index="' + index + '">Loop back to ' + pr.escapeHtml(stop.title) + '</button></div>';
-      } else if (stop.type === 'map' && !isManagedStart) {
-        html += '<div class="portal-route-waypoint-name-cell"><input type="text" class="portal-route-waypoint-name portal-route-waypoint-name-input" title="Edit map point name" data-field="stop-title" data-index="' + index + '" value="' + pr.escapeHtml(stop.title) + '"></div>';
       } else {
         html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Select stop" data-action="select-stop" data-index="' + index + '">' + pr.escapeHtml(stop.title) + '</button></div>';
       }
 
       html += '<div class="portal-route-leg-cell">' + (index < stops.length - 1 ? pr.renderRouteSegment(legsByToIndex[index + 1]) : '') + '</div>';
       html += '<div class="portal-route-wait-cell"><input class="portal-route-wait-input" type="text" inputmode="decimal" value="' + pr.escapeHtml(waitValue) + '" title="Examples: 15m, 1.5h, 2d" data-field="stop-minutes" data-index="' + index + '" ' + (isLoop || isManagedStart ? 'disabled' : '') + '></div>';
-      html += '<div class="portal-route-row-action"><button type="button" class="portal-route-row-button" title="Move up" data-action="move-stop-up" data-index="' + index + '" ' + (isLoop || isManagedStart || index === 0 || (pr.state.settings.startOnCurrentLocation && index === 1) ? 'disabled' : '') + '>&uarr;</button></div>';
-      html += '<div class="portal-route-row-action"><button type="button" class="portal-route-row-button" title="Move down" data-action="move-stop-down" data-index="' + index + '" ' + (isLoop || isManagedStart || index >= realStops.length - 1 ? 'disabled' : '') + '>&darr;</button></div>';
-      html += '<div class="portal-route-row-action"><button type="button" class="portal-route-row-button portal-route-remove-stop-button" title="Remove waypoint" data-action="remove-stop" data-index="' + index + '" ' + (isLoop || isManagedStart ? 'disabled' : '') + '>X</button></div>';
       html += '</div>';
     });
 
@@ -2754,13 +2800,13 @@ input.portal-route-waypoint-name-input:focus,
     html += '</div>';
 
     html += '<div class="portal-route-settings-row">';
-    html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="auto-replot-on-edit" ' + (pr.state.settings.autoReplotOnEdit ? 'checked ' : '') + '> Auto-replot</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-segment-times-on-map" ' + (pr.state.settings.showSegmentTimesOnMap ? 'checked ' : '') + '> Show segment times on map</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-mini-control" ' + (pr.state.settings.showMiniControl ? 'checked ' : '') + '> Mini control</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-portal-details-controls" ' + (pr.state.settings.showPortalDetailsControls ? 'checked ' : '') + '> Info panel controls</label>';
     html += '</div>';
 
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
+    html += '<button type="button" data-action="smart-add" data-add-menu="true"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add</button>';
     html += '<button type="button" data-action="open-points-list">Open Route List</button>';
     html += '<button type="button" data-action="load-route">Route Library</button>';
     html += '</div>';
@@ -3012,22 +3058,16 @@ input.portal-route-waypoint-name-input:focus,
     var contentHtml = '';
     contentHtml += pr.renderPointsSummary(route);
     if (pr.state.routeDirty) {
-      contentHtml += '<div class="portal-route-stale">Route needs replot.</div>';
+      contentHtml += '<div class="portal-route-stale">Route is updating.</div>';
     }
     contentHtml += '<div class="portal-route-bottom-summary"><b>Waypoints:</b> ' + pr.state.stops.length + (pr.makeLoopStop() && pr.state.stops.length > 1 ? ' + loop' : '') + '</div>';
     contentHtml += '<div class="portal-route-points-list-body">';
     contentHtml += '<div class="portal-route-body">' + pr.renderStopsList(legsByToIndex) + '</div>';
     contentHtml += '</div>';
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-panel-actions">';
-    contentHtml += '<button type="button" data-action="add-selected-stop">Add Portal</button>';
-    contentHtml += '<button type="button" data-action="add-map-point"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add Point</button>';
-    contentHtml += '<button type="button" data-action="add-current-location">Add Me</button>';
-    contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
-    contentHtml += '<button type="button" data-action="toggle-loop-back"' + (pr.state.settings.includeReturnToStart ? ' class="portal-route-active-action"' : '') + '>Loop</button>';
-    contentHtml += '<button type="button" data-action="calculate-route">' + (pr.state.routeDirty ? 'Replot' : 'Plot') + '</button>';
+    contentHtml += '<button type="button" data-action="smart-add" data-add-menu="true"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add</button>';
     contentHtml += '<button type="button" data-action="fit-route">Fit</button>';
     contentHtml += '<button type="button" data-action="open-google-maps">Maps</button>';
-    contentHtml += '<button type="button" data-action="clear-route">Clear</button>';
     contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';
     contentHtml += '<button type="button" data-action="save-route">Save</button>';
@@ -3287,7 +3327,8 @@ input.portal-route-waypoint-name-input:focus,
     pr.redrawRouteLine();
     pr.redrawSegmentTimeLabels();
     pr.renderPanel();
-    pr.showMessage('Route imported. Replot before using route totals.');
+    pr.queueAutoReplot();
+    pr.showMessage('Route imported.');
     pr.hydrateStopTitles();
   };
 
@@ -3370,9 +3411,9 @@ input.portal-route-waypoint-name-input:focus,
       '<span><b>Stops:</b> ' + pr.escapeHtml(pr.formatDuration(totals.stopSeconds)) + '</span>' +
       '<span><b>Trip:</b> ' + pr.escapeHtml(pr.formatDuration(totals.tripSeconds)) + '</span>' +
       '<span><b>Distance:</b> ' + pr.escapeHtml(pr.formatDistance(totals.distanceMeters)) + '</span>' +
-      '</div>' : '<div class="warning">Route has not been plotted.</div>';
+      '</div>' : '<div class="warning">Route has not been calculated yet.</div>';
 
-    var staleHtml = pr.state.routeDirty ? '<div class="warning">Route data is stale. Replot before relying on route totals or leg data.</div>' : '';
+    var staleHtml = pr.state.routeDirty ? '<div class="warning">Route is still updating. Totals and leg data may change.</div>' : '';
 
     var html = '<!doctype html><html><head><meta charset="utf-8">' +
       '<title>Portal Route</title>' +
@@ -4195,13 +4236,18 @@ input.portal-route-waypoint-name-input:focus,
         pr.closeDialog();
       },
       'toggle-selected-stop': pr.toggleSelectedPortalStop,
+      'smart-add': pr.smartAdd,
       'add-selected-stop': pr.addSelectedPortal,
       'add-map-point': function() { pr.setAddPointMode(!pr.state.addPointMode); },
       'add-current-location': pr.addCurrentLocation,
       'toggle-loop-back': pr.toggleLoopBackToStart,
+      'reverse-route': pr.reverseRoute,
       'move-stop-up': function() { pr.moveStop(index, index - 1); },
       'move-stop-down': function() { pr.moveStop(index, index + 1); },
       'remove-stop': function() { pr.removeStop(index); },
+      'rename-stop': function() { pr.renameStop(index); },
+      'set-stop-start': function() { pr.moveStopToEdge(index, 'start'); },
+      'set-stop-end': function() { pr.moveStopToEdge(index, 'end'); },
       'select-stop': function() { pr.selectStopPortal(index, false); },
       'select-stop-center': function() { pr.selectStopPortal(index, true); },
       'calculate-route': pr.calculateRoute,
@@ -4234,12 +4280,14 @@ input.portal-route-waypoint-name-input:focus,
         pr.renderPointsPanel();
       },
       'clear-route': function() {
-        if (pr.state.stops.length && window.confirm && !window.confirm('Clear all points from the route?')) return;
-        pr.clearStops();
+        pr.clearRouteWithConfirm();
       }
     };
 
-    if (actions[action]) actions[action]();
+    if (actions[action]) {
+      pr.closeAddMenu();
+      actions[action]();
+    }
   };
 
   pr.isLayerEnabled = function() {
@@ -4263,6 +4311,10 @@ input.portal-route-waypoint-name-input:focus,
           var button = ev.target.closest('[data-action]');
           if (!button) return;
           ev.preventDefault();
+          if (pr.state.suppressNextAddClick && button.hasAttribute('data-add-menu')) {
+            pr.state.suppressNextAddClick = false;
+            return;
+          }
           pr.handleAction(button.getAttribute('data-action'), button);
         });
         return container;
@@ -4313,38 +4365,146 @@ input.portal-route-waypoint-name-input:focus,
 
     pr.setMiniControlVisible(true);
 
-    var selectedIndex = pr.selectedStopIndex();
-    var selectedInRoute = selectedIndex >= 0;
+    var selectedInRoute = pr.selectedStopIndex() >= 0;
     var addRemoveClass = selectedInRoute ? ' portal-route-mini-remove' : '';
     var addRemoveText = selectedInRoute ? '-' : '+';
-    var addRemoveTitle = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal to route';
-    var plotTitle = pr.state.routeDirty ? 'Replot route on map' : 'Plot route on map';
-    var loopClass = pr.state.settings.includeReturnToStart ? ' portal-route-mini-active' : '';
-    var loopTitle = pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start';
+    var addRemoveTitle = selectedInRoute ? 'Remove selected waypoint from route' : 'Add to route';
+    var addRemoveAction = selectedInRoute ? 'toggle-selected-stop' : 'smart-add';
 
     container.innerHTML = '' +
       '<a href="#" title="Open route in Google Maps" data-action="open-google-maps">M</a>' +
-      '<a href="#" title="' + plotTitle + '" data-action="calculate-route">P</a>' +
-      '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
-      '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="toggle-selected-stop">' + addRemoveText + '</a>' +
+      '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '" data-add-menu="true">' + addRemoveText + '</a>' +
       '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
       '<a href="#" title="Open Portal Route menu" data-action="open-main">=</a>';
   };
 
   pr.panelForEvent = function(ev) {
     if (!ev.target || !ev.target.closest) return null;
-    return ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent + ', #' + pr.DOM_IDS.routeLibraryContent);
+    return ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent + ', #' + pr.DOM_IDS.routeLibraryContent + ', .portal-route-context-menu');
   };
 
   pr.handleDialogClick = function(ev) {
+    if (!ev.target.closest('.portal-route-context-menu')) pr.closeAddMenu();
     if (!pr.panelForEvent(ev)) return;
 
     var target = ev.target.closest('[data-action]');
     var action = target && target.getAttribute('data-action');
-    if (!action) return;
+    if (!action) {
+      var row = ev.target.closest('.portal-route-stop');
+      if (!row || ev.target.closest('input, textarea, select')) return;
+      ev.preventDefault();
+      pr.selectStopPortal(Number(row.getAttribute('data-index')), false);
+      return;
+    }
 
     ev.preventDefault();
+    if (pr.state.suppressNextAddClick && target.hasAttribute('data-add-menu')) {
+      pr.state.suppressNextAddClick = false;
+      return;
+    }
     pr.handleAction(action, target);
+  };
+
+  pr.addMenuTarget = function(target) {
+    return target && target.closest ? target.closest('[data-add-menu]') : null;
+  };
+
+  pr.closeAddMenu = function() {
+    var menu = document.querySelector('.portal-route-context-menu');
+    if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
+  };
+
+  pr.openAddMenu = function(x, y) {
+    pr.closeAddMenu();
+
+    var menu = document.createElement('div');
+    menu.className = 'portal-route-context-menu';
+    menu.innerHTML = '' +
+      '<button type="button" data-action="add-current-location">Add current location</button>' +
+      '<button type="button" data-action="add-selected-stop"' + (window.selectedPortal ? '' : ' disabled') + '>Add selected portal</button>' +
+      '<button type="button" data-action="add-map-point">Add point</button>' +
+      '<div class="portal-route-context-divider"></div>' +
+      '<button type="button" data-action="toggle-loop-back">' + (pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop') + '</button>' +
+      '<button type="button" data-action="reverse-route"' + (pr.state.stops.length > 1 ? '' : ' disabled') + '>Reverse route</button>' +
+      '<div class="portal-route-context-divider"></div>' +
+      '<button type="button" data-action="clear-route"' + (pr.state.stops.length ? '' : ' disabled') + '>Clear route</button>';
+
+    document.body.appendChild(menu);
+    pr.positionContextMenu(menu, x, y);
+  };
+
+  pr.positionContextMenu = function(menu, x, y) {
+    var rect = menu.getBoundingClientRect();
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 320;
+    var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 480;
+    menu.style.left = Math.max(6, Math.min(x, viewportWidth - rect.width - 6)) + 'px';
+    menu.style.top = Math.max(6, Math.min(y, viewportHeight - rect.height - 6)) + 'px';
+  };
+
+  pr.openStopMenu = function(index, x, y) {
+    pr.closeAddMenu();
+
+    var stop = pr.getRouteStop(index);
+    if (!stop || stop.generatedLoop) return;
+    var isManagedStart = pr.isManagedStartStop(stop);
+
+    var menu = document.createElement('div');
+    menu.className = 'portal-route-context-menu';
+    menu.innerHTML = '' +
+      '<button type="button" data-action="remove-stop" data-index="' + index + '"' + (isManagedStart ? ' disabled' : '') + '>Delete</button>' +
+      '<button type="button" data-action="rename-stop" data-index="' + index + '"' + (isManagedStart ? ' disabled' : '') + '>Rename</button>' +
+      '<div class="portal-route-context-divider"></div>' +
+      '<button type="button" data-action="set-stop-start" data-index="' + index + '"' + (isManagedStart ? ' disabled' : '') + '>Set as start</button>' +
+      '<button type="button" data-action="set-stop-end" data-index="' + index + '"' + (isManagedStart ? ' disabled' : '') + '>Set as end</button>';
+
+    document.body.appendChild(menu);
+    pr.positionContextMenu(menu, x, y);
+  };
+
+  pr.handleStopMenuContext = function(ev) {
+    var row = ev.target.closest('.portal-route-stop');
+    if (!row || ev.target.closest('input, textarea, select')) return false;
+
+    ev.preventDefault();
+    pr.openStopMenu(Number(row.getAttribute('data-index')), ev.clientX || 12, ev.clientY || 12);
+    return true;
+  };
+
+  pr.handleAddMenuContext = function(ev) {
+    if (pr.handleStopMenuContext(ev)) return;
+
+    var target = pr.addMenuTarget(ev.target);
+    if (!target) return;
+
+    ev.preventDefault();
+    pr.openAddMenu(ev.clientX || 12, ev.clientY || 12);
+  };
+
+  pr.handleAddMenuTouchStart = function(ev) {
+    var target = pr.addMenuTarget(ev.target);
+    var row = ev.target.closest('.portal-route-stop');
+    if ((!target && !row) || !window.setTimeout) return;
+
+    if (pr.state.addMenuLongPressTimer) window.clearTimeout(pr.state.addMenuLongPressTimer);
+    var touch = ev.touches && ev.touches[0];
+    var x = touch ? touch.clientX : 12;
+    var y = touch ? touch.clientY : 12;
+
+    pr.state.addMenuLongPressTimer = window.setTimeout(function() {
+      pr.state.addMenuLongPressTimer = null;
+      pr.state.suppressNextAddClick = true;
+      if (row && !ev.target.closest('input, textarea, select')) {
+        pr.openStopMenu(Number(row.getAttribute('data-index')), x, y);
+      } else {
+        pr.openAddMenu(x, y);
+      }
+    }, 650);
+  };
+
+  pr.cancelAddMenuTouch = function() {
+    if (!pr.state.addMenuLongPressTimer) return;
+    window.clearTimeout(pr.state.addMenuLongPressTimer);
+    pr.state.addMenuLongPressTimer = null;
   };
 
   pr.handleDialogDragStart = function(ev) {
@@ -4352,7 +4512,7 @@ input.portal-route-waypoint-name-input:focus,
 
     var item = ev.target.closest('.portal-route-stop');
     if (!item) return;
-    if (ev.target.closest('.portal-route-wait-cell, .portal-route-row-action')) {
+    if (ev.target.closest('.portal-route-wait-cell')) {
       ev.preventDefault();
       return;
     }
@@ -4499,8 +4659,6 @@ input.portal-route-waypoint-name-input:focus,
       }
 
       pr.setStopMinutes(stopIndex, stopValue);
-    } else if (field === 'stop-title') {
-      pr.setStopTitle(Number(target.getAttribute('data-index')), target.value);
     } else if (field === 'saved-route-name') {
       var routeId = target.getAttribute('data-route-id');
       var previous = pr.localRouteStorage.getRoute(routeId);
@@ -4523,6 +4681,11 @@ input.portal-route-waypoint-name-input:focus,
     document.addEventListener('dragover', pr.handleDialogDragOver);
     document.addEventListener('drop', pr.handleDialogDrop);
     document.addEventListener('change', pr.handleDialogFieldChange);
+    document.addEventListener('contextmenu', pr.handleAddMenuContext);
+    document.addEventListener('touchstart', pr.handleAddMenuTouchStart);
+    document.addEventListener('touchend', pr.cancelAddMenuTouch);
+    document.addEventListener('touchcancel', pr.cancelAddMenuTouch);
+    document.addEventListener('touchmove', pr.cancelAddMenuTouch);
   };
 
   pr.addToolboxLink = function() {

@@ -1,8 +1,9 @@
   pr.markRouteStale = function(options) {
     options = options || {};
     var hadRouteState = !!pr.state.route || !!pr.state.routeDirty;
-    var shouldAutoReplot = hadRouteState && pr.state.settings.autoReplotOnEdit && !options.skipAutoReplot;
-    pr.state.routeDirty = hadRouteState;
+    var hasRouteableStops = pr.getRouteStops().length >= 2;
+    var shouldAutoReplot = hasRouteableStops && !options.skipAutoReplot;
+    pr.state.routeDirty = hadRouteState || hasRouteableStops;
 
     if (options.clearRoute && !shouldAutoReplot) {
       pr.state.route = null;
@@ -22,7 +23,6 @@
 
     pr.state.autoReplotTimer = window.setTimeout(function() {
       pr.state.autoReplotTimer = null;
-      if (!pr.state.settings.autoReplotOnEdit) return;
       if (!pr.state.routeDirty) return;
       pr.calculateRoute();
     }, 0);
@@ -204,6 +204,37 @@
         pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '.'));
       }
     );
+  };
+
+  pr.smartAdd = function() {
+    if (!pr.state.stops.length) {
+      pr.showMessage('Getting current location...');
+      pr.getCurrentLocation(
+        function(position) {
+          var stop = pr.currentLocationStopFromPosition(position, { title: 'Current location' });
+          if (!stop) {
+            pr.setAddPointMode(true);
+            pr.showMessage('Could not read current location. Tap the map to add a point.');
+            return;
+          }
+          delete stop.startOnMe;
+          pr.addStop(stop);
+          pr.showMessage('Current location added.');
+        },
+        function(error) {
+          pr.setAddPointMode(true);
+          pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '') + '. Tap the map to add a point.');
+        }
+      );
+      return;
+    }
+
+    if (window.selectedPortal && pr.portalToStop && pr.portalToStop(window.selectedPortal)) {
+      pr.addSelectedPortal();
+      return;
+    }
+
+    pr.setAddPointMode(true);
   };
 
   pr.stopTitleNeedsHydration = function(title) {
@@ -529,6 +560,61 @@
     if (restoreStartOnMe) {
       pr.setStartOnCurrentLocation(true);
     }
+  };
+
+  pr.clearRouteWithConfirm = function() {
+    if (pr.state.stops.length && window.confirm && !window.confirm('Clear all points from the route?')) return;
+    pr.clearStops();
+  };
+
+  pr.reverseRoute = function() {
+    if (pr.state.stops.length < 2) {
+      pr.showMessage('Add at least two waypoints to reverse.');
+      return;
+    }
+
+    var selectedStop = typeof pr.state.selectedMapPointIndex === 'number' ? pr.state.stops[pr.state.selectedMapPointIndex] : null;
+    var pinnedStart = pr.isManagedStartIndex(0) ? pr.state.stops.slice(0, 1) : [];
+    var routeStops = pr.state.stops.slice(pinnedStart.length).reverse();
+
+    pr.state.stops = pinnedStart.concat(routeStops);
+    pr.state.selectedMapPointIndex = selectedStop ? pr.state.stops.indexOf(selectedStop) : null;
+    if (pr.state.selectedMapPointIndex < 0) pr.state.selectedMapPointIndex = null;
+
+    pr.markRouteStale({ clearRoute: true });
+    pr.saveStops();
+    pr.redrawLabels();
+    pr.renderPanel();
+    pr.renderMiniControl();
+    pr.showMessage('Route reversed.');
+  };
+
+  pr.renameStop = function(index) {
+    if (index < 0 || index >= pr.state.stops.length) return;
+    var stop = pr.state.stops[index];
+    if (!stop || pr.isManagedStartStop(stop)) return;
+
+    var title = window.prompt ? window.prompt('Waypoint name', stop.title || '') : null;
+    if (title === null) return;
+
+    title = String(title).trim();
+    if (!title) title = stop.type === 'map' ? pr.nextMapPointTitle() : 'Unnamed portal';
+
+    stop.title = title;
+    pr.saveStops();
+    pr.redrawLabels();
+    pr.redrawSegmentTimeLabels();
+    pr.renderPanel();
+    pr.renderMiniControl();
+  };
+
+  pr.moveStopToEdge = function(index, edge) {
+    if (index < 0 || index >= pr.state.stops.length) return;
+    if (pr.isManagedStartIndex(index)) return;
+
+    var toIndex = edge === 'end' ? pr.state.stops.length - 1 : 0;
+    if (edge === 'start' && pr.state.settings.startOnCurrentLocation) toIndex = 1;
+    pr.moveStop(index, toIndex);
   };
 
   pr.replaceStops = function(stops, options) {

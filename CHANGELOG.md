@@ -15,6 +15,10 @@ Current release: `1.0.0`
 - Added whole-library JSON export and import/merge for the local route library.
 - Changed the route library to select rows with checkboxes and use bottom action buttons for selected routes.
 - Let route library checkboxes select multiple routes, with Load/Update limited to one route and Export/Delete supporting multiple routes.
+- Simplified the mini control, settings panel, route list, and info panel toward the new smart Add workflow.
+- Added a shared Add context menu for right-click and long-press actions.
+- Moved route-list row actions into a row context menu with delete, rename, set start, and set end.
+- Updated remaining route status text for automatic routing.
 
 ### Changed
 

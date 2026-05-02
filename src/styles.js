@@ -99,7 +99,7 @@
 
 .portal-route-waypoint-row {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr) max-content 42px 22px 22px 22px;
+  grid-template-columns: max-content minmax(0, 1fr) max-content 42px;
   gap: 2px;
   align-items: center;
   width: 100%;
@@ -122,9 +122,7 @@
 }
 
 .portal-route-waypoint-row-draggable .portal-route-wait-cell,
-.portal-route-waypoint-row-draggable .portal-route-row-action,
-.portal-route-waypoint-row-draggable .portal-route-wait-cell *,
-.portal-route-waypoint-row-draggable .portal-route-row-action * {
+.portal-route-waypoint-row-draggable .portal-route-wait-cell * {
   cursor: auto;
 }
 
@@ -148,8 +146,7 @@
 .portal-route-waypoint-num,
 .portal-route-waypoint-name-cell,
 .portal-route-leg-cell,
-.portal-route-wait-cell,
-.portal-route-row-action {
+.portal-route-wait-cell {
   min-width: 0;
   border: 0 !important;
   outline: 0 !important;
@@ -178,12 +175,6 @@
   text-align: center;
 }
 
-.portal-route-row-action {
-  width: 22px;
-  text-align: center;
-  overflow: visible;
-}
-
 .portal-route-waypoint-name {
   display: block;
   width: 100%;
@@ -205,11 +196,6 @@
 }
 
 
-.portal-route-waypoint-name-input {
-  height: 18px;
-  line-height: 18px;
-}
-
 .portal-route-waypoint-name:hover,
 .portal-route-waypoint-name:focus,
 .portal-route-waypoint-name:active {
@@ -223,30 +209,6 @@
 .portal-route-wait-input {
   width: 42px;
   padding: 1px 2px;
-}
-
-.portal-route-row-button {
-  width: 22px !important;
-  min-width: 22px !important;
-  max-width: 22px !important;
-  height: 20px;
-  min-height: 20px;
-  padding: 0 !important;
-  border: 0 !important;
-  background: transparent !important;
-  color: inherit !important;
-  text-align: center;
-  line-height: 20px;
-  font-size: 14px !important;
-  font-weight: bold !important;
-}
-
-.portal-route-row-button:disabled {
-  opacity: 0.35;
-}
-
-.portal-route-remove-stop-button {
-  color: #ff8080 !important;
 }
 
 .portal-route-stop-num,
@@ -805,17 +767,65 @@ button.portal-route-waypoint-badge-wide {
   display: flex;
   flex-wrap: wrap;
   flex: 0 0 100%;
-  justify-content: space-evenly;
+  gap: 4px;
+  justify-content: center;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .portal-route-portal-action-links a {
   flex: 0 0 auto;
-  margin: 0 4px;
+  margin: 0;
+  padding: 2px 6px;
+  border: 1px solid rgba(255, 216, 0, 0.45);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.14);
   overflow: hidden;
   text-align: center;
+  text-decoration: none;
   text-overflow: ellipsis;
+}
+
+.portal-route-context-menu {
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 150px;
+  padding: 5px;
+  border: 1px solid rgba(32, 168, 204, 0.8);
+  background: rgba(8, 45, 62, 0.96);
+  color: #ffd800;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+}
+
+.portal-route-context-menu button {
+  display: block;
+  width: 100%;
+  padding: 4px 6px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  font: inherit;
+  text-align: left;
+}
+
+.portal-route-context-menu button:hover,
+.portal-route-context-menu button:focus {
+  background: rgba(255, 255, 255, 0.12) !important;
+  outline: none !important;
+}
+
+.portal-route-context-menu button:disabled {
+  color: rgba(255, 255, 255, 0.42) !important;
+}
+
+.portal-route-context-divider {
+  height: 1px;
+  margin: 3px 0;
+  background: rgba(32, 168, 204, 0.5);
 }
 
 
@@ -848,27 +858,6 @@ button.portal-route-waypoint-name,
   background-image: none !important;
 }
 
-input.portal-route-waypoint-name-input,
-.ui-dialog input.portal-route-waypoint-name-input {
-  height: 20px;
-  line-height: 18px;
-  padding: 1px 4px !important;
-  border: 1px solid rgba(255, 216, 0, 0.35) !important;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.08) !important;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25) !important;
-  cursor: text;
-}
-
-input.portal-route-waypoint-name-input:hover,
-input.portal-route-waypoint-name-input:focus,
-.ui-dialog input.portal-route-waypoint-name-input:hover,
-.ui-dialog input.portal-route-waypoint-name-input:focus {
-  border-color: rgba(255, 216, 0, 0.70) !important;
-  background: rgba(255, 255, 255, 0.12) !important;
-  outline: none !important;
-}
-
 @media (max-width: 640px) {
   .ui-dialog.portal-route-dialog {
     position: fixed !important;
@@ -893,7 +882,7 @@ input.portal-route-waypoint-name-input:focus,
   }
 
   .portal-route-waypoint-row {
-    grid-template-columns: 18px minmax(0, 1fr) max-content 38px 20px 20px 20px;
+    grid-template-columns: 18px minmax(0, 1fr) max-content 38px;
     gap: 1px;
   }
 
@@ -911,16 +900,6 @@ input.portal-route-waypoint-name-input:focus,
 
   .portal-route-wait-input {
     width: 38px;
-  }
-
-  .portal-route-row-action {
-    width: 20px;
-  }
-
-  .portal-route-row-button {
-    width: 20px !important;
-    min-width: 20px !important;
-    max-width: 20px !important;
   }
 
   .portal-route-control-groups {

@@ -8,7 +8,7 @@
   };
 
   pr.renderEmptyHelp = function() {
-    return '<p class="portal-route-empty">There are no waypoints defined.<br>Select a portal and use Add Portal, Add Point, or Add Me.</p>';
+    return '<p class="portal-route-empty">There are no waypoints defined.<br>Use Add to start a route.</p>';
   };
 
   pr.renderRouteSegment = function(leg) {
@@ -29,7 +29,6 @@
 
   pr.renderStopsList = function(legsByToIndex) {
     var stops = pr.getRouteStops();
-    var realStops = pr.state.stops;
     if (stops.length === 0) return pr.renderEmptyHelp();
 
     var html = '';
@@ -55,17 +54,12 @@
 
       if (isLoop) {
         html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Loop back to first waypoint" data-action="select-stop-center" data-index="' + index + '">Loop back to ' + pr.escapeHtml(stop.title) + '</button></div>';
-      } else if (stop.type === 'map' && !isManagedStart) {
-        html += '<div class="portal-route-waypoint-name-cell"><input type="text" class="portal-route-waypoint-name portal-route-waypoint-name-input" title="Edit map point name" data-field="stop-title" data-index="' + index + '" value="' + pr.escapeHtml(stop.title) + '"></div>';
       } else {
         html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Select stop" data-action="select-stop" data-index="' + index + '">' + pr.escapeHtml(stop.title) + '</button></div>';
       }
 
       html += '<div class="portal-route-leg-cell">' + (index < stops.length - 1 ? pr.renderRouteSegment(legsByToIndex[index + 1]) : '') + '</div>';
       html += '<div class="portal-route-wait-cell"><input class="portal-route-wait-input" type="text" inputmode="decimal" value="' + pr.escapeHtml(waitValue) + '" title="Examples: 15m, 1.5h, 2d" data-field="stop-minutes" data-index="' + index + '" ' + (isLoop || isManagedStart ? 'disabled' : '') + '></div>';
-      html += '<div class="portal-route-row-action"><button type="button" class="portal-route-row-button" title="Move up" data-action="move-stop-up" data-index="' + index + '" ' + (isLoop || isManagedStart || index === 0 || (pr.state.settings.startOnCurrentLocation && index === 1) ? 'disabled' : '') + '>&uarr;</button></div>';
-      html += '<div class="portal-route-row-action"><button type="button" class="portal-route-row-button" title="Move down" data-action="move-stop-down" data-index="' + index + '" ' + (isLoop || isManagedStart || index >= realStops.length - 1 ? 'disabled' : '') + '>&darr;</button></div>';
-      html += '<div class="portal-route-row-action"><button type="button" class="portal-route-row-button portal-route-remove-stop-button" title="Remove waypoint" data-action="remove-stop" data-index="' + index + '" ' + (isLoop || isManagedStart ? 'disabled' : '') + '>X</button></div>';
       html += '</div>';
     });
 
@@ -108,13 +102,13 @@
     html += '</div>';
 
     html += '<div class="portal-route-settings-row">';
-    html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="auto-replot-on-edit" ' + (pr.state.settings.autoReplotOnEdit ? 'checked ' : '') + '> Auto-replot</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-segment-times-on-map" ' + (pr.state.settings.showSegmentTimesOnMap ? 'checked ' : '') + '> Show segment times on map</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-mini-control" ' + (pr.state.settings.showMiniControl ? 'checked ' : '') + '> Mini control</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-portal-details-controls" ' + (pr.state.settings.showPortalDetailsControls ? 'checked ' : '') + '> Info panel controls</label>';
     html += '</div>';
 
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
+    html += '<button type="button" data-action="smart-add" data-add-menu="true"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add</button>';
     html += '<button type="button" data-action="open-points-list">Open Route List</button>';
     html += '<button type="button" data-action="load-route">Route Library</button>';
     html += '</div>';
@@ -366,22 +360,16 @@
     var contentHtml = '';
     contentHtml += pr.renderPointsSummary(route);
     if (pr.state.routeDirty) {
-      contentHtml += '<div class="portal-route-stale">Route needs replot.</div>';
+      contentHtml += '<div class="portal-route-stale">Route is updating.</div>';
     }
     contentHtml += '<div class="portal-route-bottom-summary"><b>Waypoints:</b> ' + pr.state.stops.length + (pr.makeLoopStop() && pr.state.stops.length > 1 ? ' + loop' : '') + '</div>';
     contentHtml += '<div class="portal-route-points-list-body">';
     contentHtml += '<div class="portal-route-body">' + pr.renderStopsList(legsByToIndex) + '</div>';
     contentHtml += '</div>';
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-panel-actions">';
-    contentHtml += '<button type="button" data-action="add-selected-stop">Add Portal</button>';
-    contentHtml += '<button type="button" data-action="add-map-point"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add Point</button>';
-    contentHtml += '<button type="button" data-action="add-current-location">Add Me</button>';
-    contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
-    contentHtml += '<button type="button" data-action="toggle-loop-back"' + (pr.state.settings.includeReturnToStart ? ' class="portal-route-active-action"' : '') + '>Loop</button>';
-    contentHtml += '<button type="button" data-action="calculate-route">' + (pr.state.routeDirty ? 'Replot' : 'Plot') + '</button>';
+    contentHtml += '<button type="button" data-action="smart-add" data-add-menu="true"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add</button>';
     contentHtml += '<button type="button" data-action="fit-route">Fit</button>';
     contentHtml += '<button type="button" data-action="open-google-maps">Maps</button>';
-    contentHtml += '<button type="button" data-action="clear-route">Clear</button>';
     contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';
     contentHtml += '<button type="button" data-action="save-route">Save</button>';

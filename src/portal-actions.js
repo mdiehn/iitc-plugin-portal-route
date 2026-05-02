@@ -143,61 +143,48 @@
     var links = document.createElement('div');
     links.className = 'portal-route-portal-action-links';
 
-    var toggleLink = document.createElement('a');
-    toggleLink.href = '#';
-    toggleLink.textContent = isInRoute ? 'Remove' : 'Add';
-    toggleLink.addEventListener('click', function(ev) {
-      ev.preventDefault();
+    function addActionLink(label, handler) {
+      var link = document.createElement('a');
+      link.href = '#';
+      link.textContent = label;
+      if (label === 'Add') link.setAttribute('data-add-menu', 'true');
+      link.addEventListener('click', function(ev) {
+        ev.preventDefault();
+        handler();
+      });
+      links.appendChild(link);
+      return link;
+    }
+
+    if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) addActionLink(isInRoute ? 'Remove' : 'Add', function() {
       if (isInRoute) {
         pr.removeStop(selectedIndex);
-      } else if (!hasSelectedMapPoint) {
+      } else if (window.selectedPortal) {
         pr.addSelectedPortal();
+      } else {
+        pr.setAddPointMode(true);
       }
       pr.injectPortalDetailsAction();
     });
-    if (isInRoute || window.selectedPortal) links.appendChild(toggleLink);
 
-    var menuLink = document.createElement('a');
-    menuLink.href = '#';
-    menuLink.textContent = 'Menu';
-    menuLink.addEventListener('click', function(ev) {
-      ev.preventDefault();
+    addActionLink('List', function() {
+      pr.state.pointsPanelOpen = true;
+      pr.renderPointsPanel();
+    });
+
+    addActionLink('Maps', function() {
+      pr.openGoogleMaps();
+    });
+
+    addActionLink('Settings', function() {
       pr.state.panelOpen = true;
       pr.savePanelOpen();
       pr.renderPanel();
     });
-    links.appendChild(menuLink);
 
-    var listLink = document.createElement('a');
-    listLink.href = '#';
-    listLink.textContent = 'List';
-    listLink.addEventListener('click', function(ev) {
-      ev.preventDefault();
-      pr.state.pointsPanelOpen = true;
-      pr.renderPointsPanel();
+    addActionLink('Library', function() {
+      pr.openRouteLibraryPanel();
     });
-    links.appendChild(listLink);
-
-    var plotLink = document.createElement('a');
-    plotLink.href = '#';
-    plotLink.textContent = pr.state.routeDirty ? 'Replot' : 'Plot';
-    plotLink.addEventListener('click', function(ev) {
-      ev.preventDefault();
-      pr.calculateRoute();
-      pr.injectPortalDetailsAction();
-    });
-    links.appendChild(plotLink);
-
-    var clearLink = document.createElement('a');
-    clearLink.href = '#';
-    clearLink.textContent = 'Clear';
-    clearLink.addEventListener('click', function(ev) {
-      ev.preventDefault();
-      if (pr.state.stops.length && window.confirm && !window.confirm('Clear all points from the route?')) return;
-      pr.clearStops();
-      pr.injectPortalDetailsAction();
-    });
-    links.appendChild(clearLink);
 
     wrapper.appendChild(links);
   };

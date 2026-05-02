@@ -214,7 +214,8 @@
     pr.redrawRouteLine();
     pr.redrawSegmentTimeLabels();
     pr.renderPanel();
-    pr.showMessage('Route imported. Replot before using route totals.');
+    pr.queueAutoReplot();
+    pr.showMessage('Route imported.');
     pr.hydrateStopTitles();
   };
 
@@ -297,9 +298,9 @@
       '<span><b>Stops:</b> ' + pr.escapeHtml(pr.formatDuration(totals.stopSeconds)) + '</span>' +
       '<span><b>Trip:</b> ' + pr.escapeHtml(pr.formatDuration(totals.tripSeconds)) + '</span>' +
       '<span><b>Distance:</b> ' + pr.escapeHtml(pr.formatDistance(totals.distanceMeters)) + '</span>' +
-      '</div>' : '<div class="warning">Route has not been plotted.</div>';
+      '</div>' : '<div class="warning">Route has not been calculated yet.</div>';
 
-    var staleHtml = pr.state.routeDirty ? '<div class="warning">Route data is stale. Replot before relying on route totals or leg data.</div>' : '';
+    var staleHtml = pr.state.routeDirty ? '<div class="warning">Route is still updating. Totals and leg data may change.</div>' : '';
 
     var html = '<!doctype html><html><head><meta charset="utf-8">' +
       '<title>Portal Route</title>' +
