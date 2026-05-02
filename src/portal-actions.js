@@ -178,6 +178,16 @@
     });
     links.appendChild(listLink);
 
+    var plotLink = document.createElement('a');
+    plotLink.href = '#';
+    plotLink.textContent = pr.state.routeDirty ? 'Replot' : 'Plot';
+    plotLink.addEventListener('click', function(ev) {
+      ev.preventDefault();
+      pr.calculateRoute();
+      pr.injectPortalDetailsAction();
+    });
+    links.appendChild(plotLink);
+
     var clearLink = document.createElement('a');
     clearLink.href = '#';
     clearLink.textContent = 'Clear';

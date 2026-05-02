@@ -41,6 +41,47 @@
     pr.clearSegmentTimeLabels();
   };
 
+  pr.portalAtLatLng = function(latlng, excludeIndex) {
+    if (!window.map || !window.L || !latlng) return null;
+
+    var dropPoint = window.map.latLngToLayerPoint(latlng);
+    var best = null;
+    var maxDistance = 28;
+
+    Object.keys(window.portals || {}).forEach(function(guid) {
+      var stop = excludeIndex >= 0 ? pr.state.stops[excludeIndex] : null;
+      if (stop && stop.guid === guid) return;
+
+      var portal = window.portals[guid];
+      if (!portal || !portal.getLatLng) return;
+
+      var point = window.map.latLngToLayerPoint(portal.getLatLng());
+      var distance = point.distanceTo(dropPoint);
+      if (distance <= maxDistance && (!best || distance < best.distance)) {
+        best = {
+          distance: distance,
+          guid: guid
+        };
+      }
+    });
+
+    if (!best) return null;
+    return pr.portalToStop(best.guid);
+  };
+
+  pr.mapReplacementStop = function(index, latlng) {
+    var portalStop = pr.portalAtLatLng(latlng, index);
+    if (portalStop) return portalStop;
+
+    var existing = pr.state.stops[index] || {};
+    return {
+      type: 'map',
+      title: existing.type === 'map' && existing.title ? existing.title : 'Map point ' + (index + 1),
+      lat: latlng.lat,
+      lng: latlng.lng
+    };
+  };
+
   pr.redrawLabels = function() {
     if (!window.map || !window.L) return;
     pr.ensureLayers();
@@ -62,6 +103,7 @@
       }
       var isMapPoint = stop.type === 'map';
       var canDragMapPoint = isMapPoint && !pr.isManagedStartStop(stop);
+      var canDragRouteStop = !isLoop && !pr.isManagedStartStop(stop);
       var label = isLoop ? 'L' : (index + 1);
       var labelClass = String(label).length > 2 ? ' portal-route-stop-label-wide' : '';
       var title = isLoop ? 'Loop back to ' + stop.title : (index + 1) + '. ' + stop.title;
@@ -136,7 +178,7 @@
       }
 
       var icon = L.divIcon({
-        className: 'portal-route-stop-label' + labelClass + startEndClass + (isMapPoint ? ' portal-route-map-point-label' : '') + (canDragMapPoint ? ' portal-route-map-point-label-draggable' : '') + (isLoop ? ' portal-route-loop-label' : '') + selectedClass,
+        className: 'portal-route-stop-label' + labelClass + startEndClass + (isMapPoint ? ' portal-route-map-point-label' : '') + (canDragRouteStop ? ' portal-route-stop-label-draggable' : '') + (isLoop ? ' portal-route-loop-label' : '') + selectedClass,
         html: '<span>' + label + '</span>',
         iconSize: [18, 18],
         iconAnchor: isLoop ? [-18, 24] : [0, 24]
@@ -144,7 +186,7 @@
 
       var marker = L.marker([stop.lat, stop.lng], {
         icon: icon,
-        draggable: canDragMapPoint,
+        draggable: canDragRouteStop,
         interactive: true,
         keyboard: false,
         bubblingMouseEvents: false,
@@ -176,7 +218,42 @@
         };
 
         if (pointMarker) attachMapPointDragging(pointMarker, 'portal-route-map-point-marker-dragging');
-        attachMapPointDragging(marker, 'portal-route-stop-label-dragging');
+      }
+
+      if (canDragRouteStop) {
+        marker.on('dragstart', function(e) {
+          var originalPoint = e.target && e.target.getLatLng
+            ? window.map.latLngToLayerPoint(e.target.getLatLng())
+            : null;
+          pr.state.stopReplaceDragStartPoint = originalPoint;
+          if (stop.guid) {
+            pr.state.selectedMapPointIndex = null;
+            window.selectedPortal = stop.guid;
+          } else {
+            pr.state.selectedMapPointIndex = index;
+            if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
+          }
+          if (e.target && e.target._icon) e.target._icon.classList.add('portal-route-stop-label-dragging');
+          pr.renderPanel();
+          pr.renderMiniControl();
+        });
+        marker.on('dragend', function(e) {
+          if (e.target && e.target._icon) e.target._icon.classList.remove('portal-route-stop-label-dragging');
+
+          var latlng = e.target.getLatLng();
+          var dropPoint = window.map.latLngToLayerPoint(latlng);
+          var startPoint = pr.state.stopReplaceDragStartPoint;
+          pr.state.stopReplaceDragStartPoint = null;
+
+          if (startPoint && dropPoint && startPoint.distanceTo(dropPoint) < 8) {
+            pr.redrawLabels();
+            return;
+          }
+
+          if (!pr.replaceStopLocation(index, pr.mapReplacementStop(index, latlng))) {
+            pr.redrawLabels();
+          }
+        });
       }
 
       marker.bindTooltip(title, {

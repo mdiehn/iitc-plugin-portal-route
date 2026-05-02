@@ -29,6 +29,8 @@ Recent changes:
 - Restored a thin blue divider above the Portal Route info-panel title.
 - Added an initial setup-time injection pass so the section appears without toggling the setting.
 - Kept FF2 unchanged; adjusted Portal Route `replaceStops` so the existing `openPanel` import option opens the route list again.
+- Added waypoint replacement dragging: dragging a numbered waypoint label to another loaded portal replaces that waypoint with the portal; dragging it elsewhere replaces it with a manual map point. Manual point circle handles still move coordinates.
+- Added Plot/Replot to the Portal Route info-panel controls.
 
 Verification:
 - Assembled source syntax checked in memory with Node.
@@ -37,4 +39,4 @@ Verification:
 Next:
 - Load in IITC and visually confirm the Portal Route section appears below `History:`.
 - Adjust spacing/wrapping if the links do not match Fan Fields 2 closely enough.
-- Implement portal waypoint dragging without regressing manual point dragging.
+- Test waypoint replacement dragging in IITC: portal-to-portal replacement, portal-to-map-point replacement, and manual-point-to-portal replacement.

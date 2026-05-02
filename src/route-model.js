@@ -430,6 +430,59 @@
     return true;
   };
 
+  pr.replaceStopLocation = function(index, replacement) {
+    if (index < 0 || index >= pr.state.stops.length) return false;
+    if (!replacement || typeof replacement.lat !== 'number' || typeof replacement.lng !== 'number') return false;
+
+    var existing = pr.state.stops[index];
+    if (!existing || pr.isManagedStartStop(existing)) return false;
+
+    var guid = pr.stopGuidFromData(replacement);
+    if (guid && pr.state.stops.some(function(stop, stopIndex) {
+      return stopIndex !== index && stop && stop.guid === guid;
+    })) {
+      pr.showMessage('Already in route: ' + pr.hydratedStopTitle(replacement, 'portal', index));
+      return false;
+    }
+
+    var stopType = replacement.type || (guid ? 'portal' : 'map');
+    var title = pr.hydratedStopTitle(replacement, stopType, index);
+
+    pr.state.stops[index] = Object.assign({}, existing, {
+      guid: guid,
+      type: stopType,
+      title: title,
+      lat: replacement.lat,
+      lng: replacement.lng,
+      startOnMe: false,
+      accuracy: typeof replacement.accuracy === 'number' ? replacement.accuracy : null,
+      updatedAt: replacement.updatedAt || null
+    });
+
+    if (stopType === 'map') {
+      pr.state.selectedMapPointIndex = index;
+      if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
+    } else {
+      pr.state.selectedMapPointIndex = null;
+      window.selectedPortal = guid;
+      if (typeof window.renderPortalDetails === 'function') {
+        try {
+          window.renderPortalDetails(guid);
+        } catch (e) {
+          console.warn('Portal Route: unable to render replacement portal details', e);
+        }
+      }
+    }
+
+    pr.markRouteStale({ clearRoute: true });
+    pr.saveStops();
+    pr.redrawLabels();
+    pr.renderPanel();
+    pr.renderMiniControl();
+    if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
+    return true;
+  };
+
   pr.setAddPointMode = function(enabled) {
     pr.state.addPointMode = !!enabled;
     pr.renderPanel();

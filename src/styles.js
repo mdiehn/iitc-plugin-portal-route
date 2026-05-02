@@ -597,7 +597,7 @@ button.portal-route-waypoint-badge-wide {
   background: #c9a6ff;
 }
 
-.portal-route-map-point-label-draggable span {
+.portal-route-stop-label-draggable span {
   cursor: grab;
 }
 
