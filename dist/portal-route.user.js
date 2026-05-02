@@ -865,11 +865,33 @@ input.portal-route-waypoint-name-input:focus,
     showPortalDetailsControls: true
   };
 
+  pr.normalizeSettings = function(settings) {
+    var normalized = Object.assign({}, pr.DEFAULT_SETTINGS);
+    if (!settings || typeof settings !== 'object') return normalized;
+
+    Object.keys(pr.DEFAULT_SETTINGS).forEach(function(key) {
+      var defaultValue = pr.DEFAULT_SETTINGS[key];
+      var value = settings[key];
+
+      if (typeof defaultValue === 'boolean') {
+        if (typeof value === 'boolean') normalized[key] = value;
+        return;
+      }
+
+      if (typeof defaultValue === 'number') {
+        value = Number(value);
+        if (isFinite(value) && value >= 0) normalized[key] = Math.round(value);
+      }
+    });
+
+    return normalized;
+  };
+
   pr.state = {
     stops: [],
     route: null,
     routeDirty: false,
-    settings: Object.assign({}, pr.DEFAULT_SETTINGS),
+    settings: pr.normalizeSettings(),
     layers: {
       labels: null,
       routeLine: null,
@@ -879,7 +901,6 @@ input.portal-route-waypoint-name-input:focus,
     panelPosition: null,
     panelSize: null,
     pointsPanelOpen: false,
-    panelView: 'main',
     addPointMode: false,
     selectedMapPointIndex: null,
     miniControl: null
@@ -896,7 +917,7 @@ input.portal-route-waypoint-name-input:focus,
     try {
       var rawSettings = localStorage.getItem(pr.STORAGE_KEYS.settings);
       if (rawSettings) {
-        pr.state.settings = Object.assign({}, pr.DEFAULT_SETTINGS, JSON.parse(rawSettings));
+        pr.state.settings = pr.normalizeSettings(JSON.parse(rawSettings));
       }
 
       var rawStops = localStorage.getItem(pr.STORAGE_KEYS.stops);
@@ -2112,189 +2133,222 @@ input.portal-route-waypoint-name-input:focus,
     };
   };
 
+  pr.stopMarkerTitle = function(stop, index) {
+    return stop.generatedLoop ? 'Loop back to ' + stop.title : (index + 1) + '. ' + stop.title;
+  };
+
+  pr.stopLabelClass = function(stop, index, hasLoopStop) {
+    var isLoop = !!stop.generatedLoop;
+    var isSelected = !isLoop && pr.selectedStopIndex && pr.selectedStopIndex() === index;
+    var isMapPoint = stop.type === 'map';
+    var canDragRouteStop = !isLoop && !pr.isManagedStartStop(stop);
+    var label = isLoop ? 'L' : (index + 1);
+    var className = 'portal-route-stop-label';
+
+    if (String(label).length > 2) className += ' portal-route-stop-label-wide';
+    if (!isLoop && hasLoopStop && (index === 0 || index === pr.state.stops.length - 1)) {
+      className += ' portal-route-stop-label-loop-endpoint';
+    } else {
+      if (!isLoop && index === 0) className += ' portal-route-stop-label-start';
+      if (!isLoop && pr.state.stops.length > 1 && index === pr.state.stops.length - 1) {
+        className += ' portal-route-stop-label-end';
+      }
+    }
+    if (isMapPoint) className += ' portal-route-map-point-label';
+    if (canDragRouteStop) className += ' portal-route-stop-label-draggable';
+    if (isLoop) className += ' portal-route-loop-label';
+    if (isSelected) className += ' portal-route-stop-label-selected';
+
+    return className;
+  };
+
+  pr.stopMarkerEvent = function(e) {
+    var originalEvent = e && e.originalEvent ? e.originalEvent : e;
+    if (originalEvent && originalEvent.stopPropagation) originalEvent.stopPropagation();
+    if (originalEvent && originalEvent.preventDefault) originalEvent.preventDefault();
+  };
+
+  pr.openRouteListForStop = function(index, e) {
+    pr.stopMarkerEvent(e);
+    pr.selectStopPortal(index, false);
+    if (pr.openMainPanel) {
+      pr.openMainPanel();
+    } else {
+      pr.state.panelOpen = true;
+      pr.savePanelOpen();
+      pr.renderPanel();
+    }
+  };
+
+  pr.stopClickHandler = function(index) {
+    var clickTimer = null;
+
+    return function(e) {
+      pr.stopMarkerEvent(e);
+
+      if (!window.setTimeout || !window.clearTimeout) {
+        pr.selectStopPortal(index, false);
+        return;
+      }
+
+      if (clickTimer) {
+        window.clearTimeout(clickTimer);
+        clickTimer = null;
+        pr.openRouteListForStop(index, e);
+        return;
+      }
+
+      clickTimer = window.setTimeout(function() {
+        clickTimer = null;
+        pr.selectStopPortal(index, false);
+      }, 300);
+    };
+  };
+
+  pr.createMapPointMarker = function(stop, index, title, clickHandler) {
+    var isSelected = pr.selectedStopIndex && pr.selectedStopIndex() === index;
+    var pointIcon = L.divIcon({
+      className: 'portal-route-map-point-marker' + (isSelected ? ' portal-route-map-point-marker-selected' : ''),
+      html: '<span></span>',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
+    });
+
+    var marker = L.marker([stop.lat, stop.lng], {
+      icon: pointIcon,
+      draggable: !pr.isManagedStartStop(stop),
+      interactive: true,
+      keyboard: false,
+      bubblingMouseEvents: false,
+      title: title
+    });
+
+    marker.on('click', clickHandler);
+    return marker;
+  };
+
+  pr.createStopLabelMarker = function(stop, index, hasLoopStop, title, clickHandler) {
+    var isLoop = !!stop.generatedLoop;
+    var label = isLoop ? 'L' : (index + 1);
+    var icon = L.divIcon({
+      className: pr.stopLabelClass(stop, index, hasLoopStop),
+      html: '<span>' + label + '</span>',
+      iconSize: [18, 18],
+      iconAnchor: isLoop ? [-18, 24] : [0, 24]
+    });
+
+    var marker = L.marker([stop.lat, stop.lng], {
+      icon: icon,
+      draggable: !isLoop && !pr.isManagedStartStop(stop),
+      interactive: true,
+      keyboard: false,
+      bubblingMouseEvents: false,
+      title: title
+    });
+
+    marker.on('click', clickHandler);
+    marker.bindTooltip(title, {
+      direction: 'right',
+      offset: [16, -10],
+      opacity: 0.9,
+      interactive: false,
+      className: 'portal-route-stop-tooltip'
+    });
+
+    return marker;
+  };
+
+  pr.attachMapPointDragHandlers = function(index, pointMarker, labelMarker) {
+    if (!pointMarker) return;
+
+    pointMarker.on('dragstart', function(e) {
+      if (e.target && e.target._icon) e.target._icon.classList.add('portal-route-map-point-marker-dragging');
+      pr.state.selectedMapPointIndex = index;
+      if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
+      if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
+      pr.renderPanel();
+      pr.renderMiniControl();
+    });
+    pointMarker.on('drag', function(e) {
+      var latlng = e.target.getLatLng();
+      pr.updateMapPointPosition(index, latlng, { live: true });
+      pointMarker.setLatLng(latlng);
+      labelMarker.setLatLng(latlng);
+    });
+    pointMarker.on('dragend', function(e) {
+      if (e.target && e.target._icon) e.target._icon.classList.remove('portal-route-map-point-marker-dragging');
+      pr.updateMapPointPosition(index, e.target.getLatLng());
+    });
+  };
+
+  pr.attachStopLabelDragHandlers = function(index, stop, labelMarker) {
+    labelMarker.on('dragstart', function(e) {
+      var originalPoint = e.target && e.target.getLatLng
+        ? window.map.latLngToLayerPoint(e.target.getLatLng())
+        : null;
+      pr.state.stopReplaceDragStartPoint = originalPoint;
+      if (stop.guid) {
+        pr.state.selectedMapPointIndex = null;
+        window.selectedPortal = stop.guid;
+      } else {
+        pr.state.selectedMapPointIndex = index;
+        if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
+      }
+      if (e.target && e.target._icon) e.target._icon.classList.add('portal-route-stop-label-dragging');
+      pr.renderPanel();
+      pr.renderMiniControl();
+    });
+    labelMarker.on('dragend', function(e) {
+      if (e.target && e.target._icon) e.target._icon.classList.remove('portal-route-stop-label-dragging');
+
+      var latlng = e.target.getLatLng();
+      var dropPoint = window.map.latLngToLayerPoint(latlng);
+      var startPoint = pr.state.stopReplaceDragStartPoint;
+      pr.state.stopReplaceDragStartPoint = null;
+
+      if (startPoint && dropPoint && startPoint.distanceTo(dropPoint) < 8) {
+        pr.redrawLabels();
+        return;
+      }
+
+      if (!pr.replaceStopLocation(index, pr.mapReplacementStop(index, latlng))) {
+        pr.redrawLabels();
+      }
+    });
+  };
+
   pr.redrawLabels = function() {
     if (!window.map || !window.L) return;
     pr.ensureLayers();
     pr.clearLabels();
 
+    var loopStop = pr.makeLoopStop && pr.makeLoopStop();
+    var hasLoopStop = !!(loopStop && pr.state.stops.length > 1);
+
     pr.getRouteStops().forEach(function(stop, index) {
       var isLoop = !!stop.generatedLoop;
-      var isSelected = !isLoop && pr.selectedStopIndex && pr.selectedStopIndex() === index;
-      var selectedClass = isSelected ? ' portal-route-stop-label-selected' : '';
-      var startEndClass = '';
-      var hasLoopStop = !!(pr.makeLoopStop && pr.makeLoopStop() && pr.state.stops.length > 1);
-      if (!isLoop && hasLoopStop && (index === 0 || index === pr.state.stops.length - 1)) {
-        startEndClass += ' portal-route-stop-label-loop-endpoint';
-      } else {
-        if (!isLoop && index === 0) startEndClass += ' portal-route-stop-label-start';
-        if (!isLoop && pr.state.stops.length > 1 && index === pr.state.stops.length - 1) {
-          startEndClass += ' portal-route-stop-label-end';
-        }
-      }
       var isMapPoint = stop.type === 'map';
       var canDragMapPoint = isMapPoint && !pr.isManagedStartStop(stop);
       var canDragRouteStop = !isLoop && !pr.isManagedStartStop(stop);
-      var label = isLoop ? 'L' : (index + 1);
-      var labelClass = String(label).length > 2 ? ' portal-route-stop-label-wide' : '';
-      var title = isLoop ? 'Loop back to ' + stop.title : (index + 1) + '. ' + stop.title;
-
-      var selectStop = function(e) {
-        if (e.originalEvent && e.originalEvent.stopPropagation) e.originalEvent.stopPropagation();
-        if (e.originalEvent && e.originalEvent.preventDefault) e.originalEvent.preventDefault();
-        pr.selectStopPortal(index, false);
-      };
-
-      var stopMarkerEvent = function(e) {
-        var originalEvent = e && e.originalEvent ? e.originalEvent : e;
-        if (originalEvent && originalEvent.stopPropagation) originalEvent.stopPropagation();
-        if (originalEvent && originalEvent.preventDefault) originalEvent.preventDefault();
-      };
-
-      var openRouteList = function(e) {
-        stopMarkerEvent(e);
-        pr.selectStopPortal(index, false);
-        pr.state.panelView = 'main';
-        pr.state.panelOpen = true;
-        pr.savePanelOpen();
-        pr.renderPanel();
-      };
-
-      var makeClickHandler = function() {
-        var clickTimer = null;
-
-        return function(e) {
-          stopMarkerEvent(e);
-
-          if (!window.setTimeout || !window.clearTimeout) {
-            selectStop(e);
-            return;
-          }
-
-          if (clickTimer) {
-            window.clearTimeout(clickTimer);
-            clickTimer = null;
-            openRouteList(e);
-            return;
-          }
-
-          clickTimer = window.setTimeout(function() {
-            clickTimer = null;
-            selectStop(e);
-          }, 300);
-        };
-      };
-
+      var title = pr.stopMarkerTitle(stop, index);
+      var clickHandler = pr.stopClickHandler(index);
       var pointMarker = null;
 
       if (isMapPoint) {
-        var pointIcon = L.divIcon({
-          className: 'portal-route-map-point-marker' + (isSelected ? ' portal-route-map-point-marker-selected' : ''),
-          html: '<span></span>',
-          iconSize: [16, 16],
-          iconAnchor: [8, 8]
-        });
-
-        pointMarker = L.marker([stop.lat, stop.lng], {
-          icon: pointIcon,
-          draggable: canDragMapPoint,
-          interactive: true,
-          keyboard: false,
-          bubblingMouseEvents: false,
-          title: title
-        });
-
-        pointMarker.on('click', makeClickHandler());
+        pointMarker = pr.createMapPointMarker(stop, index, title, clickHandler);
         pointMarker.addTo(pr.state.layers.labels);
       }
 
-      var icon = L.divIcon({
-        className: 'portal-route-stop-label' + labelClass + startEndClass + (isMapPoint ? ' portal-route-map-point-label' : '') + (canDragRouteStop ? ' portal-route-stop-label-draggable' : '') + (isLoop ? ' portal-route-loop-label' : '') + selectedClass,
-        html: '<span>' + label + '</span>',
-        iconSize: [18, 18],
-        iconAnchor: isLoop ? [-18, 24] : [0, 24]
-      });
-
-      var marker = L.marker([stop.lat, stop.lng], {
-        icon: icon,
-        draggable: canDragRouteStop,
-        interactive: true,
-        keyboard: false,
-        bubblingMouseEvents: false,
-        title: title
-      });
-
-      marker.on('click', makeClickHandler());
+      var labelMarker = pr.createStopLabelMarker(stop, index, hasLoopStop, title, clickHandler);
 
       if (canDragMapPoint) {
-        var attachMapPointDragging = function(dragMarker, draggingClass) {
-          dragMarker.on('dragstart', function(e) {
-            if (e.target && e.target._icon) e.target._icon.classList.add(draggingClass);
-            pr.state.selectedMapPointIndex = index;
-            if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
-            if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
-            pr.renderPanel();
-            pr.renderMiniControl();
-          });
-          dragMarker.on('drag', function(e) {
-            var latlng = e.target.getLatLng();
-            pr.updateMapPointPosition(index, latlng, { live: true });
-            if (pointMarker) pointMarker.setLatLng(latlng);
-            marker.setLatLng(latlng);
-          });
-          dragMarker.on('dragend', function(e) {
-            if (e.target && e.target._icon) e.target._icon.classList.remove(draggingClass);
-            pr.updateMapPointPosition(index, e.target.getLatLng());
-          });
-        };
-
-        if (pointMarker) attachMapPointDragging(pointMarker, 'portal-route-map-point-marker-dragging');
+        pr.attachMapPointDragHandlers(index, pointMarker, labelMarker);
       }
-
       if (canDragRouteStop) {
-        marker.on('dragstart', function(e) {
-          var originalPoint = e.target && e.target.getLatLng
-            ? window.map.latLngToLayerPoint(e.target.getLatLng())
-            : null;
-          pr.state.stopReplaceDragStartPoint = originalPoint;
-          if (stop.guid) {
-            pr.state.selectedMapPointIndex = null;
-            window.selectedPortal = stop.guid;
-          } else {
-            pr.state.selectedMapPointIndex = index;
-            if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
-          }
-          if (e.target && e.target._icon) e.target._icon.classList.add('portal-route-stop-label-dragging');
-          pr.renderPanel();
-          pr.renderMiniControl();
-        });
-        marker.on('dragend', function(e) {
-          if (e.target && e.target._icon) e.target._icon.classList.remove('portal-route-stop-label-dragging');
-
-          var latlng = e.target.getLatLng();
-          var dropPoint = window.map.latLngToLayerPoint(latlng);
-          var startPoint = pr.state.stopReplaceDragStartPoint;
-          pr.state.stopReplaceDragStartPoint = null;
-
-          if (startPoint && dropPoint && startPoint.distanceTo(dropPoint) < 8) {
-            pr.redrawLabels();
-            return;
-          }
-
-          if (!pr.replaceStopLocation(index, pr.mapReplacementStop(index, latlng))) {
-            pr.redrawLabels();
-          }
-        });
+        pr.attachStopLabelDragHandlers(index, stop, labelMarker);
       }
 
-      marker.bindTooltip(title, {
-        direction: 'right',
-        offset: [16, -10],
-        opacity: 0.9,
-        interactive: false,
-        className: 'portal-route-stop-tooltip'
-      });
-
-      marker.addTo(pr.state.layers.labels);
+      labelMarker.addTo(pr.state.layers.labels);
     });
   };
 
@@ -2594,10 +2648,6 @@ input.portal-route-waypoint-name-input:focus,
     html += '<div class="portal-route-message" id="portal-route-message"></div>';
     html += '</div>';
     return html;
-  };
-
-  pr.renderEditPanel = function(legsByToIndex) {
-    return pr.renderMainPanel(legsByToIndex);
   };
 
 
@@ -3084,7 +3134,7 @@ input.portal-route-waypoint-name-input:focus,
     if (stops.length !== data.stops.length) throw new Error('One or more stops are missing valid coordinates.');
 
     pr.state.stops = stops;
-    pr.state.settings = Object.assign({}, pr.DEFAULT_SETTINGS, data.settings || {});
+    pr.state.settings = pr.normalizeSettings(data.settings);
     pr.state.route = data.route && Array.isArray(data.route.legs) ? data.route : null;
     pr.state.routeDirty = !!pr.state.route || !!data.routeDirty;
 
@@ -3348,69 +3398,56 @@ input.portal-route-waypoint-name-input:focus,
     pr.moveStop(fromIndex, toIndex);
   };
 
+  pr.openMainPanel = function() {
+    pr.state.panelOpen = true;
+    pr.savePanelOpen();
+    pr.renderPanel();
+  };
+
   pr.handleAction = function(action, target) {
     if (pr.isLayerEnabled && !pr.isLayerEnabled()) {
       pr.syncLayerUi();
       return;
     }
 
-    if (action === 'open-main') {
-      pr.state.panelView = 'main';
-      pr.state.panelOpen = true;
-      pr.savePanelOpen();
-      pr.renderPanel();
-    } else if (action === 'open-edit') {
-      pr.state.panelView = 'main';
-      pr.state.panelOpen = true;
-      pr.savePanelOpen();
-      pr.renderPanel();
-    } else if (action === 'close-panel') {
-      pr.state.panelOpen = false;
-      pr.savePanelOpen();
-      pr.closeDialog();
-    } else if (action === 'toggle-selected-stop') {
-      pr.toggleSelectedPortalStop();
-    } else if (action === 'add-selected-stop') {
-      pr.addSelectedPortal();
-    } else if (action === 'add-map-point') {
-      pr.setAddPointMode(!pr.state.addPointMode);
-    } else if (action === 'add-current-location') {
-      pr.addCurrentLocation();
-    } else if (action === 'toggle-loop-back') {
-      pr.toggleLoopBackToStart();
-    } else if (action === 'move-stop-up') {
-      pr.moveStop(Number(target.getAttribute('data-index')), Number(target.getAttribute('data-index')) - 1);
-    } else if (action === 'move-stop-down') {
-      pr.moveStop(Number(target.getAttribute('data-index')), Number(target.getAttribute('data-index')) + 1);
-    } else if (action === 'remove-stop') {
-      pr.removeStop(Number(target.getAttribute('data-index')));
-    } else if (action === 'select-stop') {
-      pr.selectStopPortal(Number(target.getAttribute('data-index')), false);
-    } else if (action === 'select-stop-center') {
-      pr.selectStopPortal(Number(target.getAttribute('data-index')), true);
-    } else if (action === 'calculate-route') {
-      pr.calculateRoute();
-    } else if (action === 'fit-route') {
-      pr.fitRouteToMap();
-    } else if (action === 'open-google-maps') {
-      pr.openGoogleMaps();
-    } else if (action === 'save-route') {
-      pr.showMessage('Save is not wired yet.');
-    } else if (action === 'load-route') {
-      pr.showMessage('Load is not wired yet.');
-    } else if (action === 'export-route-json') {
-      pr.exportRouteJson();
-    } else if (action === 'import-route-json') {
-      pr.importRouteJson();
-    } else if (action === 'print-route') {
-      pr.printRoute();
-    } else if (action === 'open-points-list') {
-      pr.state.pointsPanelOpen = true;
-      pr.renderPointsPanel();
-    } else if (action === 'clear-route') {
-      if (pr.state.stops.length && window.confirm && !window.confirm('Clear all points from the route?')) return;
-      pr.clearStops();
-    }
+    var index = target ? Number(target.getAttribute('data-index')) : -1;
+    var actions = {
+      'open-main': pr.openMainPanel,
+      'open-edit': pr.openMainPanel,
+      'close-panel': function() {
+        pr.state.panelOpen = false;
+        pr.savePanelOpen();
+        pr.closeDialog();
+      },
+      'toggle-selected-stop': pr.toggleSelectedPortalStop,
+      'add-selected-stop': pr.addSelectedPortal,
+      'add-map-point': function() { pr.setAddPointMode(!pr.state.addPointMode); },
+      'add-current-location': pr.addCurrentLocation,
+      'toggle-loop-back': pr.toggleLoopBackToStart,
+      'move-stop-up': function() { pr.moveStop(index, index - 1); },
+      'move-stop-down': function() { pr.moveStop(index, index + 1); },
+      'remove-stop': function() { pr.removeStop(index); },
+      'select-stop': function() { pr.selectStopPortal(index, false); },
+      'select-stop-center': function() { pr.selectStopPortal(index, true); },
+      'calculate-route': pr.calculateRoute,
+      'fit-route': pr.fitRouteToMap,
+      'open-google-maps': pr.openGoogleMaps,
+      'save-route': function() { pr.showMessage('Save is not wired yet.'); },
+      'load-route': function() { pr.showMessage('Load is not wired yet.'); },
+      'export-route-json': pr.exportRouteJson,
+      'import-route-json': pr.importRouteJson,
+      'print-route': pr.printRoute,
+      'open-points-list': function() {
+        pr.state.pointsPanelOpen = true;
+        pr.renderPointsPanel();
+      },
+      'clear-route': function() {
+        if (pr.state.stops.length && window.confirm && !window.confirm('Clear all points from the route?')) return;
+        pr.clearStops();
+      }
+    };
+
+    if (actions[action]) actions[action]();
   };
 
   pr.isLayerEnabled = function() {
@@ -3502,174 +3539,189 @@ input.portal-route-waypoint-name-input:focus,
       '<a href="#" title="Open Portal Route menu" data-action="open-main">=</a>';
   };
 
+  pr.panelForEvent = function(ev) {
+    if (!ev.target || !ev.target.closest) return null;
+    return ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
+  };
+
+  pr.handleDialogClick = function(ev) {
+    if (!pr.panelForEvent(ev)) return;
+
+    var target = ev.target.closest('[data-action]');
+    var action = target && target.getAttribute('data-action');
+    if (!action) return;
+
+    ev.preventDefault();
+    pr.handleAction(action, target);
+  };
+
+  pr.handleDialogDragStart = function(ev) {
+    if (!pr.panelForEvent(ev)) return;
+
+    var item = ev.target.closest('.portal-route-stop');
+    if (!item) return;
+    if (ev.target.closest('.portal-route-wait-cell, .portal-route-row-action')) {
+      ev.preventDefault();
+      return;
+    }
+
+    pr.state.dragStopIndex = Number(item.getAttribute('data-index'));
+    if (!isFinite(pr.state.dragStopIndex)) {
+      pr.state.dragStopIndex = null;
+      ev.preventDefault();
+      return;
+    }
+
+    ev.dataTransfer.effectAllowed = 'move';
+    ev.dataTransfer.setData('text/plain', String(pr.state.dragStopIndex));
+    item.classList.add('portal-route-dragging');
+  };
+
+  pr.handleDialogDragEnd = function(ev) {
+    var item = ev.target.closest('.portal-route-stop');
+    if (item) item.classList.remove('portal-route-dragging');
+    document.querySelectorAll('.portal-route-drop-target').forEach(function(row) {
+      row.classList.remove('portal-route-drop-target', 'portal-route-drop-after');
+    });
+    pr.state.dragStopIndex = null;
+  };
+
+  pr.handleDialogDragOver = function(ev) {
+    if (!pr.panelForEvent(ev)) return;
+
+    var item = ev.target.closest('.portal-route-stop');
+    if (!item) return;
+    if (pr.state.dragStopIndex === null || pr.state.dragStopIndex === undefined) return;
+
+    ev.preventDefault();
+    ev.dataTransfer.dropEffect = 'move';
+    document.querySelectorAll('.portal-route-drop-target').forEach(function(row) {
+      if (row !== item) row.classList.remove('portal-route-drop-target', 'portal-route-drop-after');
+    });
+    var dropTarget = pr.listDropTarget(ev, item);
+    item.classList.add('portal-route-drop-target');
+    item.classList.toggle('portal-route-drop-after', !!(dropTarget && dropTarget.after));
+  };
+
+  pr.handleDialogDrop = function(ev) {
+    if (!pr.panelForEvent(ev)) return;
+
+    var item = ev.target.closest('.portal-route-stop');
+    if (!item) return;
+
+    ev.preventDefault();
+    item.classList.remove('portal-route-drop-target', 'portal-route-drop-after');
+
+    var fromIndex = pr.state.dragStopIndex;
+    var dropTarget = pr.listDropTarget(ev, item);
+    pr.state.dragStopIndex = null;
+
+    if (!dropTarget) return;
+    pr.moveStopToInsertIndex(fromIndex, dropTarget.index);
+  };
+
+  pr.handleDialogSettingChange = function(target) {
+    var field = target && target.getAttribute('data-field');
+    if (field === 'start-on-current-location') {
+      pr.setStartOnCurrentLocation(!!target.checked);
+      return true;
+    }
+
+    if (field === 'include-return-to-start') {
+      pr.setLoopBackToStart(!!target.checked);
+      return true;
+    }
+
+    if (field === 'show-segment-times-on-map') {
+      pr.state.settings.showSegmentTimesOnMap = !!target.checked;
+      pr.saveSettings();
+      pr.redrawSegmentTimeLabels();
+      return true;
+    }
+
+    if (field === 'auto-replot-on-edit') {
+      pr.state.settings.autoReplotOnEdit = !!target.checked;
+      pr.saveSettings();
+      if (!pr.state.settings.autoReplotOnEdit && pr.state.autoReplotTimer) {
+        window.clearTimeout(pr.state.autoReplotTimer);
+        pr.state.autoReplotTimer = null;
+      }
+      if (pr.state.settings.autoReplotOnEdit && pr.state.routeDirty && pr.calculateRoute) {
+        pr.queueAutoReplot();
+      }
+      return true;
+    }
+
+    if (field === 'show-mini-control') {
+      pr.state.settings.showMiniControl = !!target.checked;
+      pr.saveSettings();
+      if (pr.state.settings.showMiniControl) {
+        pr.createMiniControl();
+        pr.renderMiniControl();
+      } else {
+        pr.removeMiniControl();
+      }
+      return true;
+    }
+
+    if (field === 'show-portal-details-controls') {
+      pr.state.settings.showPortalDetailsControls = !!target.checked;
+      pr.saveSettings();
+      if (pr.state.settings.showPortalDetailsControls) {
+        pr.injectPortalDetailsAction();
+      } else {
+        pr.removePortalDetailsAction();
+      }
+      return true;
+    }
+
+    return false;
+  };
+
+  pr.handleDialogFieldChange = function(ev) {
+    if (!pr.panelForEvent(ev)) return;
+
+    var target = ev.target;
+    var field = target && target.getAttribute('data-field');
+    if (pr.handleDialogSettingChange(target)) return;
+
+    if (field === 'default-stop-minutes') {
+      var value = pr.parseDurationMinutes(target.value);
+      if (value === null) {
+        pr.showMessage('Invalid duration. Use values like 15m, 1.5h, or 2d.');
+        target.value = pr.formatDurationInput(pr.state.settings.defaultStopMinutes);
+        return;
+      }
+
+      pr.state.settings.defaultStopMinutes = value;
+      pr.saveSettings();
+      pr.markRouteStale();
+      pr.renderPanel();
+    } else if (field === 'stop-minutes') {
+      var stopIndex = Number(target.getAttribute('data-index'));
+      var stopValue = pr.parseDurationMinutes(target.value);
+      if (stopValue === null) {
+        pr.showMessage('Invalid duration. Use values like 15m, 1.5h, or 2d.');
+        target.value = pr.formatDurationInput(pr.getEffectiveStopMinutes(pr.state.stops[stopIndex]));
+        return;
+      }
+
+      pr.setStopMinutes(stopIndex, stopValue);
+    } else if (field === 'stop-title') {
+      pr.setStopTitle(Number(target.getAttribute('data-index')), target.value);
+    }
+  };
+
   pr.setupDialogEventHandlers = function() {
     if (pr.dialogEventsRegistered) return;
     pr.dialogEventsRegistered = true;
 
-    document.addEventListener('click', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
-      if (!panel) return;
-
-      var target = ev.target.closest('[data-action]');
-      var action = target && target.getAttribute('data-action');
-      if (!action) return;
-
-      ev.preventDefault();
-      pr.handleAction(action, target);
-    });
-
-    document.addEventListener('dragstart', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
-      if (!panel) return;
-
-      var item = ev.target.closest('.portal-route-stop');
-      if (!item) return;
-      if (ev.target.closest('.portal-route-wait-cell, .portal-route-row-action')) {
-        ev.preventDefault();
-        return;
-      }
-
-      pr.state.dragStopIndex = Number(item.getAttribute('data-index'));
-      if (!isFinite(pr.state.dragStopIndex)) {
-        pr.state.dragStopIndex = null;
-        ev.preventDefault();
-        return;
-      }
-
-      ev.dataTransfer.effectAllowed = 'move';
-      ev.dataTransfer.setData('text/plain', String(pr.state.dragStopIndex));
-      item.classList.add('portal-route-dragging');
-    });
-
-    document.addEventListener('dragend', function(ev) {
-      var item = ev.target.closest('.portal-route-stop');
-      if (item) item.classList.remove('portal-route-dragging');
-      document.querySelectorAll('.portal-route-drop-target').forEach(function(row) {
-        row.classList.remove('portal-route-drop-target', 'portal-route-drop-after');
-      });
-      pr.state.dragStopIndex = null;
-    });
-
-    document.addEventListener('dragover', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
-      if (!panel) return;
-
-      var item = ev.target.closest('.portal-route-stop');
-      if (!item) return;
-      if (pr.state.dragStopIndex === null || pr.state.dragStopIndex === undefined) return;
-
-      ev.preventDefault();
-      ev.dataTransfer.dropEffect = 'move';
-      document.querySelectorAll('.portal-route-drop-target').forEach(function(row) {
-        if (row !== item) row.classList.remove('portal-route-drop-target', 'portal-route-drop-after');
-      });
-      var dropTarget = pr.listDropTarget(ev, item);
-      item.classList.add('portal-route-drop-target');
-      item.classList.toggle('portal-route-drop-after', !!(dropTarget && dropTarget.after));
-    });
-
-    document.addEventListener('drop', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
-      if (!panel) return;
-
-      var item = ev.target.closest('.portal-route-stop');
-      if (!item) return;
-
-      ev.preventDefault();
-      item.classList.remove('portal-route-drop-target', 'portal-route-drop-after');
-
-      var fromIndex = pr.state.dragStopIndex;
-      var dropTarget = pr.listDropTarget(ev, item);
-      pr.state.dragStopIndex = null;
-
-      if (!dropTarget) return;
-      pr.moveStopToInsertIndex(fromIndex, dropTarget.index);
-    });
-
-    document.addEventListener('change', function(ev) {
-      var panel = ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
-      if (!panel) return;
-
-      var target = ev.target;
-      if (target && target.getAttribute('data-field') === 'start-on-current-location') {
-        pr.setStartOnCurrentLocation(!!target.checked);
-        return;
-      }
-
-      if (target && target.getAttribute('data-field') === 'include-return-to-start') {
-        pr.setLoopBackToStart(!!target.checked);
-        return;
-      }
-
-      if (target && target.getAttribute('data-field') === 'show-segment-times-on-map') {
-        pr.state.settings.showSegmentTimesOnMap = !!target.checked;
-        pr.saveSettings();
-        pr.redrawSegmentTimeLabels();
-        return;
-      }
-
-      if (target && target.getAttribute('data-field') === 'auto-replot-on-edit') {
-        pr.state.settings.autoReplotOnEdit = !!target.checked;
-        pr.saveSettings();
-        if (!pr.state.settings.autoReplotOnEdit && pr.state.autoReplotTimer) {
-          window.clearTimeout(pr.state.autoReplotTimer);
-          pr.state.autoReplotTimer = null;
-        }
-        if (pr.state.settings.autoReplotOnEdit && pr.state.routeDirty && pr.calculateRoute) {
-          pr.queueAutoReplot();
-        }
-        return;
-      }
-
-      if (target && target.getAttribute('data-field') === 'show-mini-control') {
-        pr.state.settings.showMiniControl = !!target.checked;
-        pr.saveSettings();
-        if (pr.state.settings.showMiniControl) {
-          pr.createMiniControl();
-          pr.renderMiniControl();
-        } else {
-          pr.removeMiniControl();
-        }
-        return;
-      }
-
-      if (target && target.getAttribute('data-field') === 'show-portal-details-controls') {
-        pr.state.settings.showPortalDetailsControls = !!target.checked;
-        pr.saveSettings();
-        if (pr.state.settings.showPortalDetailsControls) {
-          pr.injectPortalDetailsAction();
-        } else {
-          pr.removePortalDetailsAction();
-        }
-        return;
-      }
-
-      if (target && target.getAttribute('data-field') === 'default-stop-minutes') {
-        var value = pr.parseDurationMinutes(target.value);
-        if (value === null) {
-          pr.showMessage('Invalid duration. Use values like 15m, 1.5h, or 2d.');
-          target.value = pr.formatDurationInput(pr.state.settings.defaultStopMinutes);
-          return;
-        }
-
-        pr.state.settings.defaultStopMinutes = value;
-        pr.saveSettings();
-        pr.markRouteStale();
-        pr.renderPanel();
-      } else if (target && target.getAttribute('data-field') === 'stop-minutes') {
-        var stopIndex = Number(target.getAttribute('data-index'));
-        var stopValue = pr.parseDurationMinutes(target.value);
-        if (stopValue === null) {
-          pr.showMessage('Invalid duration. Use values like 15m, 1.5h, or 2d.');
-          target.value = pr.formatDurationInput(pr.getEffectiveStopMinutes(pr.state.stops[stopIndex]));
-          return;
-        }
-
-        pr.setStopMinutes(stopIndex, stopValue);
-      } else if (target && target.getAttribute('data-field') === 'stop-title') {
-        pr.setStopTitle(Number(target.getAttribute('data-index')), target.value);
-      }
-    });
+    document.addEventListener('click', pr.handleDialogClick);
+    document.addEventListener('dragstart', pr.handleDialogDragStart);
+    document.addEventListener('dragend', pr.handleDialogDragEnd);
+    document.addEventListener('dragover', pr.handleDialogDragOver);
+    document.addEventListener('drop', pr.handleDialogDrop);
+    document.addEventListener('change', pr.handleDialogFieldChange);
   };
 
   pr.addToolboxLink = function() {
@@ -3683,10 +3735,7 @@ input.portal-route-waypoint-name-input:focus,
     link.addEventListener('click', function(ev) {
       ev.preventDefault();
       if (!pr.isLayerEnabled()) return;
-      pr.state.panelView = 'main';
-      pr.state.panelOpen = true;
-      pr.savePanelOpen();
-      pr.renderPanel();
+      pr.openMainPanel();
     });
 
     var toolbox = document.getElementById('toolbox');

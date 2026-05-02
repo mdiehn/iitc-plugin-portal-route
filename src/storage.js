@@ -2,7 +2,7 @@
     try {
       var rawSettings = localStorage.getItem(pr.STORAGE_KEYS.settings);
       if (rawSettings) {
-        pr.state.settings = Object.assign({}, pr.DEFAULT_SETTINGS, JSON.parse(rawSettings));
+        pr.state.settings = pr.normalizeSettings(JSON.parse(rawSettings));
       }
 
       var rawStops = localStorage.getItem(pr.STORAGE_KEYS.stops);

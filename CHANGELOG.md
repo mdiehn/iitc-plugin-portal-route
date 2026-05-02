@@ -4,6 +4,13 @@ This project is in active development.
 
 Current release: `1.0.0`
 
+## 1.1.0-dev - Unreleased
+
+### Changed
+
+- Refactored route panel event handling and map marker rendering into smaller helpers.
+- Tightened imported settings handling so only known settings are applied.
+
 ## 1.0.0 - Released - 2026-05-02
 
 ### Added

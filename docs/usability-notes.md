@@ -52,6 +52,7 @@ Practical UI/UX notes for `iitc-plugin-portal-route`.
 - Added optional segment drive-time labels on the map.
 - Added Google Maps export-limit warning.
 - Added JSON route export and import.
+- JSON import only applies known settings and ignores unknown setting keys.
 - Added printable route summary output.
 - Fixed blank print output in some browsers/WebViews.
 

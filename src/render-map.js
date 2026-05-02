@@ -82,189 +82,222 @@
     };
   };
 
+  pr.stopMarkerTitle = function(stop, index) {
+    return stop.generatedLoop ? 'Loop back to ' + stop.title : (index + 1) + '. ' + stop.title;
+  };
+
+  pr.stopLabelClass = function(stop, index, hasLoopStop) {
+    var isLoop = !!stop.generatedLoop;
+    var isSelected = !isLoop && pr.selectedStopIndex && pr.selectedStopIndex() === index;
+    var isMapPoint = stop.type === 'map';
+    var canDragRouteStop = !isLoop && !pr.isManagedStartStop(stop);
+    var label = isLoop ? 'L' : (index + 1);
+    var className = 'portal-route-stop-label';
+
+    if (String(label).length > 2) className += ' portal-route-stop-label-wide';
+    if (!isLoop && hasLoopStop && (index === 0 || index === pr.state.stops.length - 1)) {
+      className += ' portal-route-stop-label-loop-endpoint';
+    } else {
+      if (!isLoop && index === 0) className += ' portal-route-stop-label-start';
+      if (!isLoop && pr.state.stops.length > 1 && index === pr.state.stops.length - 1) {
+        className += ' portal-route-stop-label-end';
+      }
+    }
+    if (isMapPoint) className += ' portal-route-map-point-label';
+    if (canDragRouteStop) className += ' portal-route-stop-label-draggable';
+    if (isLoop) className += ' portal-route-loop-label';
+    if (isSelected) className += ' portal-route-stop-label-selected';
+
+    return className;
+  };
+
+  pr.stopMarkerEvent = function(e) {
+    var originalEvent = e && e.originalEvent ? e.originalEvent : e;
+    if (originalEvent && originalEvent.stopPropagation) originalEvent.stopPropagation();
+    if (originalEvent && originalEvent.preventDefault) originalEvent.preventDefault();
+  };
+
+  pr.openRouteListForStop = function(index, e) {
+    pr.stopMarkerEvent(e);
+    pr.selectStopPortal(index, false);
+    if (pr.openMainPanel) {
+      pr.openMainPanel();
+    } else {
+      pr.state.panelOpen = true;
+      pr.savePanelOpen();
+      pr.renderPanel();
+    }
+  };
+
+  pr.stopClickHandler = function(index) {
+    var clickTimer = null;
+
+    return function(e) {
+      pr.stopMarkerEvent(e);
+
+      if (!window.setTimeout || !window.clearTimeout) {
+        pr.selectStopPortal(index, false);
+        return;
+      }
+
+      if (clickTimer) {
+        window.clearTimeout(clickTimer);
+        clickTimer = null;
+        pr.openRouteListForStop(index, e);
+        return;
+      }
+
+      clickTimer = window.setTimeout(function() {
+        clickTimer = null;
+        pr.selectStopPortal(index, false);
+      }, 300);
+    };
+  };
+
+  pr.createMapPointMarker = function(stop, index, title, clickHandler) {
+    var isSelected = pr.selectedStopIndex && pr.selectedStopIndex() === index;
+    var pointIcon = L.divIcon({
+      className: 'portal-route-map-point-marker' + (isSelected ? ' portal-route-map-point-marker-selected' : ''),
+      html: '<span></span>',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
+    });
+
+    var marker = L.marker([stop.lat, stop.lng], {
+      icon: pointIcon,
+      draggable: !pr.isManagedStartStop(stop),
+      interactive: true,
+      keyboard: false,
+      bubblingMouseEvents: false,
+      title: title
+    });
+
+    marker.on('click', clickHandler);
+    return marker;
+  };
+
+  pr.createStopLabelMarker = function(stop, index, hasLoopStop, title, clickHandler) {
+    var isLoop = !!stop.generatedLoop;
+    var label = isLoop ? 'L' : (index + 1);
+    var icon = L.divIcon({
+      className: pr.stopLabelClass(stop, index, hasLoopStop),
+      html: '<span>' + label + '</span>',
+      iconSize: [18, 18],
+      iconAnchor: isLoop ? [-18, 24] : [0, 24]
+    });
+
+    var marker = L.marker([stop.lat, stop.lng], {
+      icon: icon,
+      draggable: !isLoop && !pr.isManagedStartStop(stop),
+      interactive: true,
+      keyboard: false,
+      bubblingMouseEvents: false,
+      title: title
+    });
+
+    marker.on('click', clickHandler);
+    marker.bindTooltip(title, {
+      direction: 'right',
+      offset: [16, -10],
+      opacity: 0.9,
+      interactive: false,
+      className: 'portal-route-stop-tooltip'
+    });
+
+    return marker;
+  };
+
+  pr.attachMapPointDragHandlers = function(index, pointMarker, labelMarker) {
+    if (!pointMarker) return;
+
+    pointMarker.on('dragstart', function(e) {
+      if (e.target && e.target._icon) e.target._icon.classList.add('portal-route-map-point-marker-dragging');
+      pr.state.selectedMapPointIndex = index;
+      if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
+      if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
+      pr.renderPanel();
+      pr.renderMiniControl();
+    });
+    pointMarker.on('drag', function(e) {
+      var latlng = e.target.getLatLng();
+      pr.updateMapPointPosition(index, latlng, { live: true });
+      pointMarker.setLatLng(latlng);
+      labelMarker.setLatLng(latlng);
+    });
+    pointMarker.on('dragend', function(e) {
+      if (e.target && e.target._icon) e.target._icon.classList.remove('portal-route-map-point-marker-dragging');
+      pr.updateMapPointPosition(index, e.target.getLatLng());
+    });
+  };
+
+  pr.attachStopLabelDragHandlers = function(index, stop, labelMarker) {
+    labelMarker.on('dragstart', function(e) {
+      var originalPoint = e.target && e.target.getLatLng
+        ? window.map.latLngToLayerPoint(e.target.getLatLng())
+        : null;
+      pr.state.stopReplaceDragStartPoint = originalPoint;
+      if (stop.guid) {
+        pr.state.selectedMapPointIndex = null;
+        window.selectedPortal = stop.guid;
+      } else {
+        pr.state.selectedMapPointIndex = index;
+        if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
+      }
+      if (e.target && e.target._icon) e.target._icon.classList.add('portal-route-stop-label-dragging');
+      pr.renderPanel();
+      pr.renderMiniControl();
+    });
+    labelMarker.on('dragend', function(e) {
+      if (e.target && e.target._icon) e.target._icon.classList.remove('portal-route-stop-label-dragging');
+
+      var latlng = e.target.getLatLng();
+      var dropPoint = window.map.latLngToLayerPoint(latlng);
+      var startPoint = pr.state.stopReplaceDragStartPoint;
+      pr.state.stopReplaceDragStartPoint = null;
+
+      if (startPoint && dropPoint && startPoint.distanceTo(dropPoint) < 8) {
+        pr.redrawLabels();
+        return;
+      }
+
+      if (!pr.replaceStopLocation(index, pr.mapReplacementStop(index, latlng))) {
+        pr.redrawLabels();
+      }
+    });
+  };
+
   pr.redrawLabels = function() {
     if (!window.map || !window.L) return;
     pr.ensureLayers();
     pr.clearLabels();
 
+    var loopStop = pr.makeLoopStop && pr.makeLoopStop();
+    var hasLoopStop = !!(loopStop && pr.state.stops.length > 1);
+
     pr.getRouteStops().forEach(function(stop, index) {
       var isLoop = !!stop.generatedLoop;
-      var isSelected = !isLoop && pr.selectedStopIndex && pr.selectedStopIndex() === index;
-      var selectedClass = isSelected ? ' portal-route-stop-label-selected' : '';
-      var startEndClass = '';
-      var hasLoopStop = !!(pr.makeLoopStop && pr.makeLoopStop() && pr.state.stops.length > 1);
-      if (!isLoop && hasLoopStop && (index === 0 || index === pr.state.stops.length - 1)) {
-        startEndClass += ' portal-route-stop-label-loop-endpoint';
-      } else {
-        if (!isLoop && index === 0) startEndClass += ' portal-route-stop-label-start';
-        if (!isLoop && pr.state.stops.length > 1 && index === pr.state.stops.length - 1) {
-          startEndClass += ' portal-route-stop-label-end';
-        }
-      }
       var isMapPoint = stop.type === 'map';
       var canDragMapPoint = isMapPoint && !pr.isManagedStartStop(stop);
       var canDragRouteStop = !isLoop && !pr.isManagedStartStop(stop);
-      var label = isLoop ? 'L' : (index + 1);
-      var labelClass = String(label).length > 2 ? ' portal-route-stop-label-wide' : '';
-      var title = isLoop ? 'Loop back to ' + stop.title : (index + 1) + '. ' + stop.title;
-
-      var selectStop = function(e) {
-        if (e.originalEvent && e.originalEvent.stopPropagation) e.originalEvent.stopPropagation();
-        if (e.originalEvent && e.originalEvent.preventDefault) e.originalEvent.preventDefault();
-        pr.selectStopPortal(index, false);
-      };
-
-      var stopMarkerEvent = function(e) {
-        var originalEvent = e && e.originalEvent ? e.originalEvent : e;
-        if (originalEvent && originalEvent.stopPropagation) originalEvent.stopPropagation();
-        if (originalEvent && originalEvent.preventDefault) originalEvent.preventDefault();
-      };
-
-      var openRouteList = function(e) {
-        stopMarkerEvent(e);
-        pr.selectStopPortal(index, false);
-        pr.state.panelView = 'main';
-        pr.state.panelOpen = true;
-        pr.savePanelOpen();
-        pr.renderPanel();
-      };
-
-      var makeClickHandler = function() {
-        var clickTimer = null;
-
-        return function(e) {
-          stopMarkerEvent(e);
-
-          if (!window.setTimeout || !window.clearTimeout) {
-            selectStop(e);
-            return;
-          }
-
-          if (clickTimer) {
-            window.clearTimeout(clickTimer);
-            clickTimer = null;
-            openRouteList(e);
-            return;
-          }
-
-          clickTimer = window.setTimeout(function() {
-            clickTimer = null;
-            selectStop(e);
-          }, 300);
-        };
-      };
-
+      var title = pr.stopMarkerTitle(stop, index);
+      var clickHandler = pr.stopClickHandler(index);
       var pointMarker = null;
 
       if (isMapPoint) {
-        var pointIcon = L.divIcon({
-          className: 'portal-route-map-point-marker' + (isSelected ? ' portal-route-map-point-marker-selected' : ''),
-          html: '<span></span>',
-          iconSize: [16, 16],
-          iconAnchor: [8, 8]
-        });
-
-        pointMarker = L.marker([stop.lat, stop.lng], {
-          icon: pointIcon,
-          draggable: canDragMapPoint,
-          interactive: true,
-          keyboard: false,
-          bubblingMouseEvents: false,
-          title: title
-        });
-
-        pointMarker.on('click', makeClickHandler());
+        pointMarker = pr.createMapPointMarker(stop, index, title, clickHandler);
         pointMarker.addTo(pr.state.layers.labels);
       }
 
-      var icon = L.divIcon({
-        className: 'portal-route-stop-label' + labelClass + startEndClass + (isMapPoint ? ' portal-route-map-point-label' : '') + (canDragRouteStop ? ' portal-route-stop-label-draggable' : '') + (isLoop ? ' portal-route-loop-label' : '') + selectedClass,
-        html: '<span>' + label + '</span>',
-        iconSize: [18, 18],
-        iconAnchor: isLoop ? [-18, 24] : [0, 24]
-      });
-
-      var marker = L.marker([stop.lat, stop.lng], {
-        icon: icon,
-        draggable: canDragRouteStop,
-        interactive: true,
-        keyboard: false,
-        bubblingMouseEvents: false,
-        title: title
-      });
-
-      marker.on('click', makeClickHandler());
+      var labelMarker = pr.createStopLabelMarker(stop, index, hasLoopStop, title, clickHandler);
 
       if (canDragMapPoint) {
-        var attachMapPointDragging = function(dragMarker, draggingClass) {
-          dragMarker.on('dragstart', function(e) {
-            if (e.target && e.target._icon) e.target._icon.classList.add(draggingClass);
-            pr.state.selectedMapPointIndex = index;
-            if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
-            if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
-            pr.renderPanel();
-            pr.renderMiniControl();
-          });
-          dragMarker.on('drag', function(e) {
-            var latlng = e.target.getLatLng();
-            pr.updateMapPointPosition(index, latlng, { live: true });
-            if (pointMarker) pointMarker.setLatLng(latlng);
-            marker.setLatLng(latlng);
-          });
-          dragMarker.on('dragend', function(e) {
-            if (e.target && e.target._icon) e.target._icon.classList.remove(draggingClass);
-            pr.updateMapPointPosition(index, e.target.getLatLng());
-          });
-        };
-
-        if (pointMarker) attachMapPointDragging(pointMarker, 'portal-route-map-point-marker-dragging');
+        pr.attachMapPointDragHandlers(index, pointMarker, labelMarker);
       }
-
       if (canDragRouteStop) {
-        marker.on('dragstart', function(e) {
-          var originalPoint = e.target && e.target.getLatLng
-            ? window.map.latLngToLayerPoint(e.target.getLatLng())
-            : null;
-          pr.state.stopReplaceDragStartPoint = originalPoint;
-          if (stop.guid) {
-            pr.state.selectedMapPointIndex = null;
-            window.selectedPortal = stop.guid;
-          } else {
-            pr.state.selectedMapPointIndex = index;
-            if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
-          }
-          if (e.target && e.target._icon) e.target._icon.classList.add('portal-route-stop-label-dragging');
-          pr.renderPanel();
-          pr.renderMiniControl();
-        });
-        marker.on('dragend', function(e) {
-          if (e.target && e.target._icon) e.target._icon.classList.remove('portal-route-stop-label-dragging');
-
-          var latlng = e.target.getLatLng();
-          var dropPoint = window.map.latLngToLayerPoint(latlng);
-          var startPoint = pr.state.stopReplaceDragStartPoint;
-          pr.state.stopReplaceDragStartPoint = null;
-
-          if (startPoint && dropPoint && startPoint.distanceTo(dropPoint) < 8) {
-            pr.redrawLabels();
-            return;
-          }
-
-          if (!pr.replaceStopLocation(index, pr.mapReplacementStop(index, latlng))) {
-            pr.redrawLabels();
-          }
-        });
+        pr.attachStopLabelDragHandlers(index, stop, labelMarker);
       }
 
-      marker.bindTooltip(title, {
-        direction: 'right',
-        offset: [16, -10],
-        opacity: 0.9,
-        interactive: false,
-        className: 'portal-route-stop-tooltip'
-      });
-
-      marker.addTo(pr.state.layers.labels);
+      labelMarker.addTo(pr.state.layers.labels);
     });
   };
 

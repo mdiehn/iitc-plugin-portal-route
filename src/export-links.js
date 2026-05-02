@@ -200,7 +200,7 @@
     if (stops.length !== data.stops.length) throw new Error('One or more stops are missing valid coordinates.');
 
     pr.state.stops = stops;
-    pr.state.settings = Object.assign({}, pr.DEFAULT_SETTINGS, data.settings || {});
+    pr.state.settings = pr.normalizeSettings(data.settings);
     pr.state.route = data.route && Array.isArray(data.route.legs) ? data.route : null;
     pr.state.routeDirty = !!pr.state.route || !!data.routeDirty;
 

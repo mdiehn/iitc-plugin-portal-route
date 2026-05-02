@@ -144,10 +144,6 @@
     return html;
   };
 
-  pr.renderEditPanel = function(legsByToIndex) {
-    return pr.renderMainPanel(legsByToIndex);
-  };
-
 
   pr.getDialogWidth = function() {
     var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 520;
