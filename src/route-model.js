@@ -206,19 +206,167 @@
     );
   };
 
+  pr.stopTitleNeedsHydration = function(title) {
+    var cleanTitle = String(title == null ? '' : title).trim();
+    return !cleanTitle ||
+      cleanTitle.toLowerCase().indexOf('unknown') === 0 ||
+      cleanTitle === 'Unnamed portal' ||
+      /^Portal \d+$/.test(cleanTitle);
+  };
+
+  pr.portalTitleFromGuid = function(guid) {
+    var portal = guid && window.portals && window.portals[guid];
+    var data = portal && portal.options && portal.options.data ? portal.options.data : null;
+    if (!data) return null;
+    return data.title || data.name || null;
+  };
+
+  pr.portalDetailTitle = function(details) {
+    if (!details) return null;
+    var data = details.details || details.portalDetails || details.portalData || details;
+    return data.title || data.name || null;
+  };
+
+  pr.applyPortalTitleFromDetails = function(guid, details) {
+    var title = pr.portalDetailTitle(details);
+    var changed = false;
+
+    if (!guid || pr.stopTitleNeedsHydration(title)) return false;
+
+    pr.state.stops.forEach(function(stop) {
+      if (!stop || stop.guid !== guid) return;
+      if (!pr.stopTitleNeedsHydration(stop.title)) return;
+
+      stop.title = String(title).trim();
+      changed = true;
+    });
+
+    return changed;
+  };
+
+  pr.requestPortalDetailTitle = function(guid, onDone) {
+    var existingTitle = pr.portalTitleFromGuid(guid);
+    if (existingTitle) {
+      onDone(guid, { title: existingTitle });
+      return;
+    }
+
+    if (!window.portalDetail || typeof window.portalDetail.request !== 'function') {
+      onDone(guid, null);
+      return;
+    }
+
+    try {
+      var request = window.portalDetail.request(guid);
+      if (request && typeof request.done === 'function') {
+        request
+          .done(function(details) { onDone(guid, details); })
+          .fail(function() { onDone(guid, null); });
+      } else if (request && typeof request.then === 'function') {
+        request.then(
+          function(details) { onDone(guid, details); },
+          function() { onDone(guid, null); }
+        );
+      } else {
+        onDone(guid, null);
+      }
+    } catch (e) {
+      console.warn('Portal Route: unable to load portal details for ' + guid, e);
+      onDone(guid, null);
+    }
+  };
+
+  pr.hydrateStopTitles = function() {
+    var seen = {};
+    var guids = pr.state.stops.filter(function(stop) {
+      if (!stop || !stop.guid) return false;
+      if (!pr.stopTitleNeedsHydration(stop.title)) return false;
+      if (seen[stop.guid]) return false;
+      seen[stop.guid] = true;
+      return true;
+    }).map(function(stop) {
+      return stop.guid;
+    });
+
+    if (!guids.length) return;
+
+    var index = 0;
+    var changedCount = 0;
+    var finishedCount = 0;
+    var maxActive = 2;
+    var active = 0;
+
+    pr.showMessage('Loading portal names...');
+
+    var finishOne = function(guid, details) {
+      active -= 1;
+      finishedCount += 1;
+
+      if (pr.applyPortalTitleFromDetails(guid, details)) {
+        changedCount += 1;
+        pr.saveStops();
+        pr.redrawLabels();
+        pr.renderPanel();
+        pr.renderMiniControl();
+      }
+
+      if (finishedCount >= guids.length) {
+        pr.showMessage(changedCount
+          ? 'Loaded names for ' + changedCount + ' portals.'
+          : 'No portal names found.');
+        return;
+      }
+
+      runNext();
+    };
+
+    var runNext = function() {
+      while (active < maxActive && index < guids.length) {
+        var guid = guids[index];
+        index += 1;
+        active += 1;
+        pr.requestPortalDetailTitle(guid, finishOne);
+      }
+    };
+
+    runNext();
+  };
+
+  pr.stopGuidFromData = function(stop) {
+    return stop.guid || stop.portalGuid || stop.portal_guid || null;
+  };
+
+  pr.stopRawTitleFromData = function(stop) {
+    return stop.title || stop.portalTitle || stop.portal_title || stop.name || stop.label || '';
+  };
+
+  pr.hydratedStopTitle = function(stop, stopType, index) {
+    var rawTitle = pr.stopRawTitleFromData(stop);
+    if (!pr.stopTitleNeedsHydration(rawTitle)) return String(rawTitle).trim();
+
+    if (stopType !== 'map') {
+      var portalTitle = pr.portalTitleFromGuid(pr.stopGuidFromData(stop));
+      if (portalTitle) return portalTitle;
+      return typeof index === 'number' ? 'Portal ' + (index + 1) : 'Unnamed portal';
+    }
+
+    return typeof index === 'number' ? 'Map point ' + (index + 1) : 'Map point';
+  };
+
   pr.addStop = function(stop) {
     if (!stop || typeof stop.lat !== 'number' || typeof stop.lng !== 'number') return;
 
-    var stopType = stop.type || (stop.guid ? 'portal' : 'map');
-    var title = stop.title || (stopType === 'map' ? 'Map point' : 'Unnamed portal');
+    var guid = pr.stopGuidFromData(stop);
+    var stopType = stop.type || (guid ? 'portal' : 'map');
+    var title = pr.hydratedStopTitle(stop, stopType, pr.state.stops.length);
 
-    if (stop.guid && pr.state.stops.some(function(existing) { return existing.guid === stop.guid; })) {
+    if (guid && pr.state.stops.some(function(existing) { return existing.guid === guid; })) {
       pr.showMessage('Already in route: ' + title);
       return;
     }
 
     pr.state.stops.push({
-      guid: stop.guid || null,
+      guid: guid,
       type: stopType,
       title: title,
       lat: stop.lat,
@@ -327,6 +475,46 @@
     if (restoreStartOnMe) {
       pr.setStartOnCurrentLocation(true);
     }
+  };
+
+  pr.replaceStops = function(stops, options) {
+    options = options || {};
+    if (!Array.isArray(stops)) return;
+
+    pr.state.stops = [];
+    pr.state.route = null;
+    pr.state.routeDirty = false;
+    pr.state.selectedMapPointIndex = null;
+
+    stops.forEach(function(stop) {
+      if (!stop || typeof stop.lat !== 'number' || typeof stop.lng !== 'number') return;
+      var guid = pr.stopGuidFromData(stop);
+      var stopType = stop.type || (guid ? 'portal' : 'map');
+      pr.state.stops.push({
+        guid: guid,
+        type: stopType,
+        title: pr.hydratedStopTitle(stop, stopType, pr.state.stops.length),
+        lat: stop.lat,
+        lng: stop.lng,
+        stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null,
+        startOnMe: !!stop.startOnMe,
+        accuracy: typeof stop.accuracy === 'number' ? stop.accuracy : null,
+        updatedAt: stop.updatedAt || null
+      });
+    });
+
+    pr.saveStops();
+    pr.saveRoute();
+    pr.clearRouteLine();
+    pr.redrawLabels();
+    if (options.openPanel) {
+      pr.state.panelOpen = true;
+      pr.savePanelOpen();
+    }
+    pr.renderPanel();
+    pr.renderMiniControl();
+    pr.showMessage('Imported ' + pr.state.stops.length + ' stops.');
+    pr.hydrateStopTitles();
   };
 
   pr.moveStop = function(fromIndex, toIndex) {

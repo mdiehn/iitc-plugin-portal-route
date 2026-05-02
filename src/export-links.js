@@ -164,7 +164,7 @@
     pr.showMessage('Route JSON exported.');
   };
 
-  pr.normalizeImportedStop = function(stop) {
+  pr.normalizeImportedStop = function(stop, index) {
     if (!stop || typeof stop !== 'object') return null;
 
     var lat = Number(stop.lat);
@@ -178,12 +178,13 @@
       if (stopMinutes !== null) stopMinutes = Math.round(stopMinutes);
     }
 
-    var type = stop.type || (stop.guid ? 'portal' : 'map');
+    var guid = pr.stopGuidFromData(stop);
+    var type = stop.type || (guid ? 'portal' : 'map');
 
     return {
-      guid: stop.guid || null,
+      guid: guid,
       type: type,
-      title: stop.title || (type === 'map' ? 'Map point' : 'Unnamed portal'),
+      title: pr.hydratedStopTitle(stop, type, index),
       lat: lat,
       lng: lng,
       stopMinutes: stopMinutes,
@@ -211,6 +212,7 @@
     pr.redrawSegmentTimeLabels();
     pr.renderPanel();
     pr.showMessage('Route imported. Replot before using route totals.');
+    pr.hydrateStopTitles();
   };
 
   pr.importRouteJsonText = function(text) {
