@@ -2,20 +2,25 @@
 
 This project is in active development.
 
-Current working milestone: `0.5.0`
+Current release: `1.0.0`
 
-## 0.5.0 - Unreleased
+## 1.0.0 - Released - 2026-05-02
 
 ### Added
 
 - Manual map point dragging from map handles and numbered labels.
+- Waypoint replacement dragging from numbered labels: drop near a loaded portal to replace the waypoint with that portal, or drop elsewhere to replace it with a manual point.
+- Portal details panel controls for Add/Remove, Menu, List, Plot/Replot, and Clear.
 - Fit Route action for explicitly fitting the plotted route on the map.
 - Auto-replot setting for refreshing an existing route after edits.
 - Split Google Maps exports into stage links when routes exceed the practical point limit.
+- Mini-control and info-panel control visibility settings.
 
 ### Changed
 
 - Plotting and replotting no longer move the map automatically.
+- Fan Fields 2 imports open the route list.
+- Portal details controls sit below the History line and use compact sidebar styling.
 
 ## 0.4.0 - Released
 

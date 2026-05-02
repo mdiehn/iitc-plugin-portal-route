@@ -288,6 +288,19 @@
     }
   };
 
+  pr.focusPanelContainer = function(content) {
+    if (!content || !content.focus || !window.setTimeout) return;
+
+    window.setTimeout(function() {
+      if (!content || !content.focus) return;
+      try {
+        content.focus({ preventScroll: true });
+      } catch (e) {
+        content.focus();
+      }
+    }, 0);
+  };
+
   pr.renderPanel = function() {
     if (pr.isLayerEnabled && !pr.isLayerEnabled()) {
       pr.closeDialog();
@@ -318,7 +331,7 @@
       return;
     }
 
-    var html = '<div id="' + pr.DOM_IDS.dialogContent + '" class="portal-route-dialog-content">' + contentHtml + '</div>';
+    var html = '<div id="' + pr.DOM_IDS.dialogContent + '" class="portal-route-dialog-content" tabindex="-1">' + contentHtml + '</div>';
 
     if (typeof window.dialog === 'function') {
       window.dialog({
@@ -333,6 +346,7 @@
       if (newContent && window.jQuery) {
         try {
           pr.attachPanelPositionHandlers(newContent);
+          pr.focusPanelContainer(newContent);
           window.jQuery(newContent)
             .closest('.ui-dialog-content')
             .off('dialogclose.portalRoute')
@@ -386,7 +400,7 @@
       return;
     }
 
-    var html = '<div id="' + pr.DOM_IDS.pointsDialogContent + '" class="portal-route-dialog-content portal-route-points-dialog-content">' + contentHtml + '</div>';
+    var html = '<div id="' + pr.DOM_IDS.pointsDialogContent + '" class="portal-route-dialog-content portal-route-points-dialog-content" tabindex="-1">' + contentHtml + '</div>';
 
     if (typeof window.dialog === 'function') {
       window.dialog({
@@ -400,6 +414,7 @@
       var newContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);
       if (newContent && window.jQuery) {
         try {
+          pr.focusPanelContainer(newContent);
           window.jQuery(newContent)
             .closest('.ui-dialog-content')
             .off('dialogclose.portalRoutePoints')

@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version        0.5.0
+// @version        1.0.0
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
 // @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/main/dist/portal-route.meta.js
 // @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/main/dist/portal-route.user.js
@@ -832,7 +832,7 @@ input.portal-route-waypoint-name-input:focus,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '0.5.0';
+  pr.VERSION = '1.0.0';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -2740,6 +2740,19 @@ input.portal-route-waypoint-name-input:focus,
     }
   };
 
+  pr.focusPanelContainer = function(content) {
+    if (!content || !content.focus || !window.setTimeout) return;
+
+    window.setTimeout(function() {
+      if (!content || !content.focus) return;
+      try {
+        content.focus({ preventScroll: true });
+      } catch (e) {
+        content.focus();
+      }
+    }, 0);
+  };
+
   pr.renderPanel = function() {
     if (pr.isLayerEnabled && !pr.isLayerEnabled()) {
       pr.closeDialog();
@@ -2770,7 +2783,7 @@ input.portal-route-waypoint-name-input:focus,
       return;
     }
 
-    var html = '<div id="' + pr.DOM_IDS.dialogContent + '" class="portal-route-dialog-content">' + contentHtml + '</div>';
+    var html = '<div id="' + pr.DOM_IDS.dialogContent + '" class="portal-route-dialog-content" tabindex="-1">' + contentHtml + '</div>';
 
     if (typeof window.dialog === 'function') {
       window.dialog({
@@ -2785,6 +2798,7 @@ input.portal-route-waypoint-name-input:focus,
       if (newContent && window.jQuery) {
         try {
           pr.attachPanelPositionHandlers(newContent);
+          pr.focusPanelContainer(newContent);
           window.jQuery(newContent)
             .closest('.ui-dialog-content')
             .off('dialogclose.portalRoute')
@@ -2838,7 +2852,7 @@ input.portal-route-waypoint-name-input:focus,
       return;
     }
 
-    var html = '<div id="' + pr.DOM_IDS.pointsDialogContent + '" class="portal-route-dialog-content portal-route-points-dialog-content">' + contentHtml + '</div>';
+    var html = '<div id="' + pr.DOM_IDS.pointsDialogContent + '" class="portal-route-dialog-content portal-route-points-dialog-content" tabindex="-1">' + contentHtml + '</div>';
 
     if (typeof window.dialog === 'function') {
       window.dialog({
@@ -2852,6 +2866,7 @@ input.portal-route-waypoint-name-input:focus,
       var newContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);
       if (newContent && window.jQuery) {
         try {
+          pr.focusPanelContainer(newContent);
           window.jQuery(newContent)
             .closest('.ui-dialog-content')
             .off('dialogclose.portalRoutePoints')

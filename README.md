@@ -6,9 +6,9 @@ It is built for mobile-first use, but works on desktop IITC too. Build a stop li
 
 ## Status
 
-Current milestone: `0.5.0`
+Current release: `1.0.0`
 
-This is usable for testing and early public review. It is still a development build.
+This is the first stable release.
 
 **Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/main/dist/portal-route.user.js)
 
@@ -177,7 +177,7 @@ docs/                 design notes and images
 src/                  plugin source files
 CHANGELOG.md          changes by milestone
 README.md             this file
-VERSION               current working version
+VERSION               current release version
 build.js              build script
 package.json          npm scripts and package info
 ```
@@ -189,6 +189,7 @@ For now, keep these versions in sync by hand:
 ```text
 VERSION
 src/banner.js
+src/constants.js
 package.json
 ```
 

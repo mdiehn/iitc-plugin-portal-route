@@ -4,7 +4,7 @@
 
 This repo contains an IITC plugin called **Driving Route**.
 
-Current version: `0.4.0-dev`.
+Current version: `1.0.0`.
 
 ## Working style
 

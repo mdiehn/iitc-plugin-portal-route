@@ -1,6 +1,6 @@
 # docs/ROADMAP.md
 
-## Current release: 0.5.0
+## Current release: 1.0.0
 
 Main goal: improve route point handling and map interaction.
 
@@ -74,16 +74,13 @@ Open design questions:
 - how to handle loops
 - how to show route preview before committing
 
-## Release path toward 1.0.0
+## Release path after 1.0.0
 
-Likely path:
-1. Finish manual point dragging.
-2. Clean up docs/changelog.
-3. Close current dev release.
-4. Implement portal waypoint dragging/snap behavior.
-5. Improve selection/import/export polish.
-6. Do a compatibility pass across desktop/mobile IITC.
-7. Release 1.0.0 when route creation, editing, dragging, import/export, and mobile use are reliable.
+Next likely path:
+1. Test 1.0.0 across desktop/mobile IITC.
+2. Polish waypoint replacement dragging based on field use.
+3. Improve selection/import/export details where they feel rough.
+4. Keep later releases small and practical.
 
 ## Release habits
 
