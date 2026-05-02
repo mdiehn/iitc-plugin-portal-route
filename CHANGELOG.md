@@ -11,6 +11,10 @@ Current release: `1.0.0`
 - Added route library design notes for the planned v1.1.0 save/load and Google Drive shared storage work.
 - Wired Save and Load to a local route library stored in this browser.
 - Added schemaVersion 1 saved route records with route metadata, stops, map center/zoom, and route-relevant settings.
+- Added inline rename, update, delete, and JSON import/export actions for locally saved routes.
+- Added whole-library JSON export and import/merge for the local route library.
+- Changed the route library to select rows with checkboxes and use bottom action buttons for selected routes.
+- Let route library checkboxes select multiple routes, with Load/Update limited to one route and Export/Delete supporting multiple routes.
 
 ### Changed
 
@@ -20,6 +24,7 @@ Current release: `1.0.0`
 - Tightened the app panel width and added Clear Route to the Data group.
 - Moved route summary info to the top of the route list panel and show distance in miles and kilometers.
 - Slimmed the settings panel by moving route actions and summary details into the route list workflow.
+- Replaced the settings panel Data box with a Route Library button.
 
 ## 1.0.0 - Released - 2026-05-02
 

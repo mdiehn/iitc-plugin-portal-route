@@ -42,7 +42,7 @@ Done and released:
 Known rough edges:
 
 - Save and Load currently use a local route library in this browser.
-- JSON import/export is for the current route only, not a saved route collection.
+- JSON import/export now covers the current route, individual saved routes, and the local route library.
 - Cross-device sharing is manual only.
 - Browser/device location may be coarse or wrong, especially on desktop.
 - Mobile hover behavior is limited because touch devices do not really hover.

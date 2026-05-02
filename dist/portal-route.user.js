@@ -389,6 +389,7 @@ button.portal-route-waypoint-badge-wide {
 }
 
 .portal-route-clear-list-button,
+.portal-route-library-actions button,
 .portal-route-control-group-buttons button {
   display: inline-block;
   padding: 3px 7px !important;
@@ -410,13 +411,24 @@ button.portal-route-waypoint-badge-wide {
 .portal-route-clear-list-button:active,
 .portal-route-control-group-buttons button:hover,
 .portal-route-control-group-buttons button:focus,
-.portal-route-control-group-buttons button:active {
+.portal-route-control-group-buttons button:active,
+.portal-route-library-actions button:hover,
+.portal-route-library-actions button:focus,
+.portal-route-library-actions button:active {
   border-color: rgba(255, 216, 0, 0.75) !important;
   background: rgba(255, 255, 255, 0.24) !important;
   color: inherit !important;
   text-decoration: none;
   outline: none !important;
   box-shadow: none !important;
+}
+
+.portal-route-library-actions button:disabled,
+.portal-route-control-group-buttons button:disabled {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  cursor: default;
 }
 
 .portal-route-control-group-buttons button.portal-route-active-action {
@@ -519,6 +531,11 @@ button.portal-route-waypoint-badge-wide {
   text-align: center;
 }
 
+.portal-route-library-toolbar {
+  justify-content: center;
+  margin-bottom: 7px;
+}
+
 .portal-route-library-list {
   display: flex;
   flex-direction: column;
@@ -527,7 +544,7 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-library-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) max-content;
+  grid-template-columns: max-content minmax(0, 1fr);
   gap: 6px;
   align-items: center;
   padding: 4px;
@@ -535,11 +552,24 @@ button.portal-route-waypoint-badge-wide {
   border-radius: 4px;
 }
 
+.portal-route-library-row-selected {
+  background: rgba(255, 216, 0, 0.10);
+}
+
+.portal-route-library-select {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.portal-route-library-select input {
+  margin: 0;
+}
+
 .portal-route-library-info {
   min-width: 0;
 }
 
-.portal-route-library-info strong,
 .portal-route-library-info span {
   display: block;
   overflow: hidden;
@@ -547,9 +577,48 @@ button.portal-route-waypoint-badge-wide {
   white-space: nowrap;
 }
 
+.portal-route-library-name-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 1px 3px !important;
+  border: 1px solid transparent !important;
+  border-radius: 3px;
+  background: transparent !important;
+  color: inherit !important;
+  font: inherit;
+  font-weight: bold;
+}
+
+.portal-route-library-name-input:hover,
+.portal-route-library-name-input:focus {
+  border-color: rgba(255, 216, 0, 0.45) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  outline: none !important;
+}
+
 .portal-route-library-info span {
   color: #ccc;
   font-size: 11px;
+}
+
+.portal-route-library-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+
+.portal-route-library-tip {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #ccc;
+  text-align: center;
+}
+
+.portal-route-library-tip-active {
+  color: #ffd800;
 }
 
 .portal-route-bottom-summary {
@@ -964,6 +1033,7 @@ input.portal-route-waypoint-name-input:focus,
     addPointMode: false,
     selectedMapPointIndex: null,
     activeRouteId: null,
+    selectedLibraryRouteIds: [],
     miniControl: null
   };
 
@@ -2690,20 +2760,9 @@ input.portal-route-waypoint-name-input:focus,
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-portal-details-controls" ' + (pr.state.settings.showPortalDetailsControls ? 'checked ' : '') + '> Info panel controls</label>';
     html += '</div>';
 
-    html += '<div class="portal-route-control-groups">';
-    html += '<div class="portal-route-control-group portal-route-control-group-wide"><div class="portal-route-control-group-title">Data</div><div class="portal-route-control-group-buttons">';
-    html += '<button type="button" data-action="save-route">Save</button>';
-    html += '<button type="button" data-action="load-route">Load</button>';
-    html += '<button type="button" data-action="print-route">Print</button>';
-    html += '<button type="button" data-action="open-google-maps">Send to Maps</button>';
-    html += '<button type="button" data-action="export-route-json">Export</button>';
-    html += '<button type="button" data-action="import-route-json">Import</button>';
-    html += '<button type="button" data-action="clear-route">Clear Route</button>';
-    html += '</div></div>';
-    html += '</div>';
-
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
     html += '<button type="button" data-action="open-points-list">Open Route List</button>';
+    html += '<button type="button" data-action="load-route">Route Library</button>';
     html += '</div>';
 
     if (pr.SHOW_VERSION_IN_PANEL) {
@@ -3202,7 +3261,9 @@ input.portal-route-waypoint-name-input:focus,
       lat: lat,
       lng: lng,
       stopMinutes: stopMinutes,
-      startOnMe: !!stop.startOnMe
+      startOnMe: !!stop.startOnMe,
+      accuracy: typeof stop.accuracy === 'number' ? stop.accuracy : null,
+      updatedAt: stop.updatedAt || null
     };
   };
 
@@ -3465,6 +3526,47 @@ input.portal-route-waypoint-name-input:focus,
     return null;
   };
 
+  pr.normalizeRouteRecord = function(record, options) {
+    options = options || {};
+    if (!record || typeof record !== 'object') return null;
+    if (record.schemaVersion !== pr.ROUTE_LIBRARY_SCHEMA_VERSION) return null;
+
+    var route = record.route || {};
+    if (!Array.isArray(route.stops)) return null;
+
+    var stops = route.stops.map(pr.normalizeImportedStop).filter(Boolean);
+    if (stops.length !== route.stops.length) return null;
+
+    var now = pr.routeLibraryNow();
+    var id = options.newId ? pr.newRouteLibraryId() : (record.id || pr.newRouteLibraryId());
+    var name = String(record.name || 'Imported route').trim() || 'Imported route';
+    if (options.nameSuffix) name += ' ' + options.nameSuffix;
+
+    return {
+      schemaVersion: pr.ROUTE_LIBRARY_SCHEMA_VERSION,
+      pluginVersion: record.pluginVersion || pr.VERSION,
+      id: id,
+      name: name,
+      createdAt: options.newId ? now : (record.createdAt || now),
+      updatedAt: options.keepUpdatedAt ? (record.updatedAt || now) : now,
+      map: record.map && typeof record.map === 'object' ? record.map : null,
+      route: {
+        stops: stops
+      },
+      settings: record.settings && typeof record.settings === 'object' ? record.settings : {}
+    };
+  };
+
+  pr.prepareImportedRouteRecord = function(record, library) {
+    var id = record && record.id;
+    var duplicate = !!pr.findLibraryRoute(library, id);
+    return pr.normalizeRouteRecord(record, {
+      newId: duplicate,
+      nameSuffix: duplicate ? 'imported' : '',
+      keepUpdatedAt: !duplicate
+    });
+  };
+
   pr.storageBackends = pr.storageBackends || {};
 
   pr.localRouteStorage = {
@@ -3493,6 +3595,15 @@ input.portal-route-waypoint-name-input:focus,
       if (!replaced) library.routes.push(route);
       pr.saveRouteLibrary(library);
       return route;
+    },
+    deleteRoute: function(id) {
+      var library = pr.loadRouteLibrary();
+      var before = library.routes.length;
+      library.routes = library.routes.filter(function(route) {
+        return route && route.id !== id;
+      });
+      pr.saveRouteLibrary(library);
+      return library.routes.length !== before;
     }
   };
 
@@ -3522,6 +3633,106 @@ input.portal-route-waypoint-name-input:focus,
     pr.localRouteStorage.saveRoute(record);
     pr.state.activeRouteId = record.id;
     pr.showMessage('Route saved.');
+  };
+
+  pr.setSavedRouteName = function(id, name) {
+    var library = pr.loadRouteLibrary();
+    var route = pr.findLibraryRoute(library, id);
+    if (!route) {
+      pr.showMessage('Saved route not found.');
+      return false;
+    }
+
+    name = String(name == null ? '' : name).trim();
+    if (!name) {
+      pr.showMessage('Route name cannot be empty.');
+      return false;
+    }
+
+    route.name = name;
+    route.updatedAt = pr.routeLibraryNow();
+    pr.saveRouteLibrary(library);
+    pr.showMessage('Route renamed.');
+    return true;
+  };
+
+  pr.deleteSavedRoute = function(id) {
+    if (!id) return;
+    var route = pr.localRouteStorage.getRoute(id);
+    if (!route) {
+      pr.showMessage('Saved route not found.');
+      return;
+    }
+
+    if (window.confirm && !window.confirm('Delete saved route "' + (route.name || 'Unnamed route') + '"?')) return;
+
+    if (pr.localRouteStorage.deleteRoute(id)) {
+      if (pr.state.activeRouteId === id) pr.state.activeRouteId = null;
+      pr.openRouteLibraryPanel();
+      pr.showMessage('Route deleted.');
+    }
+  };
+
+  pr.updateSavedRouteFromCurrent = function(id) {
+    if (!id) return;
+    if (!pr.state.stops.length) {
+      pr.showMessage('No route to save.');
+      return;
+    }
+
+    var existing = pr.localRouteStorage.getRoute(id);
+    if (!existing) {
+      pr.showMessage('Saved route not found.');
+      return;
+    }
+
+    if (window.confirm && !window.confirm('Overwrite "' + (existing.name || 'Unnamed route') + '" with current route?')) return;
+
+    var record = pr.makeRouteRecord(existing, existing.name);
+    pr.localRouteStorage.saveRoute(record);
+    pr.state.activeRouteId = record.id;
+    pr.openRouteLibraryPanel();
+    pr.showMessage('Route updated.');
+  };
+
+  pr.getSelectedLibraryRouteIds = function() {
+    var library = pr.loadRouteLibrary();
+    var ids = Array.isArray(pr.state.selectedLibraryRouteIds) ? pr.state.selectedLibraryRouteIds : [];
+    var selected = ids.filter(function(id, index) {
+      return ids.indexOf(id) === index && !!pr.findLibraryRoute(library, id);
+    });
+
+    if (selected.length !== ids.length) pr.state.selectedLibraryRouteIds = selected;
+    return selected;
+  };
+
+  pr.setLibraryRouteSelected = function(id, selected) {
+    if (!id) return;
+    var ids = pr.getSelectedLibraryRouteIds();
+    var index = ids.indexOf(id);
+
+    if (selected && index === -1) ids.push(id);
+    if (!selected && index !== -1) ids.splice(index, 1);
+
+    pr.state.selectedLibraryRouteIds = ids;
+  };
+
+  pr.requireSingleSelectedLibraryRouteId = function() {
+    var ids = pr.getSelectedLibraryRouteIds();
+    if (ids.length !== 1) {
+      pr.showMessage('Select one route first.');
+      return null;
+    }
+    return ids[0];
+  };
+
+  pr.requireSelectedLibraryRouteIds = function() {
+    var ids = pr.getSelectedLibraryRouteIds();
+    if (!ids.length) {
+      pr.showMessage('Select a route first.');
+      return null;
+    }
+    return ids;
   };
 
   pr.applyRouteLibrarySettings = function(settings) {
@@ -3567,6 +3778,7 @@ input.portal-route-waypoint-name-input:focus,
     pr.clearRouteLine();
     pr.redrawLabels();
     pr.renderPanel();
+    if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
     pr.renderMiniControl();
     pr.hydrateStopTitles();
 
@@ -3594,20 +3806,197 @@ input.portal-route-waypoint-name-input:focus,
     if (content) content.style.display = 'none';
   };
 
+  pr.routeRecordFilename = function(route) {
+    var safeName = String(route && route.name ? route.name : 'route')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'route';
+    return 'portal-route-' + safeName + '.json';
+  };
+
+  pr.routeLibraryFilename = function() {
+    var stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    return 'portal-route-library-' + stamp + '.json';
+  };
+
+  pr.exportSavedRouteJson = function(id) {
+    if (!id) return;
+    var route = pr.localRouteStorage.getRoute(id);
+    if (!route) {
+      pr.showMessage('Saved route not found.');
+      return;
+    }
+
+    pr.downloadTextFile(pr.routeRecordFilename(route), JSON.stringify(route, null, 2), 'application/json');
+    pr.showMessage('Saved route exported.');
+  };
+
+  pr.exportRouteLibraryJson = function() {
+    var library = pr.loadRouteLibrary();
+    pr.exportRouteLibraryRoutesJson(library.routes, 'Route library exported.');
+  };
+
+  pr.exportRouteLibraryRoutesJson = function(routes, message) {
+    var data = {
+      schemaVersion: pr.ROUTE_LIBRARY_SCHEMA_VERSION,
+      plugin: pr.ID,
+      pluginVersion: pr.VERSION,
+      exportedAt: pr.routeLibraryNow(),
+      routes: routes
+    };
+
+    pr.downloadTextFile(pr.routeLibraryFilename(), JSON.stringify(data, null, 2), 'application/json');
+    pr.showMessage(message || 'Route library exported.');
+  };
+
+  pr.exportSelectedSavedRoutesJson = function() {
+    var ids = pr.requireSelectedLibraryRouteIds();
+    if (!ids) return;
+
+    var library = pr.loadRouteLibrary();
+    var routes = ids.map(function(id) {
+      return pr.findLibraryRoute(library, id);
+    }).filter(Boolean);
+
+    if (routes.length === 1) {
+      pr.exportSavedRouteJson(routes[0].id);
+      return;
+    }
+
+    pr.exportRouteLibraryRoutesJson(routes, routes.length + ' saved routes exported.');
+  };
+
+  pr.deleteSelectedSavedRoutes = function() {
+    var ids = pr.requireSelectedLibraryRouteIds();
+    if (!ids) return;
+
+    if (ids.length === 1) {
+      pr.deleteSavedRoute(ids[0]);
+      return;
+    }
+
+    if (window.confirm && !window.confirm('Delete ' + ids.length + ' saved routes?')) return;
+
+    var library = pr.loadRouteLibrary();
+    var idMap = {};
+    ids.forEach(function(id) { idMap[id] = true; });
+    library.routes = library.routes.filter(function(route) {
+      return route && !idMap[route.id];
+    });
+    pr.saveRouteLibrary(library);
+
+    if (idMap[pr.state.activeRouteId]) pr.state.activeRouteId = null;
+    pr.state.selectedLibraryRouteIds = [];
+    pr.openRouteLibraryPanel();
+    pr.showMessage(ids.length + ' routes deleted.');
+  };
+
+  pr.readJsonFile = function(onData, onError) {
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json,.json';
+    input.style.display = 'none';
+
+    input.addEventListener('change', function() {
+      var file = input.files && input.files[0];
+      if (!file) {
+        if (input.parentNode) input.parentNode.removeChild(input);
+        return;
+      }
+
+      var reader = new FileReader();
+      reader.onload = function() {
+        try {
+          onData(JSON.parse(String(reader.result || '')));
+        } catch (e) {
+          if (onError) onError(e);
+        }
+        if (input.parentNode) input.parentNode.removeChild(input);
+      };
+      reader.onerror = function() {
+        if (onError) onError(new Error('Unable to read file.'));
+        if (input.parentNode) input.parentNode.removeChild(input);
+      };
+      reader.readAsText(file);
+    });
+
+    document.body.appendChild(input);
+    input.click();
+  };
+
+  pr.importSavedRouteRecord = function(record) {
+    var library = pr.loadRouteLibrary();
+    var imported = pr.prepareImportedRouteRecord(record, library);
+    if (!imported) throw new Error('JSON is not a compatible saved route.');
+
+    library.routes.push(imported);
+    pr.saveRouteLibrary(library);
+    pr.openRouteLibraryPanel();
+    pr.showMessage('Saved route imported.');
+  };
+
+  pr.importSavedRouteJson = function() {
+    pr.readJsonFile(function(data) {
+      try {
+        pr.importSavedRouteRecord(data);
+      } catch (e) {
+        console.warn('Portal Route: saved route import failed', e);
+        pr.showMessage('Route import failed: ' + e.message);
+      }
+    }, function(e) {
+      pr.showMessage('Route import failed: ' + e.message);
+    });
+  };
+
+  pr.importRouteLibraryData = function(data) {
+    if (!data || typeof data !== 'object') throw new Error('Import data is not an object.');
+    if (data.schemaVersion !== pr.ROUTE_LIBRARY_SCHEMA_VERSION) throw new Error('Route library version is not compatible.');
+    if (!Array.isArray(data.routes)) throw new Error('Import data does not contain routes.');
+
+    var library = pr.loadRouteLibrary();
+    var added = 0;
+
+    data.routes.forEach(function(route) {
+      var imported = pr.prepareImportedRouteRecord(route, library);
+      if (!imported) return;
+      library.routes.push(imported);
+      added += 1;
+    });
+
+    pr.saveRouteLibrary(library);
+    pr.openRouteLibraryPanel();
+    pr.showMessage(added ? 'Imported ' + added + ' saved routes.' : 'No routes imported.');
+  };
+
+  pr.importRouteLibraryJson = function() {
+    pr.readJsonFile(function(data) {
+      try {
+        pr.importRouteLibraryData(data);
+      } catch (e) {
+        console.warn('Portal Route: route library import failed', e);
+        pr.showMessage('Library import failed: ' + e.message);
+      }
+    }, function(e) {
+      pr.showMessage('Library import failed: ' + e.message);
+    });
+  };
+
   pr.renderRouteLibraryRows = function(routes) {
     if (!routes.length) {
       return '<p class="portal-route-empty">No saved routes.</p>';
     }
 
     var html = '<div class="portal-route-library-list">';
+    var selectedIds = pr.getSelectedLibraryRouteIds();
     routes.forEach(function(route) {
       var stopCount = route.route && Array.isArray(route.route.stops) ? route.route.stops.length : 0;
-      html += '<div class="portal-route-library-row">';
+      var selected = selectedIds.indexOf(route.id) !== -1;
+      html += '<div class="portal-route-library-row' + (selected ? ' portal-route-library-row-selected' : '') + '">';
+      html += '<label class="portal-route-library-select" title="Select route"><input type="checkbox" data-field="selected-library-route" data-route-id="' + pr.escapeHtml(route.id) + '"' + (selected ? ' checked' : '') + '></label>';
       html += '<div class="portal-route-library-info">';
-      html += '<strong>' + pr.escapeHtml(route.name || 'Unnamed route') + '</strong>';
+      html += '<input type="text" class="portal-route-library-name-input" value="' + pr.escapeHtml(route.name || 'Unnamed route') + '" data-field="saved-route-name" data-route-id="' + pr.escapeHtml(route.id) + '" title="Edit route name">';
       html += '<span>' + stopCount + ' stops - ' + pr.escapeHtml(route.updatedAt || '') + '</span>';
       html += '</div>';
-      html += '<button type="button" data-action="load-saved-route" data-route-id="' + pr.escapeHtml(route.id) + '">Load</button>';
       html += '</div>';
     });
     html += '</div>';
@@ -3616,15 +4005,36 @@ input.portal-route-waypoint-name-input:focus,
 
   pr.openRouteLibraryPanel = function() {
     var routes = pr.localRouteStorage.listRoutes();
+    var selectedCount = pr.getSelectedLibraryRouteIds().length;
+    var singleDisabled = selectedCount === 1 ? '' : ' disabled';
+    var anyDisabled = selectedCount ? '' : ' disabled';
     var contentHtml = '<div class="portal-route-dialog-content portal-route-library-dialog-content" id="' + pr.DOM_IDS.routeLibraryContent + '" tabindex="-1">';
     contentHtml += '<div class="portal-route-library-source">Stored in: This browser</div>';
+    contentHtml += '<div class="portal-route-control-group-buttons portal-route-library-toolbar">';
+    contentHtml += '<button type="button" data-action="import-saved-route">Import Route</button>';
+    contentHtml += '<button type="button" data-action="export-route-library">Export Library</button>';
+    contentHtml += '<button type="button" data-action="import-route-library">Import Library</button>';
+    contentHtml += '</div>';
     contentHtml += pr.renderRouteLibraryRows(routes);
+    if (selectedCount === 1) {
+      contentHtml += '<div class="portal-route-library-tip">' + selectedCount + ' route selected.</div>';
+    } else if (selectedCount > 1) {
+      contentHtml += '<div class="portal-route-library-tip portal-route-library-tip-active">Select one route to load or update. Export/Delete can use multiple.</div>';
+    } else {
+      contentHtml += '<div class="portal-route-library-tip portal-route-library-tip-active">Select one route to load or update.</div>';
+    }
+    contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-library-actions">';
+    contentHtml += '<button type="button" data-action="load-selected-saved-route"' + singleDisabled + '>Load</button>';
+    contentHtml += '<button type="button" data-action="update-selected-saved-route"' + singleDisabled + '>Update</button>';
+    contentHtml += '<button type="button" data-action="export-selected-saved-route"' + anyDisabled + '>Export</button>';
+    contentHtml += '<button type="button" data-action="delete-selected-saved-route"' + anyDisabled + '>Delete</button>';
+    contentHtml += '</div>';
     contentHtml += '</div>';
 
     if (typeof window.dialog === 'function') {
       window.dialog({
         id: pr.DOM_IDS.routeLibrary,
-        title: 'Load Route',
+        title: 'Route Library',
         html: contentHtml,
         dialogClass: 'portal-route-dialog portal-route-library-dialog',
         width: pr.getDialogWidth()
@@ -3803,6 +4213,19 @@ input.portal-route-waypoint-name-input:focus,
         var route = pr.localRouteStorage.getRoute(target && target.getAttribute('data-route-id'));
         if (pr.applyRouteRecord(route)) pr.closeRouteLibraryPanel();
       },
+      'load-selected-saved-route': function() {
+        var route = pr.localRouteStorage.getRoute(pr.requireSingleSelectedLibraryRouteId());
+        pr.applyRouteRecord(route);
+      },
+      'update-saved-route': function() { pr.updateSavedRouteFromCurrent(target && target.getAttribute('data-route-id')); },
+      'update-selected-saved-route': function() { pr.updateSavedRouteFromCurrent(pr.requireSingleSelectedLibraryRouteId()); },
+      'delete-saved-route': function() { pr.deleteSavedRoute(target && target.getAttribute('data-route-id')); },
+      'delete-selected-saved-route': function() { pr.deleteSelectedSavedRoutes(); },
+      'export-saved-route': function() { pr.exportSavedRouteJson(target && target.getAttribute('data-route-id')); },
+      'export-selected-saved-route': function() { pr.exportSelectedSavedRoutesJson(); },
+      'import-saved-route': pr.importSavedRouteJson,
+      'export-route-library': pr.exportRouteLibraryJson,
+      'import-route-library': pr.importRouteLibraryJson,
       'export-route-json': pr.exportRouteJson,
       'import-route-json': pr.importRouteJson,
       'print-route': pr.printRoute,
@@ -4078,6 +4501,15 @@ input.portal-route-waypoint-name-input:focus,
       pr.setStopMinutes(stopIndex, stopValue);
     } else if (field === 'stop-title') {
       pr.setStopTitle(Number(target.getAttribute('data-index')), target.value);
+    } else if (field === 'saved-route-name') {
+      var routeId = target.getAttribute('data-route-id');
+      var previous = pr.localRouteStorage.getRoute(routeId);
+      if (!pr.setSavedRouteName(routeId, target.value) && previous) {
+        target.value = previous.name || '';
+      }
+    } else if (field === 'selected-library-route') {
+      pr.setLibraryRouteSelected(target.getAttribute('data-route-id'), target.checked);
+      pr.openRouteLibraryPanel();
     }
   };
 

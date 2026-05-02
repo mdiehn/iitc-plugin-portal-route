@@ -114,20 +114,9 @@
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-portal-details-controls" ' + (pr.state.settings.showPortalDetailsControls ? 'checked ' : '') + '> Info panel controls</label>';
     html += '</div>';
 
-    html += '<div class="portal-route-control-groups">';
-    html += '<div class="portal-route-control-group portal-route-control-group-wide"><div class="portal-route-control-group-title">Data</div><div class="portal-route-control-group-buttons">';
-    html += '<button type="button" data-action="save-route">Save</button>';
-    html += '<button type="button" data-action="load-route">Load</button>';
-    html += '<button type="button" data-action="print-route">Print</button>';
-    html += '<button type="button" data-action="open-google-maps">Send to Maps</button>';
-    html += '<button type="button" data-action="export-route-json">Export</button>';
-    html += '<button type="button" data-action="import-route-json">Import</button>';
-    html += '<button type="button" data-action="clear-route">Clear Route</button>';
-    html += '</div></div>';
-    html += '</div>';
-
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
     html += '<button type="button" data-action="open-points-list">Open Route List</button>';
+    html += '<button type="button" data-action="load-route">Route Library</button>';
     html += '</div>';
 
     if (pr.SHOW_VERSION_IN_PANEL) {

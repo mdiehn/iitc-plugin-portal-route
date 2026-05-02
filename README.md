@@ -59,6 +59,9 @@ When route data is available, the panel shows drive time, stop time, trip time, 
 
 - **Save** stores the current route in this browser's route library.
 - **Load** opens saved routes from this browser and loads the selected route.
+- Saved routes can be renamed, updated from the current route, deleted, exported, and imported.
+- Multiple saved routes can be selected for export or delete.
+- The local route library can be exported or imported as JSON.
 - **Export** downloads the current route as JSON.
 - **Import** loads a route from JSON.
 

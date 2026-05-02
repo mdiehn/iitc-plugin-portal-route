@@ -164,6 +164,19 @@
         var route = pr.localRouteStorage.getRoute(target && target.getAttribute('data-route-id'));
         if (pr.applyRouteRecord(route)) pr.closeRouteLibraryPanel();
       },
+      'load-selected-saved-route': function() {
+        var route = pr.localRouteStorage.getRoute(pr.requireSingleSelectedLibraryRouteId());
+        pr.applyRouteRecord(route);
+      },
+      'update-saved-route': function() { pr.updateSavedRouteFromCurrent(target && target.getAttribute('data-route-id')); },
+      'update-selected-saved-route': function() { pr.updateSavedRouteFromCurrent(pr.requireSingleSelectedLibraryRouteId()); },
+      'delete-saved-route': function() { pr.deleteSavedRoute(target && target.getAttribute('data-route-id')); },
+      'delete-selected-saved-route': function() { pr.deleteSelectedSavedRoutes(); },
+      'export-saved-route': function() { pr.exportSavedRouteJson(target && target.getAttribute('data-route-id')); },
+      'export-selected-saved-route': function() { pr.exportSelectedSavedRoutesJson(); },
+      'import-saved-route': pr.importSavedRouteJson,
+      'export-route-library': pr.exportRouteLibraryJson,
+      'import-route-library': pr.importRouteLibraryJson,
       'export-route-json': pr.exportRouteJson,
       'import-route-json': pr.importRouteJson,
       'print-route': pr.printRoute,
@@ -439,6 +452,15 @@
       pr.setStopMinutes(stopIndex, stopValue);
     } else if (field === 'stop-title') {
       pr.setStopTitle(Number(target.getAttribute('data-index')), target.value);
+    } else if (field === 'saved-route-name') {
+      var routeId = target.getAttribute('data-route-id');
+      var previous = pr.localRouteStorage.getRoute(routeId);
+      if (!pr.setSavedRouteName(routeId, target.value) && previous) {
+        target.value = previous.name || '';
+      }
+    } else if (field === 'selected-library-route') {
+      pr.setLibraryRouteSelected(target.getAttribute('data-route-id'), target.checked);
+      pr.openRouteLibraryPanel();
     }
   };
 

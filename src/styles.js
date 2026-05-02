@@ -367,6 +367,7 @@ button.portal-route-waypoint-badge-wide {
 }
 
 .portal-route-clear-list-button,
+.portal-route-library-actions button,
 .portal-route-control-group-buttons button {
   display: inline-block;
   padding: 3px 7px !important;
@@ -388,13 +389,24 @@ button.portal-route-waypoint-badge-wide {
 .portal-route-clear-list-button:active,
 .portal-route-control-group-buttons button:hover,
 .portal-route-control-group-buttons button:focus,
-.portal-route-control-group-buttons button:active {
+.portal-route-control-group-buttons button:active,
+.portal-route-library-actions button:hover,
+.portal-route-library-actions button:focus,
+.portal-route-library-actions button:active {
   border-color: rgba(255, 216, 0, 0.75) !important;
   background: rgba(255, 255, 255, 0.24) !important;
   color: inherit !important;
   text-decoration: none;
   outline: none !important;
   box-shadow: none !important;
+}
+
+.portal-route-library-actions button:disabled,
+.portal-route-control-group-buttons button:disabled {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  cursor: default;
 }
 
 .portal-route-control-group-buttons button.portal-route-active-action {
@@ -497,6 +509,11 @@ button.portal-route-waypoint-badge-wide {
   text-align: center;
 }
 
+.portal-route-library-toolbar {
+  justify-content: center;
+  margin-bottom: 7px;
+}
+
 .portal-route-library-list {
   display: flex;
   flex-direction: column;
@@ -505,7 +522,7 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-library-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) max-content;
+  grid-template-columns: max-content minmax(0, 1fr);
   gap: 6px;
   align-items: center;
   padding: 4px;
@@ -513,11 +530,24 @@ button.portal-route-waypoint-badge-wide {
   border-radius: 4px;
 }
 
+.portal-route-library-row-selected {
+  background: rgba(255, 216, 0, 0.10);
+}
+
+.portal-route-library-select {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.portal-route-library-select input {
+  margin: 0;
+}
+
 .portal-route-library-info {
   min-width: 0;
 }
 
-.portal-route-library-info strong,
 .portal-route-library-info span {
   display: block;
   overflow: hidden;
@@ -525,9 +555,48 @@ button.portal-route-waypoint-badge-wide {
   white-space: nowrap;
 }
 
+.portal-route-library-name-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 1px 3px !important;
+  border: 1px solid transparent !important;
+  border-radius: 3px;
+  background: transparent !important;
+  color: inherit !important;
+  font: inherit;
+  font-weight: bold;
+}
+
+.portal-route-library-name-input:hover,
+.portal-route-library-name-input:focus {
+  border-color: rgba(255, 216, 0, 0.45) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  outline: none !important;
+}
+
 .portal-route-library-info span {
   color: #ccc;
   font-size: 11px;
+}
+
+.portal-route-library-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+}
+
+.portal-route-library-tip {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #ccc;
+  text-align: center;
+}
+
+.portal-route-library-tip-active {
+  color: #ffd800;
 }
 
 .portal-route-bottom-summary {

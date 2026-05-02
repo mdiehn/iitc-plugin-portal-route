@@ -94,7 +94,6 @@ Minimum useful operations:
 - Load a saved route.
 - Overwrite an existing saved route.
 - Rename a saved route.
-- Duplicate a saved route.
 - Delete a saved route.
 
 This should wire the existing Save and Load buttons.
@@ -111,6 +110,7 @@ Likely first behavior:
 - If the current route came from a saved record, Save can update/overwrite that record.
 - Load opens a list of saved routes.
 - The list shows name, updated time, stop count, and backend label.
+- Route library rows use checkboxes. Load and overwrite need exactly one selected route. Export and delete can use one or many.
 
 Open questions:
 
@@ -267,12 +267,11 @@ No fancy UI required in this slice.
 - Load.
 - Rename.
 - Delete.
-- Duplicate.
 - Overwrite.
 
 ### Slice 3: JSON import/export
 
-- Export selected route.
+- Export selected route or selected routes.
 - Import selected route.
 - Export whole library.
 - Import/merge whole library.

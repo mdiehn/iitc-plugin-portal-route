@@ -188,7 +188,9 @@
       lat: lat,
       lng: lng,
       stopMinutes: stopMinutes,
-      startOnMe: !!stop.startOnMe
+      startOnMe: !!stop.startOnMe,
+      accuracy: typeof stop.accuracy === 'number' ? stop.accuracy : null,
+      updatedAt: stop.updatedAt || null
     };
   };
 
