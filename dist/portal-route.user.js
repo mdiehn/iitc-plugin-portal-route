@@ -332,7 +332,7 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-control-groups {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 0.75fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   margin-top: 7px;
 }
@@ -446,6 +446,10 @@ button.portal-route-waypoint-badge-wide {
   border-top: 1px solid rgba(255, 255, 255, 0.25);
   margin-top: 10px;
   padding-top: 7px;
+}
+
+.portal-route-points-actions {
+  justify-content: space-between;
 }
 
 .portal-route-bottom-summary {
@@ -2136,7 +2140,6 @@ input.portal-route-waypoint-name-input:focus,
 
     html += '<div class="portal-route-list-options">';
     html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" title="Examples: 15m, 1.5h, 2d" data-field="default-stop-minutes"> per portal</label>';
-    html += '<button type="button" class="portal-route-clear-list-button" data-action="clear-route">Clear list</button>';
     html += '</div>';
 
     html += '<div class="portal-route-bottom-summary"><b>Waypoints:</b> ' + pr.state.stops.length + (pr.makeLoopStop() && pr.state.stops.length > 1 ? ' + loop' : '') + '</div>';
@@ -2174,6 +2177,11 @@ input.portal-route-waypoint-name-input:focus,
     html += '<button type="button" data-action="export-route-json">Export</button>';
     html += '<button type="button" data-action="import-route-json">Import</button>';
     html += '</div></div>';
+    html += '</div>';
+
+    html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
+    html += '<button type="button" data-action="open-points-list">Open List</button>';
+    html += '<button type="button" data-action="clear-route">Clear Points</button>';
     html += '</div>';
 
     if (pr.SHOW_VERSION_IN_PANEL) {
@@ -2855,7 +2863,10 @@ input.portal-route-waypoint-name-input:focus,
       pr.importRouteJson();
     } else if (action === 'print-route') {
       pr.printRoute();
+    } else if (action === 'open-points-list') {
+      pr.showMessage('Points list panel is not wired yet.');
     } else if (action === 'clear-route') {
+      if (pr.state.stops.length && window.confirm && !window.confirm('Clear all points from the route?')) return;
       pr.clearStops();
     }
   };

@@ -310,7 +310,7 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-control-groups {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 0.75fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   margin-top: 7px;
 }
@@ -424,6 +424,10 @@ button.portal-route-waypoint-badge-wide {
   border-top: 1px solid rgba(255, 255, 255, 0.25);
   margin-top: 10px;
   padding-top: 7px;
+}
+
+.portal-route-points-actions {
+  justify-content: space-between;
 }
 
 .portal-route-bottom-summary {

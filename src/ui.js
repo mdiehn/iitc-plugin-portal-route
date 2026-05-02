@@ -135,7 +135,10 @@
       pr.importRouteJson();
     } else if (action === 'print-route') {
       pr.printRoute();
+    } else if (action === 'open-points-list') {
+      pr.showMessage('Points list panel is not wired yet.');
     } else if (action === 'clear-route') {
+      if (pr.state.stops.length && window.confirm && !window.confirm('Clear all points from the route?')) return;
       pr.clearStops();
     }
   };

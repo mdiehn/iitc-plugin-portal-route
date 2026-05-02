@@ -89,7 +89,6 @@
 
     html += '<div class="portal-route-list-options">';
     html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" title="Examples: 15m, 1.5h, 2d" data-field="default-stop-minutes"> per portal</label>';
-    html += '<button type="button" class="portal-route-clear-list-button" data-action="clear-route">Clear list</button>';
     html += '</div>';
 
     html += '<div class="portal-route-bottom-summary"><b>Waypoints:</b> ' + pr.state.stops.length + (pr.makeLoopStop() && pr.state.stops.length > 1 ? ' + loop' : '') + '</div>';
@@ -127,6 +126,11 @@
     html += '<button type="button" data-action="export-route-json">Export</button>';
     html += '<button type="button" data-action="import-route-json">Import</button>';
     html += '</div></div>';
+    html += '</div>';
+
+    html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
+    html += '<button type="button" data-action="open-points-list">Open List</button>';
+    html += '<button type="button" data-action="clear-route">Clear Points</button>';
     html += '</div>';
 
     if (pr.SHOW_VERSION_IN_PANEL) {
