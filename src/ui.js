@@ -125,6 +125,10 @@
       pr.fitRouteToMap();
     } else if (action === 'open-google-maps') {
       pr.openGoogleMaps();
+    } else if (action === 'save-route') {
+      pr.showMessage('Save is not wired yet.');
+    } else if (action === 'load-route') {
+      pr.showMessage('Load is not wired yet.');
     } else if (action === 'export-route-json') {
       pr.exportRouteJson();
     } else if (action === 'import-route-json') {

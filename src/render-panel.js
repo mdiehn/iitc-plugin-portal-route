@@ -109,21 +109,23 @@
 
     html += '<div class="portal-route-control-groups">';
     html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Add</div><div class="portal-route-control-group-buttons">';
-    html += '<button type="button" data-action="add-selected-stop">Add Portal</button>';
-    html += '<button type="button" data-action="add-map-point"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add Point</button>';
-    html += '<button type="button" data-action="add-current-location">Add Current Location</button>';
+    html += '<button type="button" data-action="add-selected-stop">Portal</button>';
+    html += '<button type="button" data-action="add-map-point"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Point</button>';
+    html += '<button type="button" data-action="add-current-location">Current</button>';
     html += '</div></div>';
 
     html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Route</div><div class="portal-route-control-group-buttons">';
-    html += '<button type="button" data-action="calculate-route">' + plotLabel + '</button>';
-    html += '<button type="button" data-action="fit-route">Fit Route</button>';
-    html += '<button type="button" data-action="open-google-maps">Open Maps</button>';
+    html += '<button type="button" data-action="calculate-route">' + (pr.state.routeDirty ? 'Replot' : 'Plot') + '</button>';
+    html += '<button type="button" data-action="fit-route">Fit</button>';
+    html += '<button type="button" data-action="open-google-maps">Maps</button>';
+    html += '<button type="button" data-action="print-route">Print</button>';
     html += '</div></div>';
 
     html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Data</div><div class="portal-route-control-group-buttons">';
+    html += '<button type="button" data-action="save-route">Save</button>';
+    html += '<button type="button" data-action="load-route">Load</button>';
     html += '<button type="button" data-action="export-route-json">Export</button>';
     html += '<button type="button" data-action="import-route-json">Import</button>';
-    html += '<button type="button" data-action="print-route">Print</button>';
     html += '</div></div>';
     html += '</div>';
 
