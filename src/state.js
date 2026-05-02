@@ -36,6 +36,7 @@
     pointsPanelOpen: false,
     addPointMode: false,
     selectedMapPointIndex: null,
+    activeRouteId: null,
     miniControl: null
   };
 

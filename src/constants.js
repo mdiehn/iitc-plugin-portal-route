@@ -1,6 +1,6 @@
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.0.0';
+  pr.VERSION = '1.1.0-dev';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -9,6 +9,8 @@
     dialogContent: 'iitc-plugin-portal-route-dialog-content',
     pointsDialog: 'iitc-plugin-portal-route-points-dialog',
     pointsDialogContent: 'iitc-plugin-portal-route-points-dialog-content',
+    routeLibrary: 'iitc-plugin-portal-route-library-dialog',
+    routeLibraryContent: 'iitc-plugin-portal-route-library-dialog-content',
     miniControl: 'iitc-plugin-portal-route-mini-control',
     toolboxLink: 'iitc-plugin-portal-route-toolbox-link'
   };
@@ -20,7 +22,8 @@
     panelPosition: 'iitc-portal-route-panel-position',
     panelSize: 'iitc-portal-route-panel-size',
     route: 'iitc-portal-route-route',
-    routeDirty: 'iitc-portal-route-route-dirty'
+    routeDirty: 'iitc-portal-route-route-dirty',
+    routeLibrary: 'iitc-portal-route-library'
   };
 
   pr.DEFAULT_SETTINGS = {

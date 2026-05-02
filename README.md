@@ -57,6 +57,8 @@ When route data is available, the panel shows drive time, stop time, trip time, 
 
 ### Data
 
+- **Save** stores the current route in this browser's route library.
+- **Load** opens saved routes from this browser and loads the selected route.
 - **Export** downloads the current route as JSON.
 - **Import** loads a route from JSON.
 

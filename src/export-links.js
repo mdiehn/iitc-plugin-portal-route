@@ -203,6 +203,7 @@
     pr.state.settings = pr.normalizeSettings(data.settings);
     pr.state.route = data.route && Array.isArray(data.route.legs) ? data.route : null;
     pr.state.routeDirty = !!pr.state.route || !!data.routeDirty;
+    pr.state.activeRouteId = null;
 
     pr.saveSettings();
     pr.saveStops();

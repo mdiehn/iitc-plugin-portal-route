@@ -41,8 +41,7 @@ Done and released:
 
 Known rough edges:
 
-- Save and Load buttons are present but not wired yet.
-- Route library does not exist yet.
+- Save and Load currently use a local route library in this browser.
 - JSON import/export is for the current route only, not a saved route collection.
 - Cross-device sharing is manual only.
 - Browser/device location may be coarse or wrong, especially on desktop.

@@ -477,6 +477,46 @@ button.portal-route-waypoint-badge-wide {
   margin-top: 7px;
 }
 
+.portal-route-library-source {
+  margin-bottom: 6px;
+  color: #ffce00;
+  font-size: 11px;
+  text-align: center;
+}
+
+.portal-route-library-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.portal-route-library-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: 6px;
+  align-items: center;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+}
+
+.portal-route-library-info {
+  min-width: 0;
+}
+
+.portal-route-library-info strong,
+.portal-route-library-info span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portal-route-library-info span {
+  color: #ccc;
+  font-size: 11px;
+}
+
 .portal-route-bottom-summary {
   margin-top: 8px;
   opacity: 0.9;

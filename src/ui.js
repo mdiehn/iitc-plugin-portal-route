@@ -158,8 +158,12 @@
       'calculate-route': pr.calculateRoute,
       'fit-route': pr.fitRouteToMap,
       'open-google-maps': pr.openGoogleMaps,
-      'save-route': function() { pr.showMessage('Save is not wired yet.'); },
-      'load-route': function() { pr.showMessage('Load is not wired yet.'); },
+      'save-route': pr.saveCurrentRouteToLibrary,
+      'load-route': pr.openRouteLibraryPanel,
+      'load-saved-route': function() {
+        var route = pr.localRouteStorage.getRoute(target && target.getAttribute('data-route-id'));
+        if (pr.applyRouteRecord(route)) pr.closeRouteLibraryPanel();
+      },
       'export-route-json': pr.exportRouteJson,
       'import-route-json': pr.importRouteJson,
       'print-route': pr.printRoute,
@@ -267,7 +271,7 @@
 
   pr.panelForEvent = function(ev) {
     if (!ev.target || !ev.target.closest) return null;
-    return ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
+    return ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent + ', #' + pr.DOM_IDS.routeLibraryContent);
   };
 
   pr.handleDialogClick = function(ev) {

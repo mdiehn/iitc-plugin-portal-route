@@ -9,6 +9,8 @@ Current release: `1.0.0`
 ### Added
 
 - Added route library design notes for the planned v1.1.0 save/load and Google Drive shared storage work.
+- Wired Save and Load to a local route library stored in this browser.
+- Added schemaVersion 1 saved route records with route metadata, stops, map center/zoom, and route-relevant settings.
 
 ### Changed
 

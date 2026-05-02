@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version        1.0.0
+// @version        1.1.0-dev
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
 // @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/main/dist/portal-route.meta.js
 // @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/main/dist/portal-route.user.js
@@ -499,6 +499,46 @@ button.portal-route-waypoint-badge-wide {
   margin-top: 7px;
 }
 
+.portal-route-library-source {
+  margin-bottom: 6px;
+  color: #ffce00;
+  font-size: 11px;
+  text-align: center;
+}
+
+.portal-route-library-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.portal-route-library-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  gap: 6px;
+  align-items: center;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+}
+
+.portal-route-library-info {
+  min-width: 0;
+}
+
+.portal-route-library-info strong,
+.portal-route-library-info span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portal-route-library-info span {
+  color: #ccc;
+  font-size: 11px;
+}
+
 .portal-route-bottom-summary {
   margin-top: 8px;
   opacity: 0.9;
@@ -832,7 +872,7 @@ input.portal-route-waypoint-name-input:focus,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.0.0';
+  pr.VERSION = '1.1.0-dev';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -841,6 +881,8 @@ input.portal-route-waypoint-name-input:focus,
     dialogContent: 'iitc-plugin-portal-route-dialog-content',
     pointsDialog: 'iitc-plugin-portal-route-points-dialog',
     pointsDialogContent: 'iitc-plugin-portal-route-points-dialog-content',
+    routeLibrary: 'iitc-plugin-portal-route-library-dialog',
+    routeLibraryContent: 'iitc-plugin-portal-route-library-dialog-content',
     miniControl: 'iitc-plugin-portal-route-mini-control',
     toolboxLink: 'iitc-plugin-portal-route-toolbox-link'
   };
@@ -852,7 +894,8 @@ input.portal-route-waypoint-name-input:focus,
     panelPosition: 'iitc-portal-route-panel-position',
     panelSize: 'iitc-portal-route-panel-size',
     route: 'iitc-portal-route-route',
-    routeDirty: 'iitc-portal-route-route-dirty'
+    routeDirty: 'iitc-portal-route-route-dirty',
+    routeLibrary: 'iitc-portal-route-library'
   };
 
   pr.DEFAULT_SETTINGS = {
@@ -903,6 +946,7 @@ input.portal-route-waypoint-name-input:focus,
     pointsPanelOpen: false,
     addPointMode: false,
     selectedMapPointIndex: null,
+    activeRouteId: null,
     miniControl: null
   };
 
@@ -1754,6 +1798,7 @@ input.portal-route-waypoint-name-input:focus,
     pr.state.route = null;
     pr.state.routeDirty = false;
     pr.state.selectedMapPointIndex = null;
+    pr.state.activeRouteId = null;
     pr.saveStops();
     pr.saveRoute();
     pr.clearRouteLine();
@@ -1774,6 +1819,7 @@ input.portal-route-waypoint-name-input:focus,
     pr.state.route = null;
     pr.state.routeDirty = false;
     pr.state.selectedMapPointIndex = null;
+    pr.state.activeRouteId = null;
 
     stops.forEach(function(stop) {
       if (!stop || typeof stop.lat !== 'number' || typeof stop.lng !== 'number') return;
@@ -3137,6 +3183,7 @@ input.portal-route-waypoint-name-input:focus,
     pr.state.settings = pr.normalizeSettings(data.settings);
     pr.state.route = data.route && Array.isArray(data.route.legs) ? data.route : null;
     pr.state.routeDirty = !!pr.state.route || !!data.routeDirty;
+    pr.state.activeRouteId = null;
 
     pr.saveSettings();
     pr.saveStops();
@@ -3269,6 +3316,290 @@ input.portal-route-waypoint-name-input:focus,
     } catch (e) {
       console.warn('Portal Route: failed to render printable route', e);
       pr.showMessage('Unable to render printable route.');
+    }
+  };
+
+  pr.ROUTE_LIBRARY_SCHEMA_VERSION = 1;
+
+  pr.routeLibraryNow = function() {
+    return new Date().toISOString();
+  };
+
+  pr.newRouteLibraryId = function() {
+    return 'route-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+  };
+
+  pr.getMapSnapshot = function() {
+    if (!window.map || !window.map.getCenter || !window.map.getZoom) return null;
+
+    var center = window.map.getCenter();
+    if (!center || typeof center.lat !== 'number' || typeof center.lng !== 'number') return null;
+
+    return {
+      center: {
+        lat: center.lat,
+        lng: center.lng
+      },
+      zoom: window.map.getZoom()
+    };
+  };
+
+  pr.routeLibrarySettings = function() {
+    return {
+      defaultStopMinutes: pr.state.settings.defaultStopMinutes,
+      includeReturnToStart: !!pr.state.settings.includeReturnToStart
+    };
+  };
+
+  pr.serializeRouteLibraryStops = function() {
+    return pr.state.stops.map(function(stop) {
+      return {
+        guid: stop.guid || null,
+        type: stop.type || (stop.guid ? 'portal' : 'map'),
+        title: stop.title || ((stop.type || (stop.guid ? 'portal' : 'map')) === 'map' ? 'Map point' : 'Unnamed portal'),
+        lat: Number(stop.lat),
+        lng: Number(stop.lng),
+        stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null,
+        startOnMe: !!stop.startOnMe,
+        accuracy: typeof stop.accuracy === 'number' ? stop.accuracy : null,
+        updatedAt: stop.updatedAt || null
+      };
+    });
+  };
+
+  pr.suggestRouteName = function() {
+    if (pr.state.stops.length) {
+      var first = pr.state.stops[0] && pr.state.stops[0].title ? pr.state.stops[0].title : 'Route';
+      return first + ' route';
+    }
+    return 'New route';
+  };
+
+  pr.makeRouteRecord = function(existing, name) {
+    var now = pr.routeLibraryNow();
+    var record = existing && typeof existing === 'object' ? existing : {};
+
+    return {
+      schemaVersion: pr.ROUTE_LIBRARY_SCHEMA_VERSION,
+      pluginVersion: pr.VERSION,
+      id: record.id || pr.newRouteLibraryId(),
+      name: name || record.name || pr.suggestRouteName(),
+      createdAt: record.createdAt || now,
+      updatedAt: now,
+      map: pr.getMapSnapshot(),
+      route: {
+        stops: pr.serializeRouteLibraryStops()
+      },
+      settings: pr.routeLibrarySettings()
+    };
+  };
+
+  pr.emptyRouteLibrary = function() {
+    return {
+      schemaVersion: pr.ROUTE_LIBRARY_SCHEMA_VERSION,
+      routes: []
+    };
+  };
+
+  pr.loadRouteLibrary = function() {
+    var raw = localStorage.getItem(pr.STORAGE_KEYS.routeLibrary);
+    if (!raw) return pr.emptyRouteLibrary();
+
+    try {
+      var library = JSON.parse(raw);
+      if (!library || typeof library !== 'object' || !Array.isArray(library.routes)) {
+        return pr.emptyRouteLibrary();
+      }
+
+      library.schemaVersion = library.schemaVersion || pr.ROUTE_LIBRARY_SCHEMA_VERSION;
+      return library;
+    } catch (e) {
+      console.warn('Portal Route: failed to load route library', e);
+      return pr.emptyRouteLibrary();
+    }
+  };
+
+  pr.saveRouteLibrary = function(library) {
+    localStorage.setItem(pr.STORAGE_KEYS.routeLibrary, JSON.stringify(library));
+  };
+
+  pr.findLibraryRoute = function(library, id) {
+    if (!library || !Array.isArray(library.routes) || !id) return null;
+    for (var i = 0; i < library.routes.length; i++) {
+      if (library.routes[i] && library.routes[i].id === id) return library.routes[i];
+    }
+    return null;
+  };
+
+  pr.storageBackends = pr.storageBackends || {};
+
+  pr.localRouteStorage = {
+    id: 'local',
+    label: 'This browser',
+    listRoutes: function() {
+      return pr.loadRouteLibrary().routes.slice().sort(function(a, b) {
+        return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
+      });
+    },
+    getRoute: function(id) {
+      return pr.findLibraryRoute(pr.loadRouteLibrary(), id);
+    },
+    saveRoute: function(route) {
+      var library = pr.loadRouteLibrary();
+      var replaced = false;
+
+      library.routes = library.routes.map(function(existing) {
+        if (existing && existing.id === route.id) {
+          replaced = true;
+          return route;
+        }
+        return existing;
+      });
+
+      if (!replaced) library.routes.push(route);
+      pr.saveRouteLibrary(library);
+      return route;
+    }
+  };
+
+  pr.storageBackends.local = pr.localRouteStorage;
+
+  pr.promptRouteName = function(defaultName) {
+    if (!window.prompt) return defaultName || pr.suggestRouteName();
+
+    var name = window.prompt('Route name', defaultName || pr.suggestRouteName());
+    if (name === null) return null;
+
+    name = String(name).trim();
+    return name || pr.suggestRouteName();
+  };
+
+  pr.saveCurrentRouteToLibrary = function() {
+    if (!pr.state.stops.length) {
+      pr.showMessage('No route to save.');
+      return;
+    }
+
+    var existing = pr.localRouteStorage.getRoute(pr.state.activeRouteId);
+    var name = pr.promptRouteName(existing && existing.name);
+    if (name === null) return;
+
+    var record = pr.makeRouteRecord(existing, name);
+    pr.localRouteStorage.saveRoute(record);
+    pr.state.activeRouteId = record.id;
+    pr.showMessage('Route saved.');
+  };
+
+  pr.applyRouteLibrarySettings = function(settings) {
+    if (!settings || typeof settings !== 'object') return;
+
+    if (typeof settings.defaultStopMinutes === 'number' && isFinite(settings.defaultStopMinutes) && settings.defaultStopMinutes >= 0) {
+      pr.state.settings.defaultStopMinutes = Math.round(settings.defaultStopMinutes);
+    }
+
+    if (typeof settings.includeReturnToStart === 'boolean') {
+      pr.state.settings.includeReturnToStart = settings.includeReturnToStart;
+    }
+  };
+
+  pr.applyRouteRecord = function(record) {
+    if (!record || record.schemaVersion !== pr.ROUTE_LIBRARY_SCHEMA_VERSION) {
+      pr.showMessage('Saved route is not compatible.');
+      return false;
+    }
+
+    var route = record.route || {};
+    if (!Array.isArray(route.stops)) {
+      pr.showMessage('Saved route has no stops.');
+      return false;
+    }
+
+    var stops = route.stops.map(pr.normalizeImportedStop).filter(Boolean);
+    if (stops.length !== route.stops.length) {
+      pr.showMessage('Saved route has invalid stops.');
+      return false;
+    }
+
+    pr.state.stops = stops;
+    pr.applyRouteLibrarySettings(record.settings);
+    pr.state.route = null;
+    pr.state.routeDirty = false;
+    pr.state.selectedMapPointIndex = null;
+    pr.state.activeRouteId = record.id || null;
+
+    pr.saveSettings();
+    pr.saveStops();
+    pr.saveRoute();
+    pr.clearRouteLine();
+    pr.redrawLabels();
+    pr.renderPanel();
+    pr.renderMiniControl();
+    pr.hydrateStopTitles();
+
+    if (record.map && record.map.center && window.map && window.map.setView &&
+        typeof record.map.center.lat === 'number' &&
+        typeof record.map.center.lng === 'number' &&
+        typeof record.map.zoom === 'number') {
+      window.map.setView([record.map.center.lat, record.map.center.lng], record.map.zoom);
+    }
+
+    pr.showMessage('Route loaded.');
+    return true;
+  };
+
+  pr.closeRouteLibraryPanel = function() {
+    var content = document.getElementById(pr.DOM_IDS.routeLibraryContent);
+    if (content && window.jQuery) {
+      try {
+        window.jQuery(content).closest('.ui-dialog-content').dialog('close');
+        return;
+      } catch (e) {
+        // Fall through to hiding the content if the dialog wrapper is unavailable.
+      }
+    }
+    if (content) content.style.display = 'none';
+  };
+
+  pr.renderRouteLibraryRows = function(routes) {
+    if (!routes.length) {
+      return '<p class="portal-route-empty">No saved routes.</p>';
+    }
+
+    var html = '<div class="portal-route-library-list">';
+    routes.forEach(function(route) {
+      var stopCount = route.route && Array.isArray(route.route.stops) ? route.route.stops.length : 0;
+      html += '<div class="portal-route-library-row">';
+      html += '<div class="portal-route-library-info">';
+      html += '<strong>' + pr.escapeHtml(route.name || 'Unnamed route') + '</strong>';
+      html += '<span>' + stopCount + ' stops - ' + pr.escapeHtml(route.updatedAt || '') + '</span>';
+      html += '</div>';
+      html += '<button type="button" data-action="load-saved-route" data-route-id="' + pr.escapeHtml(route.id) + '">Load</button>';
+      html += '</div>';
+    });
+    html += '</div>';
+    return html;
+  };
+
+  pr.openRouteLibraryPanel = function() {
+    var routes = pr.localRouteStorage.listRoutes();
+    var contentHtml = '<div class="portal-route-dialog-content portal-route-library-dialog-content" id="' + pr.DOM_IDS.routeLibraryContent + '" tabindex="-1">';
+    contentHtml += '<div class="portal-route-library-source">Stored in: This browser</div>';
+    contentHtml += pr.renderRouteLibraryRows(routes);
+    contentHtml += '</div>';
+
+    if (typeof window.dialog === 'function') {
+      window.dialog({
+        id: pr.DOM_IDS.routeLibrary,
+        title: 'Load Route',
+        html: contentHtml,
+        dialogClass: 'portal-route-dialog portal-route-library-dialog',
+        width: pr.getDialogWidth()
+      });
+
+      var content = document.getElementById(pr.DOM_IDS.routeLibraryContent);
+      if (content && pr.focusPanelContainer) pr.focusPanelContainer(content);
+    } else {
+      console.log('Portal Route: IITC dialog API is unavailable.');
     }
   };
 
@@ -3432,8 +3763,12 @@ input.portal-route-waypoint-name-input:focus,
       'calculate-route': pr.calculateRoute,
       'fit-route': pr.fitRouteToMap,
       'open-google-maps': pr.openGoogleMaps,
-      'save-route': function() { pr.showMessage('Save is not wired yet.'); },
-      'load-route': function() { pr.showMessage('Load is not wired yet.'); },
+      'save-route': pr.saveCurrentRouteToLibrary,
+      'load-route': pr.openRouteLibraryPanel,
+      'load-saved-route': function() {
+        var route = pr.localRouteStorage.getRoute(target && target.getAttribute('data-route-id'));
+        if (pr.applyRouteRecord(route)) pr.closeRouteLibraryPanel();
+      },
       'export-route-json': pr.exportRouteJson,
       'import-route-json': pr.importRouteJson,
       'print-route': pr.printRoute,
@@ -3541,7 +3876,7 @@ input.portal-route-waypoint-name-input:focus,
 
   pr.panelForEvent = function(ev) {
     if (!ev.target || !ev.target.closest) return null;
-    return ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent);
+    return ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent + ', #' + pr.DOM_IDS.routeLibraryContent);
   };
 
   pr.handleDialogClick = function(ev) {

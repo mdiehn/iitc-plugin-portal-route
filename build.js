@@ -21,6 +21,7 @@ const sources = [
   "src/render-map.js",
   "src/render-panel.js",
   "src/export-links.js",
+  "src/route-library.js",
   "src/ui.js",
   "src/wrapper-end.js",
 ];

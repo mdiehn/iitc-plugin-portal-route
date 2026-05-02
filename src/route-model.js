@@ -518,6 +518,7 @@
     pr.state.route = null;
     pr.state.routeDirty = false;
     pr.state.selectedMapPointIndex = null;
+    pr.state.activeRouteId = null;
     pr.saveStops();
     pr.saveRoute();
     pr.clearRouteLine();
@@ -538,6 +539,7 @@
     pr.state.route = null;
     pr.state.routeDirty = false;
     pr.state.selectedMapPointIndex = null;
+    pr.state.activeRouteId = null;
 
     stops.forEach(function(stop) {
       if (!stop || typeof stop.lat !== 'number' || typeof stop.lng !== 'number') return;
