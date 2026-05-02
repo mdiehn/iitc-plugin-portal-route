@@ -10,6 +10,7 @@
     },
     panelOpen: false,
     panelPosition: null,
+    panelSize: null,
     panelView: 'main',
     addPointMode: false,
     selectedMapPointIndex: null,

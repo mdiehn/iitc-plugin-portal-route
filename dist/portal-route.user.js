@@ -320,7 +320,7 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-active-action {
   font-weight: bold;
-  outline: 1px solid rgba(255, 216, 0, 0.65) !important;
+  outline: none !important;
 }
 
 .portal-route-actions {
@@ -354,6 +354,42 @@ button.portal-route-waypoint-badge-wide {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+}
+
+.portal-route-clear-list-button,
+.portal-route-control-group-buttons button {
+  display: inline-block;
+  padding: 3px 7px !important;
+  border: 1px solid rgba(255, 216, 0, 0.45) !important;
+  border-radius: 3px !important;
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: inherit !important;
+  font: inherit;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+  outline: none !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+.portal-route-clear-list-button:hover,
+.portal-route-clear-list-button:focus,
+.portal-route-clear-list-button:active,
+.portal-route-control-group-buttons button:hover,
+.portal-route-control-group-buttons button:focus,
+.portal-route-control-group-buttons button:active {
+  border-color: rgba(255, 216, 0, 0.75) !important;
+  background: rgba(255, 255, 255, 0.24) !important;
+  color: inherit !important;
+  text-decoration: none;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.portal-route-control-group-buttons button.portal-route-active-action {
+  border-color: rgba(255, 216, 0, 0.85) !important;
+  background: rgba(255, 216, 0, 0.22) !important;
 }
 
 .portal-route-maps-stages .portal-route-control-group-buttons {
@@ -677,6 +713,7 @@ input.portal-route-waypoint-name-input:focus,
     settings: 'iitc-portal-route-settings',
     panelOpen: 'iitc-portal-route-panel-open',
     panelPosition: 'iitc-portal-route-panel-position',
+    panelSize: 'iitc-portal-route-panel-size',
     route: 'iitc-portal-route-route',
     routeDirty: 'iitc-portal-route-route-dirty'
   };
@@ -701,6 +738,7 @@ input.portal-route-waypoint-name-input:focus,
     },
     panelOpen: false,
     panelPosition: null,
+    panelSize: null,
     panelView: 'main',
     addPointMode: false,
     selectedMapPointIndex: null,
@@ -740,8 +778,21 @@ input.portal-route-waypoint-name-input:focus,
       var rawPanelPosition = localStorage.getItem(pr.STORAGE_KEYS.panelPosition);
       if (rawPanelPosition) {
         var panelPosition = JSON.parse(rawPanelPosition);
-        if (panelPosition && typeof panelPosition.left === 'number' && typeof panelPosition.top === 'number') {
+        if (panelPosition &&
+            typeof panelPosition.left === 'number' &&
+            typeof panelPosition.top === 'number' &&
+            (panelPosition.left !== 0 || panelPosition.top !== 0)) {
           pr.state.panelPosition = panelPosition;
+        }
+      }
+
+      var rawPanelSize = localStorage.getItem(pr.STORAGE_KEYS.panelSize);
+      if (rawPanelSize) {
+        var panelSize = JSON.parse(rawPanelSize);
+        if (panelSize &&
+            typeof panelSize.width === 'number' &&
+            typeof panelSize.height === 'number') {
+          pr.state.panelSize = panelSize;
         }
       }
 
@@ -775,6 +826,14 @@ input.portal-route-waypoint-name-input:focus,
       localStorage.setItem(pr.STORAGE_KEYS.panelPosition, JSON.stringify(pr.state.panelPosition));
     } else {
       localStorage.removeItem(pr.STORAGE_KEYS.panelPosition);
+    }
+  };
+
+  pr.savePanelSize = function() {
+    if (pr.state.panelSize) {
+      localStorage.setItem(pr.STORAGE_KEYS.panelSize, JSON.stringify(pr.state.panelSize));
+    } else {
+      localStorage.removeItem(pr.STORAGE_KEYS.panelSize);
     }
   };
 
@@ -2106,12 +2165,12 @@ input.portal-route-waypoint-name-input:focus,
     html += '<button type="button" data-action="calculate-route">' + plotLabel + '</button>';
     html += '<button type="button" data-action="fit-route">Fit Route</button>';
     html += '<button type="button" data-action="open-google-maps">Open Maps</button>';
-    html += '<button type="button" data-action="print-route">Print</button>';
     html += '</div></div>';
 
     html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Data</div><div class="portal-route-control-group-buttons">';
     html += '<button type="button" data-action="export-route-json">Export</button>';
     html += '<button type="button" data-action="import-route-json">Import</button>';
+    html += '<button type="button" data-action="print-route">Print</button>';
     html += '</div></div>';
     html += '</div>';
 
@@ -2157,6 +2216,7 @@ input.portal-route-waypoint-name-input:focus,
 
   pr.clampPanelPosition = function(position, wrapper) {
     if (!position || !wrapper || !wrapper.length) return null;
+    if (position.left === 0 && position.top === 0) return null;
 
     var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 520;
     var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 640;
@@ -2171,17 +2231,54 @@ input.portal-route-waypoint-name-input:focus,
     };
   };
 
+  pr.clampPanelSize = function(size) {
+    if (!size || !pr.shouldRestorePanelPosition()) return null;
+
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 520;
+    var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 640;
+    var maxWidth = Math.max(320, viewportWidth - 20);
+    var maxHeight = Math.max(220, viewportHeight - 20);
+
+    return {
+      width: Math.min(Math.max(320, size.width), maxWidth),
+      height: Math.min(Math.max(220, size.height), maxHeight)
+    };
+  };
+
   pr.saveCurrentPanelPosition = function(wrapper) {
     if (!wrapper || !wrapper.length || !pr.shouldRestorePanelPosition()) return;
 
     var offset = wrapper.offset();
     if (!offset) return;
+    if (Math.round(offset.left) === 0 && Math.round(offset.top) === 0) return;
 
     pr.state.panelPosition = {
       left: Math.round(offset.left),
       top: Math.round(offset.top)
     };
     pr.savePanelPosition();
+  };
+
+  pr.saveCurrentPanelSize = function(wrapper) {
+    if (!wrapper || !wrapper.length || !pr.shouldRestorePanelPosition()) return;
+
+    var size = pr.clampPanelSize({
+      width: Math.round(wrapper.outerWidth() || 0),
+      height: Math.round(wrapper.outerHeight() || 0)
+    });
+    if (!size) return;
+
+    pr.state.panelSize = size;
+    pr.savePanelSize();
+  };
+
+  pr.restorePanelSize = function(wrapper) {
+    if (!wrapper || !wrapper.length || !pr.shouldRestorePanelPosition()) return;
+
+    var size = pr.clampPanelSize(pr.state.panelSize);
+    if (!size) return;
+
+    wrapper.css({ width: size.width + 'px', height: size.height + 'px' });
   };
 
   pr.restorePanelPosition = function(wrapper) {
@@ -2204,11 +2301,16 @@ input.portal-route-waypoint-name-input:focus,
     try {
       var dialogContent = window.jQuery(content).closest('.ui-dialog-content');
       var wrapper = dialogContent.closest('.ui-dialog');
+      pr.restorePanelSize(wrapper);
       pr.restorePanelPosition(wrapper);
       dialogContent
         .off('dialogdragstop.portalRoute dialogresizestop.portalRoute')
-        .on('dialogdragstop.portalRoute dialogresizestop.portalRoute', function() {
+        .on('dialogdragstop.portalRoute', function() {
           pr.saveCurrentPanelPosition(wrapper);
+        })
+        .on('dialogresizestop.portalRoute', function() {
+          pr.saveCurrentPanelPosition(wrapper);
+          pr.saveCurrentPanelSize(wrapper);
         });
     } catch (e) {
       console.warn('Portal Route: failed to attach dialog position handler', e);
@@ -2261,7 +2363,7 @@ input.portal-route-waypoint-name-input:focus,
             .closest('.ui-dialog-content')
             .off('dialogclose.portalRoute')
             .on('dialogclose.portalRoute', function() {
-              pr.saveCurrentPanelPosition(window.jQuery(this).closest('.ui-dialog'));
+              pr.saveCurrentPanelSize(window.jQuery(this).closest('.ui-dialog'));
               pr.state.panelOpen = false;
               pr.savePanelOpen();
             });

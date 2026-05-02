@@ -118,12 +118,12 @@
     html += '<button type="button" data-action="calculate-route">' + plotLabel + '</button>';
     html += '<button type="button" data-action="fit-route">Fit Route</button>';
     html += '<button type="button" data-action="open-google-maps">Open Maps</button>';
-    html += '<button type="button" data-action="print-route">Print</button>';
     html += '</div></div>';
 
     html += '<div class="portal-route-control-group"><div class="portal-route-control-group-title">Data</div><div class="portal-route-control-group-buttons">';
     html += '<button type="button" data-action="export-route-json">Export</button>';
     html += '<button type="button" data-action="import-route-json">Import</button>';
+    html += '<button type="button" data-action="print-route">Print</button>';
     html += '</div></div>';
     html += '</div>';
 
@@ -169,6 +169,7 @@
 
   pr.clampPanelPosition = function(position, wrapper) {
     if (!position || !wrapper || !wrapper.length) return null;
+    if (position.left === 0 && position.top === 0) return null;
 
     var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 520;
     var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 640;
@@ -183,17 +184,54 @@
     };
   };
 
+  pr.clampPanelSize = function(size) {
+    if (!size || !pr.shouldRestorePanelPosition()) return null;
+
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 520;
+    var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 640;
+    var maxWidth = Math.max(320, viewportWidth - 20);
+    var maxHeight = Math.max(220, viewportHeight - 20);
+
+    return {
+      width: Math.min(Math.max(320, size.width), maxWidth),
+      height: Math.min(Math.max(220, size.height), maxHeight)
+    };
+  };
+
   pr.saveCurrentPanelPosition = function(wrapper) {
     if (!wrapper || !wrapper.length || !pr.shouldRestorePanelPosition()) return;
 
     var offset = wrapper.offset();
     if (!offset) return;
+    if (Math.round(offset.left) === 0 && Math.round(offset.top) === 0) return;
 
     pr.state.panelPosition = {
       left: Math.round(offset.left),
       top: Math.round(offset.top)
     };
     pr.savePanelPosition();
+  };
+
+  pr.saveCurrentPanelSize = function(wrapper) {
+    if (!wrapper || !wrapper.length || !pr.shouldRestorePanelPosition()) return;
+
+    var size = pr.clampPanelSize({
+      width: Math.round(wrapper.outerWidth() || 0),
+      height: Math.round(wrapper.outerHeight() || 0)
+    });
+    if (!size) return;
+
+    pr.state.panelSize = size;
+    pr.savePanelSize();
+  };
+
+  pr.restorePanelSize = function(wrapper) {
+    if (!wrapper || !wrapper.length || !pr.shouldRestorePanelPosition()) return;
+
+    var size = pr.clampPanelSize(pr.state.panelSize);
+    if (!size) return;
+
+    wrapper.css({ width: size.width + 'px', height: size.height + 'px' });
   };
 
   pr.restorePanelPosition = function(wrapper) {
@@ -216,11 +254,16 @@
     try {
       var dialogContent = window.jQuery(content).closest('.ui-dialog-content');
       var wrapper = dialogContent.closest('.ui-dialog');
+      pr.restorePanelSize(wrapper);
       pr.restorePanelPosition(wrapper);
       dialogContent
         .off('dialogdragstop.portalRoute dialogresizestop.portalRoute')
-        .on('dialogdragstop.portalRoute dialogresizestop.portalRoute', function() {
+        .on('dialogdragstop.portalRoute', function() {
           pr.saveCurrentPanelPosition(wrapper);
+        })
+        .on('dialogresizestop.portalRoute', function() {
+          pr.saveCurrentPanelPosition(wrapper);
+          pr.saveCurrentPanelSize(wrapper);
         });
     } catch (e) {
       console.warn('Portal Route: failed to attach dialog position handler', e);
@@ -273,7 +316,7 @@
             .closest('.ui-dialog-content')
             .off('dialogclose.portalRoute')
             .on('dialogclose.portalRoute', function() {
-              pr.saveCurrentPanelPosition(window.jQuery(this).closest('.ui-dialog'));
+              pr.saveCurrentPanelSize(window.jQuery(this).closest('.ui-dialog'));
               pr.state.panelOpen = false;
               pr.savePanelOpen();
             });

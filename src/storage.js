@@ -24,8 +24,21 @@
       var rawPanelPosition = localStorage.getItem(pr.STORAGE_KEYS.panelPosition);
       if (rawPanelPosition) {
         var panelPosition = JSON.parse(rawPanelPosition);
-        if (panelPosition && typeof panelPosition.left === 'number' && typeof panelPosition.top === 'number') {
+        if (panelPosition &&
+            typeof panelPosition.left === 'number' &&
+            typeof panelPosition.top === 'number' &&
+            (panelPosition.left !== 0 || panelPosition.top !== 0)) {
           pr.state.panelPosition = panelPosition;
+        }
+      }
+
+      var rawPanelSize = localStorage.getItem(pr.STORAGE_KEYS.panelSize);
+      if (rawPanelSize) {
+        var panelSize = JSON.parse(rawPanelSize);
+        if (panelSize &&
+            typeof panelSize.width === 'number' &&
+            typeof panelSize.height === 'number') {
+          pr.state.panelSize = panelSize;
         }
       }
 
@@ -59,6 +72,14 @@
       localStorage.setItem(pr.STORAGE_KEYS.panelPosition, JSON.stringify(pr.state.panelPosition));
     } else {
       localStorage.removeItem(pr.STORAGE_KEYS.panelPosition);
+    }
+  };
+
+  pr.savePanelSize = function() {
+    if (pr.state.panelSize) {
+      localStorage.setItem(pr.STORAGE_KEYS.panelSize, JSON.stringify(pr.state.panelSize));
+    } else {
+      localStorage.removeItem(pr.STORAGE_KEYS.panelSize);
     }
   };
 

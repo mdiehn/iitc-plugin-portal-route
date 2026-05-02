@@ -16,6 +16,7 @@
     settings: 'iitc-portal-route-settings',
     panelOpen: 'iitc-portal-route-panel-open',
     panelPosition: 'iitc-portal-route-panel-position',
+    panelSize: 'iitc-portal-route-panel-size',
     route: 'iitc-portal-route-route',
     routeDirty: 'iitc-portal-route-route-dirty'
   };

@@ -298,7 +298,7 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-active-action {
   font-weight: bold;
-  outline: 1px solid rgba(255, 216, 0, 0.65) !important;
+  outline: none !important;
 }
 
 .portal-route-actions {
@@ -332,6 +332,42 @@ button.portal-route-waypoint-badge-wide {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+}
+
+.portal-route-clear-list-button,
+.portal-route-control-group-buttons button {
+  display: inline-block;
+  padding: 3px 7px !important;
+  border: 1px solid rgba(255, 216, 0, 0.45) !important;
+  border-radius: 3px !important;
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: inherit !important;
+  font: inherit;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+  outline: none !important;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+.portal-route-clear-list-button:hover,
+.portal-route-clear-list-button:focus,
+.portal-route-clear-list-button:active,
+.portal-route-control-group-buttons button:hover,
+.portal-route-control-group-buttons button:focus,
+.portal-route-control-group-buttons button:active {
+  border-color: rgba(255, 216, 0, 0.75) !important;
+  background: rgba(255, 255, 255, 0.24) !important;
+  color: inherit !important;
+  text-decoration: none;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.portal-route-control-group-buttons button.portal-route-active-action {
+  border-color: rgba(255, 216, 0, 0.85) !important;
+  background: rgba(255, 216, 0, 0.22) !important;
 }
 
 .portal-route-maps-stages .portal-route-control-group-buttons {
