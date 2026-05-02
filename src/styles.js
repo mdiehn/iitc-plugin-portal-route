@@ -534,6 +534,7 @@ button.portal-route-waypoint-badge-wide {
 }
 
 .portal-route-stop-label span {
+  position: relative;
   cursor: pointer;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
 }
@@ -541,6 +542,59 @@ button.portal-route-waypoint-badge-wide {
 .portal-route-stop-label-selected span {
   outline: 2px solid #fff;
   outline-offset: 1px;
+}
+
+.portal-route-stop-label-start span {
+  box-shadow:
+    0 0 0 2px rgba(45, 190, 95, 0.95),
+    0 1px 3px rgba(0, 0, 0, 0.65);
+}
+
+.portal-route-stop-label-end span {
+  box-shadow:
+    0 0 0 2px rgba(245, 80, 80, 0.95),
+    0 1px 3px rgba(0, 0, 0, 0.65);
+}
+
+.portal-route-stop-label-loop-endpoint span {
+  box-shadow:
+    0 0 0 2px rgba(190, 145, 255, 0.95),
+    0 1px 3px rgba(0, 0, 0, 0.65);
+}
+
+.portal-route-stop-label-start span::after,
+.portal-route-stop-label-end span::after,
+.portal-route-stop-label-loop-endpoint span::after {
+  position: absolute;
+  right: -7px;
+  bottom: -6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 10px;
+  height: 10px;
+  border: 1px solid #111;
+  border-radius: 2px;
+  color: #111;
+  font-size: 7px;
+  font-weight: bold;
+  line-height: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+.portal-route-stop-label-start span::after {
+  content: "S";
+  background: #74e28e;
+}
+
+.portal-route-stop-label-end span::after {
+  content: "E";
+  background: #ff8a8a;
+}
+
+.portal-route-stop-label-loop-endpoint span::after {
+  content: "L";
+  background: #c9a6ff;
 }
 
 .portal-route-map-point-label-draggable span {
@@ -605,7 +659,37 @@ button.portal-route-waypoint-badge-wide {
 }
 
 .portal-route-portal-action {
-  margin-top: 8px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-top: 4px;
+  padding: 5px 5px 5px;
+  border-top: 1px solid rgba(32, 168, 204, 0.65);
+}
+
+.portal-route-portal-action-title {
+  flex: 0 0 100%;
+  margin-bottom: 7px;
+  background-color: rgba(8, 60, 78, 0.9);
+  text-align: center;
+  font-weight: bold;
+}
+
+.portal-route-portal-action-links {
+  display: flex;
+  flex-wrap: wrap;
+  flex: 0 0 100%;
+  justify-content: space-evenly;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.portal-route-portal-action-links a {
+  flex: 0 0 auto;
+  margin: 0 4px;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
 }
 
 

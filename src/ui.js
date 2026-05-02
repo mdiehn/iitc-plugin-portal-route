@@ -195,6 +195,7 @@
   };
 
   pr.createMiniControl = function() {
+    if (!pr.state.settings.showMiniControl) return;
     if (!window.L || !window.map) return;
     if (pr.state.miniControl || document.getElementById(pr.DOM_IDS.miniControl)) return;
 
@@ -222,6 +223,7 @@
 
   pr.setMiniControlVisible = function(isVisible) {
     var container = document.getElementById(pr.DOM_IDS.miniControl);
+    isVisible = !!isVisible && !!pr.state.settings.showMiniControl;
     if (container) container.style.display = isVisible ? '' : 'none';
   };
 
@@ -243,6 +245,11 @@
   };
 
   pr.renderMiniControl = function() {
+    if (!pr.state.settings.showMiniControl) {
+      pr.setMiniControlVisible(false);
+      return;
+    }
+
     var container = document.getElementById(pr.DOM_IDS.miniControl);
     if (!container) return;
 
@@ -390,6 +397,29 @@
         return;
       }
 
+      if (target && target.getAttribute('data-field') === 'show-mini-control') {
+        pr.state.settings.showMiniControl = !!target.checked;
+        pr.saveSettings();
+        if (pr.state.settings.showMiniControl) {
+          pr.createMiniControl();
+          pr.renderMiniControl();
+        } else {
+          pr.removeMiniControl();
+        }
+        return;
+      }
+
+      if (target && target.getAttribute('data-field') === 'show-portal-details-controls') {
+        pr.state.settings.showPortalDetailsControls = !!target.checked;
+        pr.saveSettings();
+        if (pr.state.settings.showPortalDetailsControls) {
+          pr.injectPortalDetailsAction();
+        } else {
+          pr.removePortalDetailsAction();
+        }
+        return;
+      }
+
       if (target && target.getAttribute('data-field') === 'default-stop-minutes') {
         var value = pr.parseDurationMinutes(target.value);
         if (value === null) {
@@ -471,7 +501,11 @@
   pr.syncLayerUi = function() {
     if (pr.isLayerEnabled()) {
       pr.addToolboxLink();
-      pr.createMiniControl();
+      if (pr.state.settings.showMiniControl) {
+        pr.createMiniControl();
+      } else {
+        pr.removeMiniControl();
+      }
       pr.setMiniControlVisible(true);
       pr.renderMiniControl();
       return;
@@ -488,7 +522,7 @@
 
   pr.enable = function() {
     pr.addToolboxLink();
-    pr.createMiniControl();
+    if (pr.state.settings.showMiniControl) pr.createMiniControl();
     pr.setMiniControlVisible(true);
     pr.renderMiniControl();
     pr.redrawLabels();
@@ -556,6 +590,7 @@
       pr.renderMiniControl();
       pr.redrawLabels();
       pr.redrawRouteLine();
+      pr.injectPortalDetailsAction();
 
       if (typeof window.addHook === 'function' && !pr.portalHookRegistered) {
         window.addHook('portalDetailsUpdated', function() {

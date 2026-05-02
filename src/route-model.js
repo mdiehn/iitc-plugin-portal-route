@@ -507,11 +507,11 @@
     pr.saveRoute();
     pr.clearRouteLine();
     pr.redrawLabels();
-    if (options.openPanel) {
-      pr.state.panelOpen = true;
-      pr.savePanelOpen();
+    if (options.openPanel || options.openPointsPanel) {
+      pr.state.pointsPanelOpen = true;
     }
     pr.renderPanel();
+    pr.renderPointsPanel();
     pr.renderMiniControl();
     pr.showMessage('Imported ' + pr.state.stops.length + ' stops.');
     pr.hydrateStopTitles();
@@ -615,6 +615,7 @@
     if (!stop.guid) {
       pr.state.selectedMapPointIndex = index;
       if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
+      if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
       if (center && window.map) {
         window.map.setView([stop.lat, stop.lng], window.map.getZoom());
       }

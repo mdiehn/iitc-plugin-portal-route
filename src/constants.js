@@ -28,5 +28,7 @@
     includeReturnToStart: false,
     startOnCurrentLocation: false,
     showSegmentTimesOnMap: false,
-    autoReplotOnEdit: true
+    autoReplotOnEdit: true,
+    showMiniControl: true,
+    showPortalDetailsControls: true
   };

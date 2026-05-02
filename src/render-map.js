@@ -50,6 +50,16 @@
       var isLoop = !!stop.generatedLoop;
       var isSelected = !isLoop && pr.selectedStopIndex && pr.selectedStopIndex() === index;
       var selectedClass = isSelected ? ' portal-route-stop-label-selected' : '';
+      var startEndClass = '';
+      var hasLoopStop = !!(pr.makeLoopStop && pr.makeLoopStop() && pr.state.stops.length > 1);
+      if (!isLoop && hasLoopStop && (index === 0 || index === pr.state.stops.length - 1)) {
+        startEndClass += ' portal-route-stop-label-loop-endpoint';
+      } else {
+        if (!isLoop && index === 0) startEndClass += ' portal-route-stop-label-start';
+        if (!isLoop && pr.state.stops.length > 1 && index === pr.state.stops.length - 1) {
+          startEndClass += ' portal-route-stop-label-end';
+        }
+      }
       var isMapPoint = stop.type === 'map';
       var canDragMapPoint = isMapPoint && !pr.isManagedStartStop(stop);
       var label = isLoop ? 'L' : (index + 1);
@@ -126,7 +136,7 @@
       }
 
       var icon = L.divIcon({
-        className: 'portal-route-stop-label' + labelClass + (isMapPoint ? ' portal-route-map-point-label' : '') + (canDragMapPoint ? ' portal-route-map-point-label-draggable' : '') + (isLoop ? ' portal-route-loop-label' : '') + selectedClass,
+        className: 'portal-route-stop-label' + labelClass + startEndClass + (isMapPoint ? ' portal-route-map-point-label' : '') + (canDragMapPoint ? ' portal-route-map-point-label-draggable' : '') + (isLoop ? ' portal-route-loop-label' : '') + selectedClass,
         html: '<span>' + label + '</span>',
         iconSize: [18, 18],
         iconAnchor: isLoop ? [-18, 24] : [0, 24]
@@ -149,6 +159,7 @@
             if (e.target && e.target._icon) e.target._icon.classList.add(draggingClass);
             pr.state.selectedMapPointIndex = index;
             if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
+            if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
             pr.renderPanel();
             pr.renderMiniControl();
           });

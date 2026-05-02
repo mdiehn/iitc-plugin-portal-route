@@ -60,21 +60,134 @@
     pr.addStop(stop);
   };
 
-  pr.injectPortalDetailsAction = function() {
-    var container = document.querySelector('#portaldetails .linkdetails') || document.querySelector('#portaldetails');
-    if (!container || container.querySelector('.portal-route-add-link')) return;
+  pr.selectedPortalStopIndex = function() {
+    var guid = window.selectedPortal;
+    if (!guid) return -1;
 
-    var link = document.createElement('a');
-    link.href = '#';
-    link.className = 'portal-route-add-link';
-    link.textContent = 'Add to Portal Route';
-    link.addEventListener('click', function(ev) {
-      ev.preventDefault();
-      pr.addSelectedPortal();
+    for (var i = 0; i < pr.state.stops.length; i++) {
+      if (pr.state.stops[i] && pr.state.stops[i].guid === guid) return i;
+    }
+
+    return -1;
+  };
+
+  pr.selectedInfoPanelStopIndex = function() {
+    var mapPointIndex = pr.selectedMapPointIndex ? pr.selectedMapPointIndex() : -1;
+    if (mapPointIndex >= 0) return mapPointIndex;
+
+    return pr.selectedPortalStopIndex();
+  };
+
+  pr.removePortalDetailsAction = function() {
+    var existing = document.querySelector('.portal-route-portal-action');
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+  };
+
+  pr.portalDetailsActionAnchor = function(container) {
+    if (!container || !document.createTreeWalker) return null;
+
+    var nodeFilter = window.NodeFilter;
+    if (!nodeFilter) return null;
+    var walker = document.createTreeWalker(container, nodeFilter.SHOW_TEXT, {
+      acceptNode: function(node) {
+        return node.nodeValue && node.nodeValue.indexOf('History:') >= 0
+          ? nodeFilter.FILTER_ACCEPT
+          : nodeFilter.FILTER_SKIP;
+      }
     });
+    var node = walker.nextNode();
+    if (!node) return null;
 
-    var wrapper = document.createElement('div');
-    wrapper.className = 'portal-route-portal-action';
-    wrapper.appendChild(link);
-    container.appendChild(wrapper);
+    while (node && node.parentNode && node.parentNode !== container) {
+      node = node.parentNode;
+    }
+
+    return node && node.parentNode === container ? node : null;
+  };
+
+  pr.placePortalDetailsAction = function(container, wrapper) {
+    var anchor = pr.portalDetailsActionAnchor(container);
+    var next = anchor ? anchor.nextSibling : null;
+
+    if (next !== wrapper) container.insertBefore(wrapper, next);
+  };
+
+  pr.injectPortalDetailsAction = function() {
+    var container = document.querySelector('#portaldetails');
+    if (!container) return;
+
+    if (!pr.state.settings.showPortalDetailsControls) {
+      pr.removePortalDetailsAction();
+      return;
+    }
+
+    var wrapper = container.querySelector('.portal-route-portal-action');
+    if (!wrapper) {
+      wrapper = document.createElement('div');
+      wrapper.className = 'portal-route-portal-action';
+      container.appendChild(wrapper);
+    }
+    pr.placePortalDetailsAction(container, wrapper);
+
+    var selectedIndex = pr.selectedInfoPanelStopIndex();
+    var isInRoute = selectedIndex >= 0;
+    var hasSelectedMapPoint = pr.selectedMapPointIndex && pr.selectedMapPointIndex() >= 0;
+
+    wrapper.innerHTML = '';
+
+    var header = document.createElement('div');
+    header.className = 'portal-route-portal-action-title';
+    header.textContent = 'Portal Route';
+    wrapper.appendChild(header);
+
+    var links = document.createElement('div');
+    links.className = 'portal-route-portal-action-links';
+
+    var toggleLink = document.createElement('a');
+    toggleLink.href = '#';
+    toggleLink.textContent = isInRoute ? 'Remove' : 'Add';
+    toggleLink.addEventListener('click', function(ev) {
+      ev.preventDefault();
+      if (isInRoute) {
+        pr.removeStop(selectedIndex);
+      } else if (!hasSelectedMapPoint) {
+        pr.addSelectedPortal();
+      }
+      pr.injectPortalDetailsAction();
+    });
+    if (isInRoute || window.selectedPortal) links.appendChild(toggleLink);
+
+    var menuLink = document.createElement('a');
+    menuLink.href = '#';
+    menuLink.textContent = 'Menu';
+    menuLink.addEventListener('click', function(ev) {
+      ev.preventDefault();
+      pr.state.panelOpen = true;
+      pr.savePanelOpen();
+      pr.renderPanel();
+    });
+    links.appendChild(menuLink);
+
+    var listLink = document.createElement('a');
+    listLink.href = '#';
+    listLink.textContent = 'List';
+    listLink.addEventListener('click', function(ev) {
+      ev.preventDefault();
+      pr.state.pointsPanelOpen = true;
+      pr.renderPointsPanel();
+    });
+    links.appendChild(listLink);
+
+    var clearLink = document.createElement('a');
+    clearLink.href = '#';
+    clearLink.textContent = 'Clear';
+    clearLink.addEventListener('click', function(ev) {
+      ev.preventDefault();
+      if (pr.state.stops.length && window.confirm && !window.confirm('Clear all points from the route?')) return;
+      pr.clearStops();
+      pr.injectPortalDetailsAction();
+    });
+    links.appendChild(clearLink);
+
+    wrapper.appendChild(links);
   };
