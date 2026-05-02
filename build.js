@@ -2,10 +2,12 @@
 
 const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process");
 
 const root = path.resolve(__dirname);
 const distDir = path.join(root, "dist");
 const outFile = path.join(distDir, "portal-route.user.js");
+const readmeFile = path.join(root, "README.md");
 
 const sources = [
   "src/banner.js",
@@ -52,6 +54,39 @@ if (!metaMatch) {
 }
 
 fs.writeFileSync(metaFile, metaMatch[0] + "\n", "utf8");
+
+function getCurrentBranch() {
+  try {
+    const branch = execSync("git rev-parse --abbrev-ref HEAD", {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+
+    return branch && branch !== "HEAD" ? branch : "main";
+  } catch (e) {
+    return "main";
+  }
+}
+
+function updateReadmeInstallLink() {
+  if (!fs.existsSync(readmeFile)) return;
+
+  const branch = getCurrentBranch();
+  const readme = fs.readFileSync(readmeFile, "utf8");
+  const installUrl = `https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/${branch}/dist/portal-route.user.js`;
+  const updated = readme.replace(
+    /\*\*Install:\*\* \[`portal-route\.user\.js`\]\([^)]+\)/,
+    `**Install:** [\`portal-route.user.js\`](${installUrl})`
+  );
+
+  if (updated !== readme) {
+    fs.writeFileSync(readmeFile, updated, "utf8");
+    console.log(`Updated README install link for ${branch}`);
+  }
+}
+
+updateReadmeInstallLink();
 
 console.log(`Wrote ${path.relative(root, outFile)}`);
 console.log(`Wrote ${path.relative(root, metaFile)}`);
