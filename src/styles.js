@@ -387,11 +387,6 @@ button.portal-route-waypoint-badge-wide {
   outline-offset: -2px;
 }
 
-.portal-route-portal-action-links a.portal-route-smart-button {
-  outline: 1px solid rgba(128, 216, 255, 0.75);
-  outline-offset: 1px;
-}
-
 .portal-route-maps-stages .portal-route-control-group-buttons {
   display: block;
 }
@@ -820,6 +815,16 @@ button.portal-route-waypoint-badge-wide {
   overflow: hidden;
   text-align: center;
   text-overflow: ellipsis;
+}
+
+.portal-route-portal-action-links a.portal-route-smart-button {
+  display: inline-block;
+  margin: 0 4px 3px;
+  padding: 2px 6px;
+  border: 1px solid rgba(128, 216, 255, 0.75);
+  border-radius: 4px;
+  outline: 0;
+  line-height: 1.25;
 }
 
 .portal-route-context-menu {

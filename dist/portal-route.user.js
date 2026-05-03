@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version        1.1.0-dev.20260503130435
+// @version        1.1.0-dev.20260503132752
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
 // @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/update-smartButtons/dist/portal-route.meta.js
 // @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/update-smartButtons/dist/portal-route.user.js
@@ -407,11 +407,6 @@ button.portal-route-waypoint-badge-wide {
 .portal-route-mini-control a.portal-route-smart-button {
   outline: 1px solid rgba(128, 216, 255, 0.75);
   outline-offset: -2px;
-}
-
-.portal-route-portal-action-links a.portal-route-smart-button {
-  outline: 1px solid rgba(128, 216, 255, 0.75);
-  outline-offset: 1px;
 }
 
 .portal-route-maps-stages .portal-route-control-group-buttons {
@@ -844,6 +839,16 @@ button.portal-route-waypoint-badge-wide {
   text-overflow: ellipsis;
 }
 
+.portal-route-portal-action-links a.portal-route-smart-button {
+  display: inline-block;
+  margin: 0 4px 3px;
+  padding: 2px 6px;
+  border: 1px solid rgba(128, 216, 255, 0.75);
+  border-radius: 4px;
+  outline: 0;
+  line-height: 1.25;
+}
+
 .portal-route-context-menu {
   position: fixed;
   z-index: 10000;
@@ -973,7 +978,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.1.0-dev.20260503130435';
+  pr.VERSION = '1.1.0-dev.20260503132752';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -1349,14 +1354,8 @@ button.portal-route-waypoint-name,
     }
 
     if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) addActionLink('Action', function() {
-      if (isInRoute) {
-        pr.removeStop(selectedIndex);
-      } else if (window.selectedPortal) {
-        pr.addSelectedPortal();
-      } else {
-        pr.setAddPointMode(true);
-      }
-      pr.injectPortalDetailsAction();
+      var rect = links.getBoundingClientRect();
+      pr.openAddMenu(rect.left, rect.bottom + 4);
     });
 
     addActionLink('Maps', function() {
@@ -1368,6 +1367,7 @@ button.portal-route-waypoint-name,
       pr.openRouteMenu(rect.left, rect.bottom + 4);
     });
     menuLink.className = 'portal-route-smart-button';
+    menuLink.setAttribute('data-route-menu', 'true');
 
     wrapper.appendChild(links);
   };
@@ -2844,7 +2844,7 @@ button.portal-route-waypoint-name,
 
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
     html += '<button type="button" data-action="calculate-route">Recalc Route</button>';
-    html += '<button type="button" class="portal-route-smart-button" data-action="open-route-menu">Menu</button>';
+    html += '<button type="button" class="portal-route-smart-button" data-action="open-route-menu" data-route-menu="true">Menu</button>';
     html += '</div>';
 
     if (pr.SHOW_VERSION_IN_PANEL) {
@@ -3118,14 +3118,14 @@ button.portal-route-waypoint-name,
     contentHtml += '<div class="portal-route-body">' + pr.renderStopsList(legsByToIndex) + '</div>';
     contentHtml += '</div>';
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-panel-actions">';
-    contentHtml += '<button type="button" data-action="smart-add" data-add-menu="true" class="portal-route-smart-button' + (pr.state.addPointMode ? ' portal-route-active-action' : '') + '">Action</button>';
+    contentHtml += '<button type="button" data-action="open-add-menu" data-add-menu="true" class="portal-route-smart-button' + (pr.state.addPointMode ? ' portal-route-active-action' : '') + '">Action</button>';
     contentHtml += '<button type="button" data-action="fit-route">Fit</button>';
     contentHtml += '<button type="button" data-action="open-google-maps">Maps</button>';
     contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';
     contentHtml += '<button type="button" data-action="save-route">Save</button>';
     contentHtml += '<button type="button" data-action="load-route">Load</button>';
-    contentHtml += '<button type="button" class="portal-route-smart-button" data-action="open-route-menu">Menu</button>';
+    contentHtml += '<button type="button" class="portal-route-smart-button" data-action="open-route-menu" data-route-menu="true">Menu</button>';
     contentHtml += '</div>';
     var existingContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);
 
@@ -4802,6 +4802,14 @@ button.portal-route-waypoint-name,
     var index = target ? Number(target.getAttribute('data-index')) : -1;
     var actions = {
       'open-main': pr.openMainPanel,
+      'open-add-menu': function() {
+        if (!target || !target.getBoundingClientRect) {
+          pr.openAddMenu(20, 20);
+          return;
+        }
+        var rect = target.getBoundingClientRect();
+        pr.openAddMenu(rect.left, rect.bottom + 4);
+      },
       'open-route-menu': function() {
         if (!target || !target.getBoundingClientRect) {
           pr.openRouteMenu(20, 20);
@@ -4953,12 +4961,12 @@ button.portal-route-waypoint-name,
       '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
       '<a href="#" class="portal-route-mini-add portal-route-smart-button' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '" data-add-menu="true">' + addRemoveText + '</a>' +
       '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
-      '<a href="#" class="portal-route-smart-button" title="Open Portal Route menu" data-action="open-route-menu">=</a>';
+      '<a href="#" class="portal-route-smart-button" title="Open Portal Route menu" data-action="open-route-menu" data-route-menu="true">=</a>';
   };
 
   pr.panelForEvent = function(ev) {
     if (!ev.target || !ev.target.closest) return null;
-    return ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent + ', #' + pr.DOM_IDS.routeLibraryContent + ', .portal-route-context-menu');
+    return ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent + ', #' + pr.DOM_IDS.routeLibraryContent + ', .portal-route-portal-action, .portal-route-context-menu');
   };
 
   pr.handleDialogClick = function(ev) {
@@ -4987,17 +4995,24 @@ button.portal-route-waypoint-name,
     return target && target.closest ? target.closest('[data-add-menu]') : null;
   };
 
+  pr.routeMenuTarget = function(target) {
+    return target && target.closest ? target.closest('[data-route-menu]') : null;
+  };
+
   pr.closeAddMenu = function() {
     var menu = document.querySelector('.portal-route-context-menu');
     if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
+    if (menu && pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
   };
 
   pr.openAddMenu = function(x, y) {
     pr.closeAddMenu();
 
+    var selectedInRoute = pr.selectedStopIndex && pr.selectedStopIndex() >= 0;
     var menu = document.createElement('div');
     menu.className = 'portal-route-context-menu';
     menu.innerHTML = '' +
+      '<button type="button" data-action="' + (selectedInRoute ? 'toggle-selected-stop' : 'smart-add') + '">' + (selectedInRoute ? 'Remove selected' : 'Auto action') + '</button>' +
       '<button type="button" data-action="add-current-location">Add current location</button>' +
       '<button type="button" data-action="add-selected-stop"' + (window.selectedPortal ? '' : ' disabled') + '>Add selected portal</button>' +
       '<button type="button" data-action="add-map-point">Add point</button>' +
@@ -5066,16 +5081,24 @@ button.portal-route-waypoint-name,
     if (pr.handleStopMenuContext(ev)) return;
 
     var target = pr.addMenuTarget(ev.target);
+    if (target) {
+      ev.preventDefault();
+      pr.openAddMenu(ev.clientX || 12, ev.clientY || 12);
+      return;
+    }
+
+    target = pr.routeMenuTarget(ev.target);
     if (!target) return;
 
     ev.preventDefault();
-    pr.openAddMenu(ev.clientX || 12, ev.clientY || 12);
+    pr.openRouteMenu(ev.clientX || 12, ev.clientY || 12);
   };
 
   pr.handleAddMenuTouchStart = function(ev) {
     var target = pr.addMenuTarget(ev.target);
+    var routeTarget = pr.routeMenuTarget(ev.target);
     var row = ev.target.closest('.portal-route-stop');
-    if ((!target && !row) || !window.setTimeout) return;
+    if ((!target && !routeTarget && !row) || !window.setTimeout) return;
 
     if (pr.state.addMenuLongPressTimer) window.clearTimeout(pr.state.addMenuLongPressTimer);
     var touch = ev.touches && ev.touches[0];
@@ -5087,6 +5110,8 @@ button.portal-route-waypoint-name,
       pr.state.suppressNextAddClick = true;
       if (row && !ev.target.closest('input, textarea, select')) {
         pr.openStopMenu(Number(row.getAttribute('data-index')), x, y);
+      } else if (routeTarget) {
+        pr.openRouteMenu(x, y);
       } else {
         pr.openAddMenu(x, y);
       }
