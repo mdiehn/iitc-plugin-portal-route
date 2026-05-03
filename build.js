@@ -65,10 +65,21 @@ function stampDevVersion(source) {
   if (version.indexOf("-dev") === -1) return source;
 
   const stampedVersion = `${version}.${buildStamp(new Date())}`;
+  const branch = getCurrentBranch();
+  const metaUrl = `https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/${branch}/dist/portal-route.meta.js`;
+  const userUrl = `https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/${branch}/dist/portal-route.user.js`;
   return source
     .replace(
       /^\/\/ @version\s+.+$/m,
       `// @version        ${stampedVersion}`
+    )
+    .replace(
+      /^\/\/ @updateURL\s+.+$/m,
+      `// @updateURL      ${metaUrl}`
+    )
+    .replace(
+      /^\/\/ @downloadURL\s+.+$/m,
+      `// @downloadURL    ${userUrl}`
     )
     .replace(
       /pr\.VERSION = ['"][^'"]+['"];/,
