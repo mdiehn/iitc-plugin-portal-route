@@ -2,10 +2,10 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version        1.1.0-dev.20260503133630
+// @version        1.1.0-dev.20260503143524
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
-// @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/update-smartButtons/dist/portal-route.meta.js
-// @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/update-smartButtons/dist/portal-route.user.js
+// @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/upd/UI-bugs-and-polish/dist/portal-route.meta.js
+// @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/upd/UI-bugs-and-polish/dist/portal-route.user.js
 // @description    Route planning through selected portals with segment drive times, stop-time accounting, and Google Maps export.
 // @include        https://intel.ingress.com/*
 // @include        http://intel.ingress.com/*

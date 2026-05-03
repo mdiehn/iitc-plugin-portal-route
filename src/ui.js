@@ -349,10 +349,11 @@
 
     var selectedInRoute = pr.selectedStopIndex && pr.selectedStopIndex() >= 0;
     var canAddRemoveSelected = selectedInRoute || !!window.selectedPortal;
+    var addRemoveSelectedLabel = selectedInRoute ? 'Remove selected' : 'Add selected';
     var menu = document.createElement('div');
     menu.className = 'portal-route-context-menu';
     menu.innerHTML = '' +
-      '<button type="button" data-action="toggle-selected-stop"' + (canAddRemoveSelected ? '' : ' disabled') + '>Add/Remove selected</button>' +
+      '<button type="button" data-action="toggle-selected-stop"' + (canAddRemoveSelected ? '' : ' disabled') + '>' + addRemoveSelectedLabel + '</button>' +
       '<button type="button" data-action="smart-add">Add waypoint</button>' +
       '<button type="button" data-action="add-current-location">Add current location</button>' +
       '<div class="portal-route-context-divider"></div>' +
@@ -541,8 +542,12 @@
     }
 
     if (field === 'reverse-route') {
-      if (target.checked) pr.reverseRoute();
-      target.checked = false;
+      if (target.checked) {
+        window.setTimeout(function() {
+          pr.reverseRoute();
+          target.checked = false;
+        }, 120);
+      }
       return true;
     }
 

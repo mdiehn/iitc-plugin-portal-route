@@ -87,7 +87,7 @@ Fallback:
 
 ```text
 Add current location
-Add/Remove selected
+Add selected / Remove selected
 Add waypoint
 —
 Loop / Unloop

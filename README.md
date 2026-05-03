@@ -10,7 +10,7 @@ Current release: `1.0.0`
 
 This is the first stable release.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/feat/update-smartButtons/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/upd/UI-bugs-and-polish/dist/portal-route.user.js)
 
 ## Quick start
 
@@ -41,7 +41,7 @@ The points list shows the current route order. Drag rows to reorder stops. Right
 ### Actions
 
 - **Actions** opens route-building choices.
-- Use **Add/Remove selected** for the selected portal or route stop, **Add waypoint** for the smart add flow, or choose a specific action such as Add current location, Loop/Unloop, Reverse route, or Clear.
+- Use **Add selected** or **Remove selected** for the selected portal or route stop, **Add waypoint** for the smart add flow, or choose a specific action such as Add current location, Loop/Unloop, Reverse route, or Clear.
 
 ![Portal Route Add menu](docs/screen_02_add_menu.png)
 
