@@ -24,6 +24,7 @@ const sources = [
   "src/render-panel.js",
   "src/export-links.js",
   "src/route-library.js",
+  "src/drive-storage.js",
   "src/ui.js",
   "src/wrapper-end.js",
 ];

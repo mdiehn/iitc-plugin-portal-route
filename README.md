@@ -10,7 +10,7 @@ Current release: `1.0.0`
 
 This is the first stable release.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/feat/v1.1.0/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/feat/google-drive-storage/dist/portal-route.user.js)
 
 ## Quick start
 
@@ -207,3 +207,5 @@ package.json
 ## Credits
 
 Portal Route is a separate implementation inspired in part by the IITC plugins [Map Route Planner](https://softspot.nl/ingress/plugins/documentation/iitc-plugin-maps-route-planner.user.js.html), by DanielOnDiordona, and [Traveling Agent](https://github.com/yavidor/traveling-agent-plugin), by yavidor.
+
+The Google Drive storage work follows working assumptions from the IITC [Sync plugin](https://github.com/IITC-CE/ingress-intel-total-conversion/blob/master/plugins/sync.js), by xelio.

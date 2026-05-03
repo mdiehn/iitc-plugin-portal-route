@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version        1.1.0-dev.20260503080049
+// @version        1.1.0-dev.20260503114428
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
 // @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/main/dist/portal-route.meta.js
 // @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/main/dist/portal-route.user.js
@@ -493,6 +493,29 @@ button.portal-route-waypoint-badge-wide {
   text-align: center;
 }
 
+.portal-route-library-storage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  color: #ccc;
+  font-size: 11px;
+}
+
+.portal-route-library-storage label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+}
+
+.portal-route-library-storage select {
+  max-width: 130px;
+  font-size: 11px;
+}
+
 .portal-route-library-toolbar {
   justify-content: center;
   margin-bottom: 7px;
@@ -934,7 +957,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.1.0-dev.20260503080049';
+  pr.VERSION = '1.1.0-dev.20260503114428';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -957,7 +980,11 @@ button.portal-route-waypoint-name,
     panelSize: 'iitc-portal-route-panel-size',
     route: 'iitc-portal-route-route',
     routeDirty: 'iitc-portal-route-route-dirty',
-    routeLibrary: 'iitc-portal-route-library'
+    routeLibrary: 'iitc-portal-route-library',
+    routeLibraryDriveCache: 'iitc-portal-route-drive-library-cache',
+    routeLibraryDriveFolderId: 'iitc-portal-route-drive-folder-id',
+    routeLibraryDriveFolderName: 'iitc-portal-route-drive-folder-name',
+    routeLibraryDriveFileId: 'iitc-portal-route-drive-file-id'
   };
 
   pr.DEFAULT_SETTINGS = {
@@ -3551,8 +3578,35 @@ button.portal-route-waypoint-name,
   pr.emptyRouteLibrary = function() {
     return {
       schemaVersion: pr.ROUTE_LIBRARY_SCHEMA_VERSION,
+      plugin: pr.ID,
+      pluginVersion: pr.VERSION,
+      updatedAt: pr.routeLibraryNow(),
       routes: []
     };
+  };
+
+  pr.normalizeRouteLibrary = function(library) {
+    if (!library || typeof library !== 'object' || !Array.isArray(library.routes)) {
+      return pr.emptyRouteLibrary();
+    }
+
+    var normalized = {
+      schemaVersion: library.schemaVersion || pr.ROUTE_LIBRARY_SCHEMA_VERSION,
+      plugin: library.plugin || pr.ID,
+      pluginVersion: library.pluginVersion || pr.VERSION,
+      updatedAt: library.updatedAt || null,
+      routes: []
+    };
+
+    library.routes.forEach(function(route) {
+      var record = pr.normalizeRouteRecord(route, {
+        keepUpdatedAt: true
+      });
+      if (record) normalized.routes.push(record);
+    });
+
+    if (!normalized.updatedAt) normalized.updatedAt = pr.routeLibraryNow();
+    return normalized;
   };
 
   pr.loadRouteLibrary = function() {
@@ -3560,13 +3614,7 @@ button.portal-route-waypoint-name,
     if (!raw) return pr.emptyRouteLibrary();
 
     try {
-      var library = JSON.parse(raw);
-      if (!library || typeof library !== 'object' || !Array.isArray(library.routes)) {
-        return pr.emptyRouteLibrary();
-      }
-
-      library.schemaVersion = library.schemaVersion || pr.ROUTE_LIBRARY_SCHEMA_VERSION;
-      return library;
+      return pr.normalizeRouteLibrary(JSON.parse(raw));
     } catch (e) {
       console.warn('Portal Route: failed to load route library', e);
       return pr.emptyRouteLibrary();
@@ -3574,6 +3622,8 @@ button.portal-route-waypoint-name,
   };
 
   pr.saveRouteLibrary = function(library) {
+    library = pr.normalizeRouteLibrary(library);
+    library.updatedAt = pr.routeLibraryNow();
     localStorage.setItem(pr.STORAGE_KEYS.routeLibrary, JSON.stringify(library));
   };
 
@@ -3675,9 +3725,64 @@ button.portal-route-waypoint-name,
 
   pr.storageBackends.local = pr.localRouteStorage;
 
+  pr.driveStorage = {
+    id: 'googleDrive',
+    label: 'Google Drive',
+    loadLibrary: function() {
+      return pr.loadDriveRouteLibraryCache();
+    },
+    saveLibrary: function(library) {
+      library = pr.saveDriveRouteLibraryCache(library);
+      pr.pushDriveRouteLibrarySoon();
+      return library;
+    },
+    listRoutes: function() {
+      return this.loadLibrary().routes.slice().sort(function(a, b) {
+        return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
+      });
+    },
+    getRoute: function(id) {
+      return pr.findLibraryRoute(this.loadLibrary(), id);
+    },
+    saveRoute: function(route) {
+      var library = this.loadLibrary();
+      var replaced = false;
+
+      library.routes = library.routes.map(function(existing) {
+        if (existing && existing.id === route.id) {
+          replaced = true;
+          return route;
+        }
+        return existing;
+      });
+
+      if (!replaced) library.routes.push(route);
+      this.saveLibrary(library);
+      return route;
+    },
+    deleteRoute: function(id) {
+      var library = this.loadLibrary();
+      var before = library.routes.length;
+      library.routes = library.routes.filter(function(route) {
+        return route && route.id !== id;
+      });
+      this.saveLibrary(library);
+      return library.routes.length !== before;
+    }
+  };
+
+  pr.storageBackends.googleDrive = pr.driveStorage;
+
   pr.routeLibraryStorage = function() {
     var backendId = pr.state.routeLibraryBackendId || 'local';
     return pr.storageBackends[backendId] || pr.localRouteStorage;
+  };
+
+  pr.setRouteLibraryBackend = function(backendId) {
+    if (!pr.storageBackends[backendId]) backendId = 'local';
+    pr.state.routeLibraryBackendId = backendId;
+    pr.state.selectedLibraryRouteIds = [];
+    pr.refreshRouteLibraryPanel();
   };
 
   pr.promptRouteName = function(defaultName) {
@@ -4081,6 +4186,30 @@ button.portal-route-waypoint-name,
     pr.showMessage(added ? 'Imported ' + added + ' saved routes.' : 'No routes imported.');
   };
 
+  pr.renderRouteLibraryStorageControls = function(storage) {
+    var driveReady = pr.isDriveReady();
+    var driveState = pr.driveStatusText();
+    var html = '';
+
+    html += '<div class="portal-route-library-storage">';
+    html += '<label>Store <select data-field="route-library-backend">';
+    html += '<option value="local"' + (storage.id === 'local' ? ' selected' : '') + '>This browser</option>';
+    html += '<option value="googleDrive"' + (storage.id === 'googleDrive' ? ' selected' : '') + '>Google Drive</option>';
+    html += '</select></label>';
+    html += '<span>' + pr.escapeHtml(driveState) + '</span>';
+    html += '</div>';
+
+    if (storage.id === 'googleDrive') {
+      html += '<div class="portal-route-control-group-buttons portal-route-library-toolbar">';
+      html += '<button type="button" data-action="drive-connect">' + (driveReady ? 'Change Folder' : 'Connect Drive') + '</button>';
+      html += '<button type="button" data-action="drive-pull"' + (driveReady ? '' : ' disabled') + '>Pull Drive</button>';
+      html += '<button type="button" data-action="drive-push"' + (driveReady ? '' : ' disabled') + '>Push Drive</button>';
+      html += '</div>';
+    }
+
+    return html;
+  };
+
   pr.importRouteLibraryJson = function() {
     pr.readJsonFile(function(data) {
       try {
@@ -4125,6 +4254,7 @@ button.portal-route-waypoint-name,
     var anyDisabled = selectedCount ? '' : ' disabled';
     var contentHtml = '';
     contentHtml += '<div class="portal-route-library-source">Stored in: ' + pr.escapeHtml(storage.label || storage.id || 'Route library') + '</div>';
+    contentHtml += pr.renderRouteLibraryStorageControls(storage);
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-library-toolbar">';
     contentHtml += '<button type="button" data-action="export-route-library">Export Library</button>';
     contentHtml += '<button type="button" data-action="import-route-library">Import Library</button>';
@@ -4144,6 +4274,7 @@ button.portal-route-waypoint-name,
     contentHtml += '<button type="button" data-action="export-selected-saved-route"' + anyDisabled + '>Export</button>';
     contentHtml += '<button type="button" data-action="delete-selected-saved-route"' + anyDisabled + '>Delete</button>';
     contentHtml += '</div>';
+    contentHtml += '<div class="portal-route-message"></div>';
     return contentHtml;
   };
 
@@ -4179,13 +4310,355 @@ button.portal-route-waypoint-name,
     }
   };
 
+  pr.DRIVE_LIBRARY_FILE_NAME = 'route-library.json';
+  pr.DRIVE_DEFAULT_FOLDER_NAME = 'IITC Portal Route';
+  pr.DRIVE_API_SCRIPT = 'https://apis.google.com/js/api.js';
+  pr.DRIVE_DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
+  pr.DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+  pr.DRIVE_API_KEY = 'AIzaSyBeVNFEHh35baf5y9miCjaw43L61BTeyhg';
+  pr.DRIVE_CLIENT_ID = '1099227387115-osrmhfh1i6dto7v7npk4dcpog1cnljtb.apps.googleusercontent.com';
+
+  pr.driveState = {
+    apiLoading: false,
+    apiLoaded: false,
+    authorizing: false,
+    authorized: false,
+    folderId: null,
+    folderName: null,
+    fileId: null,
+    lastError: null,
+    pushTimer: null
+  };
+
+  pr.loadDriveState = function() {
+    pr.driveState.folderId = localStorage.getItem(pr.STORAGE_KEYS.routeLibraryDriveFolderId) || null;
+    pr.driveState.folderName = localStorage.getItem(pr.STORAGE_KEYS.routeLibraryDriveFolderName) || pr.DRIVE_DEFAULT_FOLDER_NAME;
+    pr.driveState.fileId = localStorage.getItem(pr.STORAGE_KEYS.routeLibraryDriveFileId) || null;
+  };
+
+  pr.saveDriveState = function() {
+    if (pr.driveState.folderId) {
+      localStorage.setItem(pr.STORAGE_KEYS.routeLibraryDriveFolderId, pr.driveState.folderId);
+    } else {
+      localStorage.removeItem(pr.STORAGE_KEYS.routeLibraryDriveFolderId);
+    }
+
+    if (pr.driveState.folderName) {
+      localStorage.setItem(pr.STORAGE_KEYS.routeLibraryDriveFolderName, pr.driveState.folderName);
+    } else {
+      localStorage.removeItem(pr.STORAGE_KEYS.routeLibraryDriveFolderName);
+    }
+
+    if (pr.driveState.fileId) {
+      localStorage.setItem(pr.STORAGE_KEYS.routeLibraryDriveFileId, pr.driveState.fileId);
+    } else {
+      localStorage.removeItem(pr.STORAGE_KEYS.routeLibraryDriveFileId);
+    }
+  };
+
+  pr.loadDriveRouteLibraryCache = function() {
+    var raw = localStorage.getItem(pr.STORAGE_KEYS.routeLibraryDriveCache);
+    if (!raw) return pr.emptyRouteLibrary();
+
+    try {
+      return pr.normalizeRouteLibrary(JSON.parse(raw));
+    } catch (e) {
+      console.warn('Portal Route: failed to load Drive route library cache', e);
+      return pr.emptyRouteLibrary();
+    }
+  };
+
+  pr.saveDriveRouteLibraryCache = function(library) {
+    library = pr.normalizeRouteLibrary(library);
+    library.updatedAt = pr.routeLibraryNow();
+    localStorage.setItem(pr.STORAGE_KEYS.routeLibraryDriveCache, JSON.stringify(library));
+    return library;
+  };
+
+  pr.driveStatusText = function() {
+    if (pr.driveState.lastError) return 'Drive: ' + pr.driveState.lastError;
+    if (pr.isDriveReady()) return 'Drive: ' + (pr.driveState.folderName || pr.DRIVE_DEFAULT_FOLDER_NAME);
+    if (pr.driveState.authorizing || pr.driveState.apiLoading) return 'Drive: connecting';
+    if (pr.driveState.folderId) return 'Drive: reconnect needed';
+    return 'Drive: not connected';
+  };
+
+  pr.isDriveReady = function() {
+    return !!(pr.driveState.authorized && pr.driveState.folderId && pr.driveState.fileId);
+  };
+
+  pr.driveEscapeQueryValue = function(value) {
+    return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  };
+
+  pr.loadGoogleDriveApi = function() {
+    if (pr.driveState.apiLoaded && window.gapi) return Promise.resolve();
+    if (pr.driveApiPromise) return pr.driveApiPromise;
+
+    pr.driveState.apiLoading = true;
+    pr.driveState.lastError = null;
+
+    pr.driveApiPromise = new Promise(function(resolve, reject) {
+      var finish = function() {
+        pr.driveState.apiLoading = false;
+        pr.driveState.apiLoaded = true;
+        resolve();
+      };
+
+      if (window.gapi) {
+        finish();
+        return;
+      }
+
+      var script = document.createElement('script');
+      script.src = pr.DRIVE_API_SCRIPT;
+      script.onload = finish;
+      script.onerror = function() {
+        pr.driveState.apiLoading = false;
+        pr.driveApiPromise = null;
+        reject(new Error('Could not load Google API.'));
+      };
+      document.head.appendChild(script);
+    });
+
+    return pr.driveApiPromise;
+  };
+
+  pr.authorizeDrive = function() {
+    pr.loadDriveState();
+    pr.driveState.authorizing = true;
+    pr.driveState.authorized = false;
+    pr.driveState.lastError = null;
+    pr.refreshRouteLibraryPanel();
+
+    return pr.loadGoogleDriveApi()
+      .then(function() {
+        return new Promise(function(resolve, reject) {
+          window.gapi.load('client:auth2', {
+            callback: resolve,
+            onerror: function() { reject(new Error('Could not initialize Google auth.')); }
+          });
+        });
+      })
+      .then(function() {
+        return window.gapi.client.init({
+          apiKey: pr.DRIVE_API_KEY,
+          discoveryDocs: pr.DRIVE_DISCOVERY_DOCS,
+          client_id: pr.DRIVE_CLIENT_ID,
+          scope: pr.DRIVE_SCOPE
+        });
+      })
+      .then(function() {
+        var auth = window.gapi.auth2.getAuthInstance();
+        if (auth.isSignedIn.get()) return true;
+        return auth.signIn().then(function() { return true; });
+      })
+      .then(function() {
+        pr.driveState.authorizing = false;
+        pr.driveState.authorized = true;
+        pr.refreshRouteLibraryPanel();
+      })
+      .catch(function(error) {
+        pr.driveState.authorizing = false;
+        pr.driveState.authorized = false;
+        pr.driveState.lastError = error && error.message ? error.message : 'Drive connect failed.';
+        pr.refreshRouteLibraryPanel();
+        throw error;
+      });
+  };
+
+  pr.promptDriveFolderName = function() {
+    var current = pr.driveState.folderName || pr.DRIVE_DEFAULT_FOLDER_NAME;
+    if (!window.prompt) return current;
+
+    var name = window.prompt('Google Drive folder', current);
+    if (name === null) return null;
+
+    name = String(name).trim();
+    return name || pr.DRIVE_DEFAULT_FOLDER_NAME;
+  };
+
+  pr.ensureDriveFolder = function(forcePrompt) {
+    var promptedName = forcePrompt || !pr.driveState.folderName ? pr.promptDriveFolderName() : pr.driveState.folderName;
+    if (promptedName === null) return Promise.reject(new Error('Drive folder not selected.'));
+
+    pr.driveState.folderName = promptedName;
+    pr.saveDriveState();
+
+    if (pr.driveState.folderId && !forcePrompt) return Promise.resolve(pr.driveState.folderId);
+
+    var name = pr.driveEscapeQueryValue(pr.driveState.folderName);
+    var q = "name = '" + name + "' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+
+    return window.gapi.client.drive.files.list({
+      q: q,
+      fields: 'files(id,name,modifiedTime)',
+      pageSize: 10
+    }).then(function(response) {
+      var folders = response.result && response.result.files ? response.result.files : [];
+      if (folders.length) {
+        pr.driveState.folderId = folders[0].id;
+        pr.saveDriveState();
+        return pr.driveState.folderId;
+      }
+
+      return window.gapi.client.drive.files.create({
+        fields: 'id',
+        resource: {
+          name: pr.driveState.folderName,
+          mimeType: 'application/vnd.google-apps.folder'
+        }
+      }).then(function(createResponse) {
+        pr.driveState.folderId = createResponse.result.id;
+        pr.saveDriveState();
+        return pr.driveState.folderId;
+      });
+    });
+  };
+
+  pr.ensureDriveLibraryFile = function(forceFolderPrompt) {
+    return pr.ensureDriveFolder(forceFolderPrompt).then(function(folderId) {
+      if (pr.driveState.fileId && !forceFolderPrompt) return pr.driveState.fileId;
+
+      var fileName = pr.driveEscapeQueryValue(pr.DRIVE_LIBRARY_FILE_NAME);
+      var q = "name = '" + fileName + "' and trashed = false and '" + folderId + "' in parents";
+
+      return window.gapi.client.drive.files.list({
+        q: q,
+        fields: 'files(id,name,modifiedTime)',
+        pageSize: 10
+      }).then(function(response) {
+        var files = response.result && response.result.files ? response.result.files : [];
+        if (files.length) {
+          pr.driveState.fileId = files[0].id;
+          pr.saveDriveState();
+          return pr.driveState.fileId;
+        }
+
+        return window.gapi.client.drive.files.create({
+          fields: 'id',
+          resource: {
+            name: pr.DRIVE_LIBRARY_FILE_NAME,
+            mimeType: 'application/json',
+            parents: [folderId]
+          }
+        }).then(function(createResponse) {
+          pr.driveState.fileId = createResponse.result.id;
+          pr.saveDriveState();
+          return pr.writeDriveRouteLibrary(pr.loadDriveRouteLibraryCache());
+        });
+      });
+    });
+  };
+
+  pr.readDriveRouteLibrary = function() {
+    return pr.authorizeDrive().then(function() {
+      return pr.ensureDriveLibraryFile();
+    }).then(function() {
+      return window.gapi.client.drive.files.get({
+        fileId: pr.driveState.fileId,
+        alt: 'media'
+      });
+    }).then(function(response) {
+      var data = response.result;
+      if (typeof data === 'string' && data) data = JSON.parse(data);
+      var library = data && typeof data === 'object' ? pr.normalizeRouteLibrary(data) : pr.emptyRouteLibrary();
+      pr.saveDriveRouteLibraryCache(library);
+      pr.state.routeLibraryBackendId = 'googleDrive';
+      pr.state.selectedLibraryRouteIds = [];
+      pr.refreshRouteLibraryPanel();
+      pr.showMessage('Drive library loaded.');
+      return library;
+    }).catch(function(error) {
+      pr.driveState.lastError = error && error.message ? error.message : 'Drive load failed.';
+      pr.refreshRouteLibraryPanel();
+      pr.showMessage('Drive load failed.');
+    });
+  };
+
+  pr.writeDriveRouteLibrary = function(library) {
+    library = pr.saveDriveRouteLibraryCache(library);
+
+    return window.gapi.client.request({
+      path: '/upload/drive/v3/files/' + pr.driveState.fileId,
+      method: 'PATCH',
+      params: { uploadType: 'media' },
+      body: JSON.stringify(library, null, 2)
+    }).then(function() {
+      pr.driveState.lastError = null;
+      pr.refreshRouteLibraryPanel();
+      return library;
+    });
+  };
+
+  pr.pushDriveRouteLibrary = function() {
+    return pr.authorizeDrive().then(function() {
+      return pr.ensureDriveLibraryFile();
+    }).then(function() {
+      return pr.writeDriveRouteLibrary(pr.loadDriveRouteLibraryCache());
+    }).then(function() {
+      pr.showMessage('Drive library saved.');
+    }).catch(function(error) {
+      pr.driveState.lastError = error && error.message ? error.message : 'Drive save failed.';
+      pr.refreshRouteLibraryPanel();
+      pr.showMessage('Drive save failed.');
+    });
+  };
+
+  pr.pushDriveRouteLibrarySoon = function() {
+    if (pr.state.routeLibraryBackendId !== 'googleDrive') return;
+    if (!pr.isDriveReady()) return;
+
+    if (pr.driveState.pushTimer) window.clearTimeout(pr.driveState.pushTimer);
+    pr.driveState.pushTimer = window.setTimeout(function() {
+      pr.driveState.pushTimer = null;
+      pr.pushDriveRouteLibrary();
+    }, 500);
+  };
+
+  pr.connectDriveRouteLibrary = function() {
+    pr.loadDriveState();
+    return pr.authorizeDrive().then(function() {
+      return pr.ensureDriveLibraryFile();
+    }).then(function() {
+      pr.state.routeLibraryBackendId = 'googleDrive';
+      pr.refreshRouteLibraryPanel();
+      pr.showMessage('Drive connected.');
+    }).catch(function(error) {
+      console.warn('Portal Route: Drive connect failed', error);
+      pr.showMessage('Drive connect failed.');
+    });
+  };
+
+  pr.chooseDriveRouteLibraryFolder = function() {
+    pr.loadDriveState();
+    pr.driveState.folderId = null;
+    pr.driveState.fileId = null;
+    pr.saveDriveState();
+
+    return pr.authorizeDrive().then(function() {
+      return pr.ensureDriveLibraryFile(true);
+    }).then(function() {
+      pr.state.routeLibraryBackendId = 'googleDrive';
+      pr.refreshRouteLibraryPanel();
+      pr.showMessage('Drive folder ready.');
+    }).catch(function(error) {
+      console.warn('Portal Route: Drive folder setup failed', error);
+      pr.showMessage('Drive folder setup failed.');
+    });
+  };
+
+  pr.loadDriveState();
+
   pr.setBusy = function(isBusy) {
     var panel = document.getElementById(pr.DOM_IDS.dialogContent);
     if (panel) panel.classList.toggle('portal-route-busy', !!isBusy);
   };
 
   pr.showMessage = function(message) {
-    var node = document.getElementById('portal-route-message');
+    var node = document.getElementById('portal-route-message') ||
+      document.querySelector('#' + pr.DOM_IDS.routeLibraryContent + ' .portal-route-message') ||
+      document.querySelector('#' + pr.DOM_IDS.pointsDialogContent + ' .portal-route-message');
     if (node) {
       node.textContent = message;
       node.classList.add('portal-route-message-visible');
@@ -4354,6 +4827,9 @@ button.portal-route-waypoint-name,
       'import-saved-route': pr.importSavedRouteJson,
       'export-route-library': pr.exportRouteLibraryJson,
       'import-route-library': pr.importRouteLibraryJson,
+      'drive-connect': pr.chooseDriveRouteLibraryFolder,
+      'drive-pull': pr.readDriveRouteLibrary,
+      'drive-push': pr.pushDriveRouteLibrary,
       'export-route-json': pr.exportRouteJson,
       'import-route-json': pr.importRouteJson,
       'print-route': pr.printRoute,
@@ -4740,6 +5216,8 @@ button.portal-route-waypoint-name,
     } else if (field === 'selected-library-route') {
       pr.setLibraryRouteSelected(target.getAttribute('data-route-id'), target.checked);
       pr.refreshRouteLibraryPanel();
+    } else if (field === 'route-library-backend') {
+      pr.setRouteLibraryBackend(target.value);
     }
   };
 

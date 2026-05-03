@@ -33,6 +33,9 @@ Current release: `1.0.0`
 - Updated design docs for smart Add, automatic routing, and current route-library behavior.
 - Added an active route-library storage backend helper so the UI can move beyond localStorage.
 - Stamped dev build versions with `YYYYMMDDHHMMSS` so userscript updaters notice fresh builds.
+- Added an initial Google Drive route-library backend with manual Connect, Pull, and Push actions.
+- Added Drive-backed route-library caching with a visible `IITC Portal Route/route-library.json` file.
+- Added Route Library panel messages for save/load/import/export and Drive actions.
 
 ### Changed
 

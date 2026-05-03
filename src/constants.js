@@ -23,7 +23,11 @@
     panelSize: 'iitc-portal-route-panel-size',
     route: 'iitc-portal-route-route',
     routeDirty: 'iitc-portal-route-route-dirty',
-    routeLibrary: 'iitc-portal-route-library'
+    routeLibrary: 'iitc-portal-route-library',
+    routeLibraryDriveCache: 'iitc-portal-route-drive-library-cache',
+    routeLibraryDriveFolderId: 'iitc-portal-route-drive-folder-id',
+    routeLibraryDriveFolderName: 'iitc-portal-route-drive-folder-name',
+    routeLibraryDriveFileId: 'iitc-portal-route-drive-file-id'
   };
 
   pr.DEFAULT_SETTINGS = {

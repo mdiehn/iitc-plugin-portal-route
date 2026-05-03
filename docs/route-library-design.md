@@ -18,8 +18,8 @@ Current implementation status:
 
 - Local route records, local storage, Route Library UI, and JSON portability are mostly implemented.
 - A synchronous local storage adapter is started.
-- Google Drive storage has not started yet.
-- IITC Google Drive sync still needs to be inspected before direct Drive work.
+- IITC Google Drive sync has been inspected.
+- Google Drive storage is started as a manual Connect/Pull/Push backend.
 
 Current local-library behavior:
 
@@ -252,6 +252,25 @@ Things to learn:
 - Whether mobile IITC behaves differently from desktop.
 
 Use IITC sync as a reference model, but do not copy unsafe conflict behavior blindly.
+
+Findings from IITC CE `plugins/sync.js`:
+
+- IITC Sync loads Google's `gapi` client directly from `https://apis.google.com/js/api.js`.
+- It uses Drive API v3 with `https://www.googleapis.com/auth/drive.file`.
+- It stores data in a visible folder named `IITC-SYNC-DATA-V3`.
+- It creates one Drive file per registered plugin field, using names like `plugin[field]`.
+- Plugins register map-like fields through `plugin.sync.registerMapForSync(...)`.
+- Sync checks every 3 minutes.
+- Remote updates replace the local registered map when the last update UUID belongs to another client.
+- The sync plugin warns developers to treat Drive data as volatile because a Google API client ID change can make old app-created files inaccessible.
+
+Portal Route decision:
+
+- Do not register with IITC Sync for the first Drive slice.
+- Reuse the broad working assumptions: `gapi`, Drive v3, `drive.file`, cached folder/file IDs, visible Drive files.
+- Keep the route library in a human-readable `route-library.json` file.
+- Keep updates manual or action-driven first; do not add timer polling yet.
+- Avoid silent conflict resolution until desktop/phone write behavior is tested.
 
 ## Shared map snapshot idea
 

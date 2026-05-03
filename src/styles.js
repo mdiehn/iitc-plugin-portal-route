@@ -471,6 +471,29 @@ button.portal-route-waypoint-badge-wide {
   text-align: center;
 }
 
+.portal-route-library-storage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  color: #ccc;
+  font-size: 11px;
+}
+
+.portal-route-library-storage label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+}
+
+.portal-route-library-storage select {
+  max-width: 130px;
+  font-size: 11px;
+}
+
 .portal-route-library-toolbar {
   justify-content: center;
   margin-bottom: 7px;

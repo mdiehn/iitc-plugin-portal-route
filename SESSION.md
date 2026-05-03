@@ -112,45 +112,53 @@ UI state:
 - The list shows stop count and updated timestamp.
 - Source label currently shows `Stored in: This browser`.
 
-## Current uncommitted worktree
+## Current Google Drive work
 
-Known dirty files at session refresh:
+Started after commit `3bfa200`.
 
-- `AGENTS.md`
-- `CHANGELOG.md`
-- `build.js`
-- `dist/portal-route.meta.js`
-- `dist/portal-route.user.js`
-- `docs/route-library-design.md`
-- `src/route-library.js`
-- `src/state.js`
-- `src/ui.js`
+IITC Sync source inspected:
 
-Important uncommitted changes:
+- Source path: IITC CE `plugins/sync.js`.
+- It loads Google's `gapi` client and uses Drive API v3.
+- Scope is `drive.file`.
+- It creates a visible folder named `IITC-SYNC-DATA-V3`.
+- It stores one file per registered plugin field.
+- Plugins register syncable maps with `plugin.sync.registerMapForSync(...)`.
+- It polls every 3 minutes.
+- Remote updates replace local maps if the update UUID belongs to another client.
 
-- `AGENTS.md` says the plugin is Portal Route instead of Driving Route.
-- Route library storage calls now go through `pr.routeLibraryStorage()`.
-- Added `pr.storageBackends.local`, `loadLibrary()`, and `saveLibrary()` shape.
-- Added `pr.state.routeLibraryBackendId = 'local'`.
-- Route Library source label uses backend label.
-- Build now stamps dev userscript versions when `@version` contains `-dev`.
-- Stamp format is `YYYYMMDDHHMMSS`, e.g. `1.1.0-dev.20260503143022`.
-- `CHANGELOG.md` has entries for backend helper and dev build stamping.
+Portal Route decision:
 
-Note: `dist/` is dirty from a previous build. Do not refresh/generated-update `dist/` unless Mike asks.
+- Do not use IITC Sync registration for the first slice.
+- Follow its known-good assumptions: `gapi`, Drive v3, `drive.file`, cached folder/file IDs.
+- Use a visible folder named by the user, defaulting to `IITC Portal Route`.
+- Store a human-readable `route-library.json`.
+- Add manual Connect, Pull, and Push controls.
+- Avoid polling/live sync and hidden `appDataFolder`.
 
-## Verification already done this session
+Current implementation:
 
-- `node --check build.js` passed after changing dev build stamps to `YYYYMMDDHHMMSS`.
+- Added `src/drive-storage.js`.
+- Added Drive route-library local cache and Drive folder/file ID storage keys.
+- Added `googleDrive` storage backend.
+- Added Route Library storage selector.
+- Added Drive Connect, Pull, and Push actions in the Route Library panel.
+- Drive writes are action-driven and cached locally.
 
-## Next likely work
+Verification:
 
-1. Review the uncommitted route-library storage adapter changes and decide whether they are ready to commit.
-2. Run source syntax/build checks only if Mike wants generated `dist/` touched, or check assembled source without writing `dist/`.
-3. Field-test local route library and smart Add on desktop/mobile IITC.
-4. Inspect IITC's existing Google Drive sync implementation before writing Drive code.
-5. Document whether Portal Route can reuse IITC auth/session/sync machinery.
-6. Add a Google Drive backend only after local route library behavior and adapter shape feel stable.
+- `node --check build.js`
+- assembled source syntax check at `/tmp/portal-route-check.js`
+- `node --check src/drive-storage.js`
+
+Commit message notes:
+
+- Add Google Drive route-library backend
+- Add manual Drive Connect/Pull/Push controls
+- Cache Drive route library locally
+- Show Route Library action messages in the panel
+- Document IITC Sync findings
+- Credit IITC Sync/xelio in README
 
 ## Open questions from design docs
 
@@ -158,6 +166,6 @@ Note: `dist/` is dirty from a previous build. Do not refresh/generated-update `d
 - Should loading a route restore map center/zoom? Current behavior: yes.
 - Should there be a separate Save As action, or is unchecked Save enough?
 - Should Load remain in the Route Library panel when Drive storage is added?
-- Can Portal Route reuse IITC's Google Drive sync credentials or registration hooks?
+- Can Portal Route keep using IITC Sync's public Google client ID safely long term?
 - What is the safest initial conflict behavior for Drive writes from phone and desktop?
 - Should shared current-map handoff use `current-map.json` later? Treat as later than route-library storage.

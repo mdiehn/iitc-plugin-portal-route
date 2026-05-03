@@ -76,8 +76,35 @@
   pr.emptyRouteLibrary = function() {
     return {
       schemaVersion: pr.ROUTE_LIBRARY_SCHEMA_VERSION,
+      plugin: pr.ID,
+      pluginVersion: pr.VERSION,
+      updatedAt: pr.routeLibraryNow(),
       routes: []
     };
+  };
+
+  pr.normalizeRouteLibrary = function(library) {
+    if (!library || typeof library !== 'object' || !Array.isArray(library.routes)) {
+      return pr.emptyRouteLibrary();
+    }
+
+    var normalized = {
+      schemaVersion: library.schemaVersion || pr.ROUTE_LIBRARY_SCHEMA_VERSION,
+      plugin: library.plugin || pr.ID,
+      pluginVersion: library.pluginVersion || pr.VERSION,
+      updatedAt: library.updatedAt || null,
+      routes: []
+    };
+
+    library.routes.forEach(function(route) {
+      var record = pr.normalizeRouteRecord(route, {
+        keepUpdatedAt: true
+      });
+      if (record) normalized.routes.push(record);
+    });
+
+    if (!normalized.updatedAt) normalized.updatedAt = pr.routeLibraryNow();
+    return normalized;
   };
 
   pr.loadRouteLibrary = function() {
@@ -85,13 +112,7 @@
     if (!raw) return pr.emptyRouteLibrary();
 
     try {
-      var library = JSON.parse(raw);
-      if (!library || typeof library !== 'object' || !Array.isArray(library.routes)) {
-        return pr.emptyRouteLibrary();
-      }
-
-      library.schemaVersion = library.schemaVersion || pr.ROUTE_LIBRARY_SCHEMA_VERSION;
-      return library;
+      return pr.normalizeRouteLibrary(JSON.parse(raw));
     } catch (e) {
       console.warn('Portal Route: failed to load route library', e);
       return pr.emptyRouteLibrary();
@@ -99,6 +120,8 @@
   };
 
   pr.saveRouteLibrary = function(library) {
+    library = pr.normalizeRouteLibrary(library);
+    library.updatedAt = pr.routeLibraryNow();
     localStorage.setItem(pr.STORAGE_KEYS.routeLibrary, JSON.stringify(library));
   };
 
@@ -200,9 +223,64 @@
 
   pr.storageBackends.local = pr.localRouteStorage;
 
+  pr.driveStorage = {
+    id: 'googleDrive',
+    label: 'Google Drive',
+    loadLibrary: function() {
+      return pr.loadDriveRouteLibraryCache();
+    },
+    saveLibrary: function(library) {
+      library = pr.saveDriveRouteLibraryCache(library);
+      pr.pushDriveRouteLibrarySoon();
+      return library;
+    },
+    listRoutes: function() {
+      return this.loadLibrary().routes.slice().sort(function(a, b) {
+        return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
+      });
+    },
+    getRoute: function(id) {
+      return pr.findLibraryRoute(this.loadLibrary(), id);
+    },
+    saveRoute: function(route) {
+      var library = this.loadLibrary();
+      var replaced = false;
+
+      library.routes = library.routes.map(function(existing) {
+        if (existing && existing.id === route.id) {
+          replaced = true;
+          return route;
+        }
+        return existing;
+      });
+
+      if (!replaced) library.routes.push(route);
+      this.saveLibrary(library);
+      return route;
+    },
+    deleteRoute: function(id) {
+      var library = this.loadLibrary();
+      var before = library.routes.length;
+      library.routes = library.routes.filter(function(route) {
+        return route && route.id !== id;
+      });
+      this.saveLibrary(library);
+      return library.routes.length !== before;
+    }
+  };
+
+  pr.storageBackends.googleDrive = pr.driveStorage;
+
   pr.routeLibraryStorage = function() {
     var backendId = pr.state.routeLibraryBackendId || 'local';
     return pr.storageBackends[backendId] || pr.localRouteStorage;
+  };
+
+  pr.setRouteLibraryBackend = function(backendId) {
+    if (!pr.storageBackends[backendId]) backendId = 'local';
+    pr.state.routeLibraryBackendId = backendId;
+    pr.state.selectedLibraryRouteIds = [];
+    pr.refreshRouteLibraryPanel();
   };
 
   pr.promptRouteName = function(defaultName) {
@@ -606,6 +684,30 @@
     pr.showMessage(added ? 'Imported ' + added + ' saved routes.' : 'No routes imported.');
   };
 
+  pr.renderRouteLibraryStorageControls = function(storage) {
+    var driveReady = pr.isDriveReady();
+    var driveState = pr.driveStatusText();
+    var html = '';
+
+    html += '<div class="portal-route-library-storage">';
+    html += '<label>Store <select data-field="route-library-backend">';
+    html += '<option value="local"' + (storage.id === 'local' ? ' selected' : '') + '>This browser</option>';
+    html += '<option value="googleDrive"' + (storage.id === 'googleDrive' ? ' selected' : '') + '>Google Drive</option>';
+    html += '</select></label>';
+    html += '<span>' + pr.escapeHtml(driveState) + '</span>';
+    html += '</div>';
+
+    if (storage.id === 'googleDrive') {
+      html += '<div class="portal-route-control-group-buttons portal-route-library-toolbar">';
+      html += '<button type="button" data-action="drive-connect">' + (driveReady ? 'Change Folder' : 'Connect Drive') + '</button>';
+      html += '<button type="button" data-action="drive-pull"' + (driveReady ? '' : ' disabled') + '>Pull Drive</button>';
+      html += '<button type="button" data-action="drive-push"' + (driveReady ? '' : ' disabled') + '>Push Drive</button>';
+      html += '</div>';
+    }
+
+    return html;
+  };
+
   pr.importRouteLibraryJson = function() {
     pr.readJsonFile(function(data) {
       try {
@@ -650,6 +752,7 @@
     var anyDisabled = selectedCount ? '' : ' disabled';
     var contentHtml = '';
     contentHtml += '<div class="portal-route-library-source">Stored in: ' + pr.escapeHtml(storage.label || storage.id || 'Route library') + '</div>';
+    contentHtml += pr.renderRouteLibraryStorageControls(storage);
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-library-toolbar">';
     contentHtml += '<button type="button" data-action="export-route-library">Export Library</button>';
     contentHtml += '<button type="button" data-action="import-route-library">Import Library</button>';
@@ -669,6 +772,7 @@
     contentHtml += '<button type="button" data-action="export-selected-saved-route"' + anyDisabled + '>Export</button>';
     contentHtml += '<button type="button" data-action="delete-selected-saved-route"' + anyDisabled + '>Delete</button>';
     contentHtml += '</div>';
+    contentHtml += '<div class="portal-route-message"></div>';
     return contentHtml;
   };
 

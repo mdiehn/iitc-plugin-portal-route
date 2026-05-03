@@ -4,7 +4,9 @@
   };
 
   pr.showMessage = function(message) {
-    var node = document.getElementById('portal-route-message');
+    var node = document.getElementById('portal-route-message') ||
+      document.querySelector('#' + pr.DOM_IDS.routeLibraryContent + ' .portal-route-message') ||
+      document.querySelector('#' + pr.DOM_IDS.pointsDialogContent + ' .portal-route-message');
     if (node) {
       node.textContent = message;
       node.classList.add('portal-route-message-visible');
@@ -173,6 +175,9 @@
       'import-saved-route': pr.importSavedRouteJson,
       'export-route-library': pr.exportRouteLibraryJson,
       'import-route-library': pr.importRouteLibraryJson,
+      'drive-connect': pr.chooseDriveRouteLibraryFolder,
+      'drive-pull': pr.readDriveRouteLibrary,
+      'drive-push': pr.pushDriveRouteLibrary,
       'export-route-json': pr.exportRouteJson,
       'import-route-json': pr.importRouteJson,
       'print-route': pr.printRoute,
@@ -559,6 +564,8 @@
     } else if (field === 'selected-library-route') {
       pr.setLibraryRouteSelected(target.getAttribute('data-route-id'), target.checked);
       pr.refreshRouteLibraryPanel();
+    } else if (field === 'route-library-backend') {
+      pr.setRouteLibraryBackend(target.value);
     }
   };
 
