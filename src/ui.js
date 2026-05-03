@@ -141,6 +141,14 @@
     var index = target ? Number(target.getAttribute('data-index')) : -1;
     var actions = {
       'open-main': pr.openMainPanel,
+      'open-add-menu': function() {
+        if (!target || !target.getBoundingClientRect) {
+          pr.openAddMenu(20, 20);
+          return;
+        }
+        var rect = target.getBoundingClientRect();
+        pr.openAddMenu(rect.left, rect.bottom + 4);
+      },
       'open-route-menu': function() {
         if (!target || !target.getBoundingClientRect) {
           pr.openRouteMenu(20, 20);
@@ -292,12 +300,12 @@
       '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
       '<a href="#" class="portal-route-mini-add portal-route-smart-button' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '" data-add-menu="true">' + addRemoveText + '</a>' +
       '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
-      '<a href="#" class="portal-route-smart-button" title="Open Portal Route menu" data-action="open-route-menu">=</a>';
+      '<a href="#" class="portal-route-smart-button" title="Open Portal Route menu" data-action="open-route-menu" data-route-menu="true">=</a>';
   };
 
   pr.panelForEvent = function(ev) {
     if (!ev.target || !ev.target.closest) return null;
-    return ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent + ', #' + pr.DOM_IDS.routeLibraryContent + ', .portal-route-context-menu');
+    return ev.target.closest('#' + pr.DOM_IDS.dialogContent + ', #' + pr.DOM_IDS.pointsDialogContent + ', #' + pr.DOM_IDS.routeLibraryContent + ', .portal-route-portal-action, .portal-route-context-menu');
   };
 
   pr.handleDialogClick = function(ev) {
@@ -326,9 +334,14 @@
     return target && target.closest ? target.closest('[data-add-menu]') : null;
   };
 
+  pr.routeMenuTarget = function(target) {
+    return target && target.closest ? target.closest('[data-route-menu]') : null;
+  };
+
   pr.closeAddMenu = function() {
     var menu = document.querySelector('.portal-route-context-menu');
     if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
+    if (menu && pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
   };
 
   pr.openAddMenu = function(x, y) {
@@ -337,6 +350,7 @@
     var menu = document.createElement('div');
     menu.className = 'portal-route-context-menu';
     menu.innerHTML = '' +
+      '<button type="button" data-action="smart-add">Auto action</button>' +
       '<button type="button" data-action="add-current-location">Add current location</button>' +
       '<button type="button" data-action="add-selected-stop"' + (window.selectedPortal ? '' : ' disabled') + '>Add selected portal</button>' +
       '<button type="button" data-action="add-map-point">Add point</button>' +
@@ -405,16 +419,24 @@
     if (pr.handleStopMenuContext(ev)) return;
 
     var target = pr.addMenuTarget(ev.target);
+    if (target) {
+      ev.preventDefault();
+      pr.openAddMenu(ev.clientX || 12, ev.clientY || 12);
+      return;
+    }
+
+    target = pr.routeMenuTarget(ev.target);
     if (!target) return;
 
     ev.preventDefault();
-    pr.openAddMenu(ev.clientX || 12, ev.clientY || 12);
+    pr.openRouteMenu(ev.clientX || 12, ev.clientY || 12);
   };
 
   pr.handleAddMenuTouchStart = function(ev) {
     var target = pr.addMenuTarget(ev.target);
+    var routeTarget = pr.routeMenuTarget(ev.target);
     var row = ev.target.closest('.portal-route-stop');
-    if ((!target && !row) || !window.setTimeout) return;
+    if ((!target && !routeTarget && !row) || !window.setTimeout) return;
 
     if (pr.state.addMenuLongPressTimer) window.clearTimeout(pr.state.addMenuLongPressTimer);
     var touch = ev.touches && ev.touches[0];
@@ -426,6 +448,8 @@
       pr.state.suppressNextAddClick = true;
       if (row && !ev.target.closest('input, textarea, select')) {
         pr.openStopMenu(Number(row.getAttribute('data-index')), x, y);
+      } else if (routeTarget) {
+        pr.openRouteMenu(x, y);
       } else {
         pr.openAddMenu(x, y);
       }

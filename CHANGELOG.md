@@ -49,6 +49,8 @@ Current release: `1.0.0`
 - Replaced the settings panel Data box with a Route Library button.
 - Replaced repeated Route/Library/Settings navigation buttons with a distinct smart menu button.
 - Styled the smart route action button separately and renamed smart Add surfaces to Action.
+- Kept portal details controls from disappearing after dismissing a context menu.
+- Made Action and Menu smart buttons open menus consistently on left-click.
 
 ## 1.0.0 - Released - 2026-05-02
 
