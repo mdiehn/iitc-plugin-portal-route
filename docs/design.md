@@ -59,8 +59,8 @@ Done:
 
 Mostly done in `1.1.0-dev`:
 
-- Smart Add
-- shared Add context menu
+- Action as the smart route-building control
+- shared Action context menu
 - compact mini control
 - route list as the day-to-day work panel
 - settings panel as a small settings/navigation panel

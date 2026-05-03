@@ -147,7 +147,10 @@
       var link = document.createElement('a');
       link.href = '#';
       link.textContent = label;
-      if (label === 'Add') link.setAttribute('data-add-menu', 'true');
+      if (label === 'Action') {
+        link.className = 'portal-route-smart-button';
+        link.setAttribute('data-add-menu', 'true');
+      }
       link.addEventListener('click', function(ev) {
         ev.preventDefault();
         handler();
@@ -156,7 +159,7 @@
       return link;
     }
 
-    if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) addActionLink(isInRoute ? 'Remove' : 'Add', function() {
+    if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) addActionLink('Action', function() {
       if (isInRoute) {
         pr.removeStop(selectedIndex);
       } else if (window.selectedPortal) {
@@ -167,24 +170,15 @@
       pr.injectPortalDetailsAction();
     });
 
-    addActionLink('List', function() {
-      pr.state.pointsPanelOpen = true;
-      pr.renderPointsPanel();
-    });
-
     addActionLink('Maps', function() {
       pr.openGoogleMaps();
     });
 
-    addActionLink('Settings', function() {
-      pr.state.panelOpen = true;
-      pr.savePanelOpen();
-      pr.renderPanel();
+    var menuLink = addActionLink('Menu', function() {
+      var rect = links.getBoundingClientRect();
+      pr.openRouteMenu(rect.left, rect.bottom + 4);
     });
-
-    addActionLink('Library', function() {
-      pr.openRouteLibraryPanel();
-    });
+    menuLink.className = 'portal-route-smart-button';
 
     wrapper.appendChild(links);
   };

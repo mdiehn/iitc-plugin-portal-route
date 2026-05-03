@@ -10,12 +10,12 @@ Current release: `1.0.0`
 
 This is the first stable release.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/feat/google-drive-storage/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/feat/update-smartButtons/dist/portal-route.user.js)
 
 ## Quick start
 
 1. Select a portal in IITC.
-2. Click **Add**.
+2. Click **Action**.
 3. Add more portals, manual points, or your current location.
 4. Adjust stop times if needed.
 5. Use **Maps**, **Print**, **Save**, or **Load** as needed.
@@ -36,10 +36,10 @@ The points list shows the current route order. Drag rows to reorder stops. Right
 
 - **Show segment times on map** shows per-leg labels on the route line when route data is available.
 
-### Add
+### Action
 
-- **Add** starts with your current location for an empty route, adds the selected portal when one is selected, or lets you place a manual map point.
-- Right-click or long-press **Add** for Add current location, Add selected portal, Add point, Loop/Unloop, Reverse route, and Clear route.
+- **Action** starts with your current location for an empty route, adds the selected portal when one is selected, or lets you place a manual map point.
+- Right-click or long-press **Action** for Add current location, Add selected portal, Add point, Loop/Unloop, Reverse route, and Clear route.
 
 ![Portal Route Add menu](docs/screen_02_add_menu.png)
 
@@ -79,7 +79,7 @@ The mini control is for quick route actions while mostly staying on the map.
 
 - **M** opens the current route in Google Maps.
 - **L** toggles loop back to start.
-- **+ / -** adds to the route or removes the selected portal or manual point. Right-click or long-press for the Add menu.
+- **+ / -** adds to the route or removes the selected portal or manual point. Right-click or long-press for the Action menu.
 - **count button** opens the route list.
 - **=** opens settings.
 

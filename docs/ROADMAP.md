@@ -59,9 +59,9 @@ Implementation started local and boring. The route model, local backend, JSON po
 
 Current v1.1.0-dev UI state:
 
-- Smart Add is the primary route-building control.
+- Action is the primary route-building control.
 - Routes calculate automatically after changes.
-- The mini control is `M`, `L`, add/remove, route count, and settings.
+- The mini control is `M`, `L`, add/remove, route count, and route menu.
 - The route list is the working console for day-to-day route work.
 - Route-list row actions live in a right-click/long-press menu.
 - The settings panel is a small settings/navigation panel with manual Recalc Route.
@@ -324,7 +324,7 @@ Possible future targets:
 Suggested next path:
 
 1. Review and commit the local storage-adapter cleanup.
-2. Field-test route library and smart Add on desktop and phone.
+2. Field-test route library and Action behavior on desktop and phone.
 3. Inspect IITC's existing Google Drive sync code.
 4. Add Google Drive backend using a visible user-selected Drive folder.
 5. Field-test shared storage on desktop and phone.

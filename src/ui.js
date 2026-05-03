@@ -141,6 +141,14 @@
     var index = target ? Number(target.getAttribute('data-index')) : -1;
     var actions = {
       'open-main': pr.openMainPanel,
+      'open-route-menu': function() {
+        if (!target || !target.getBoundingClientRect) {
+          pr.openRouteMenu(20, 20);
+          return;
+        }
+        var rect = target.getBoundingClientRect();
+        pr.openRouteMenu(rect.left, rect.bottom + 4);
+      },
       'open-edit': pr.openMainPanel,
       'close-panel': function() {
         pr.state.panelOpen = false;
@@ -282,9 +290,9 @@
     container.innerHTML = '' +
       '<a href="#" title="Open route in Google Maps" data-action="open-google-maps">M</a>' +
       '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
-      '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '" data-add-menu="true">' + addRemoveText + '</a>' +
+      '<a href="#" class="portal-route-mini-add portal-route-smart-button' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '" data-add-menu="true">' + addRemoveText + '</a>' +
       '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
-      '<a href="#" title="Open Portal Route menu" data-action="open-main">=</a>';
+      '<a href="#" class="portal-route-smart-button" title="Open Portal Route menu" data-action="open-route-menu">=</a>';
   };
 
   pr.panelForEvent = function(ev) {
@@ -337,6 +345,20 @@
       '<button type="button" data-action="reverse-route"' + (pr.state.stops.length > 1 ? '' : ' disabled') + '>Reverse route</button>' +
       '<div class="portal-route-context-divider"></div>' +
       '<button type="button" data-action="clear-route"' + (pr.state.stops.length ? '' : ' disabled') + '>Clear route</button>';
+
+    document.body.appendChild(menu);
+    pr.positionContextMenu(menu, x, y);
+  };
+
+  pr.openRouteMenu = function(x, y) {
+    pr.closeAddMenu();
+
+    var menu = document.createElement('div');
+    menu.className = 'portal-route-context-menu portal-route-nav-menu';
+    menu.innerHTML = '' +
+      '<button type="button" data-action="open-points-list">Route</button>' +
+      '<button type="button" data-action="load-route">Library</button>' +
+      '<button type="button" data-action="open-main">Settings</button>';
 
     document.body.appendChild(menu);
     pr.positionContextMenu(menu, x, y);

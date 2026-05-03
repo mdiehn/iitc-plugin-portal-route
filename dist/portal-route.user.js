@@ -2,10 +2,10 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version        1.1.0-dev.20260503115037
+// @version        1.1.0-dev.20260503130435
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
-// @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/google-drive-storage/dist/portal-route.meta.js
-// @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/google-drive-storage/dist/portal-route.user.js
+// @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/update-smartButtons/dist/portal-route.meta.js
+// @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/update-smartButtons/dist/portal-route.user.js
 // @description    Route planning through selected portals with segment drive times, stop-time accounting, and Google Maps export.
 // @include        https://intel.ingress.com/*
 // @include        http://intel.ingress.com/*
@@ -396,6 +396,22 @@ button.portal-route-waypoint-badge-wide {
 .portal-route-control-group-buttons button.portal-route-active-action {
   border-color: rgba(255, 216, 0, 0.85) !important;
   background: rgba(255, 216, 0, 0.22) !important;
+}
+
+.portal-route-control-group-buttons button.portal-route-smart-button,
+.portal-route-smart-button {
+  border-color: rgba(128, 216, 255, 0.75) !important;
+  box-shadow: inset 0 0 0 1px rgba(128, 216, 255, 0.25) !important;
+}
+
+.portal-route-mini-control a.portal-route-smart-button {
+  outline: 1px solid rgba(128, 216, 255, 0.75);
+  outline-offset: -2px;
+}
+
+.portal-route-portal-action-links a.portal-route-smart-button {
+  outline: 1px solid rgba(128, 216, 255, 0.75);
+  outline-offset: 1px;
 }
 
 .portal-route-maps-stages .portal-route-control-group-buttons {
@@ -957,7 +973,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.1.0-dev.20260503115037';
+  pr.VERSION = '1.1.0-dev.20260503130435';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -1320,7 +1336,10 @@ button.portal-route-waypoint-name,
       var link = document.createElement('a');
       link.href = '#';
       link.textContent = label;
-      if (label === 'Add') link.setAttribute('data-add-menu', 'true');
+      if (label === 'Action') {
+        link.className = 'portal-route-smart-button';
+        link.setAttribute('data-add-menu', 'true');
+      }
       link.addEventListener('click', function(ev) {
         ev.preventDefault();
         handler();
@@ -1329,7 +1348,7 @@ button.portal-route-waypoint-name,
       return link;
     }
 
-    if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) addActionLink(isInRoute ? 'Remove' : 'Add', function() {
+    if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) addActionLink('Action', function() {
       if (isInRoute) {
         pr.removeStop(selectedIndex);
       } else if (window.selectedPortal) {
@@ -1340,24 +1359,15 @@ button.portal-route-waypoint-name,
       pr.injectPortalDetailsAction();
     });
 
-    addActionLink('List', function() {
-      pr.state.pointsPanelOpen = true;
-      pr.renderPointsPanel();
-    });
-
     addActionLink('Maps', function() {
       pr.openGoogleMaps();
     });
 
-    addActionLink('Settings', function() {
-      pr.state.panelOpen = true;
-      pr.savePanelOpen();
-      pr.renderPanel();
+    var menuLink = addActionLink('Menu', function() {
+      var rect = links.getBoundingClientRect();
+      pr.openRouteMenu(rect.left, rect.bottom + 4);
     });
-
-    addActionLink('Library', function() {
-      pr.openRouteLibraryPanel();
-    });
+    menuLink.className = 'portal-route-smart-button';
 
     wrapper.appendChild(links);
   };
@@ -2733,7 +2743,7 @@ button.portal-route-waypoint-name,
   };
 
   pr.renderEmptyHelp = function() {
-    return '<p class="portal-route-empty">There are no waypoints defined.<br>Use Add to start a route.</p>';
+    return '<p class="portal-route-empty">There are no waypoints defined.<br>Use Action to start a route.</p>';
   };
 
   pr.renderRouteSegment = function(leg) {
@@ -2834,8 +2844,7 @@ button.portal-route-waypoint-name,
 
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
     html += '<button type="button" data-action="calculate-route">Recalc Route</button>';
-    html += '<button type="button" data-action="open-points-list">Open Route List</button>';
-    html += '<button type="button" data-action="load-route">Route Library</button>';
+    html += '<button type="button" class="portal-route-smart-button" data-action="open-route-menu">Menu</button>';
     html += '</div>';
 
     if (pr.SHOW_VERSION_IN_PANEL) {
@@ -3109,14 +3118,14 @@ button.portal-route-waypoint-name,
     contentHtml += '<div class="portal-route-body">' + pr.renderStopsList(legsByToIndex) + '</div>';
     contentHtml += '</div>';
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-panel-actions">';
-    contentHtml += '<button type="button" data-action="smart-add" data-add-menu="true"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add</button>';
+    contentHtml += '<button type="button" data-action="smart-add" data-add-menu="true" class="portal-route-smart-button' + (pr.state.addPointMode ? ' portal-route-active-action' : '') + '">Action</button>';
     contentHtml += '<button type="button" data-action="fit-route">Fit</button>';
     contentHtml += '<button type="button" data-action="open-google-maps">Maps</button>';
     contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';
     contentHtml += '<button type="button" data-action="save-route">Save</button>';
     contentHtml += '<button type="button" data-action="load-route">Load</button>';
-    contentHtml += '<button type="button" data-action="open-main">Settings</button>';
+    contentHtml += '<button type="button" class="portal-route-smart-button" data-action="open-route-menu">Menu</button>';
     contentHtml += '</div>';
     var existingContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);
 
@@ -4793,6 +4802,14 @@ button.portal-route-waypoint-name,
     var index = target ? Number(target.getAttribute('data-index')) : -1;
     var actions = {
       'open-main': pr.openMainPanel,
+      'open-route-menu': function() {
+        if (!target || !target.getBoundingClientRect) {
+          pr.openRouteMenu(20, 20);
+          return;
+        }
+        var rect = target.getBoundingClientRect();
+        pr.openRouteMenu(rect.left, rect.bottom + 4);
+      },
       'open-edit': pr.openMainPanel,
       'close-panel': function() {
         pr.state.panelOpen = false;
@@ -4934,9 +4951,9 @@ button.portal-route-waypoint-name,
     container.innerHTML = '' +
       '<a href="#" title="Open route in Google Maps" data-action="open-google-maps">M</a>' +
       '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
-      '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '" data-add-menu="true">' + addRemoveText + '</a>' +
+      '<a href="#" class="portal-route-mini-add portal-route-smart-button' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '" data-add-menu="true">' + addRemoveText + '</a>' +
       '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
-      '<a href="#" title="Open Portal Route menu" data-action="open-main">=</a>';
+      '<a href="#" class="portal-route-smart-button" title="Open Portal Route menu" data-action="open-route-menu">=</a>';
   };
 
   pr.panelForEvent = function(ev) {
@@ -4989,6 +5006,20 @@ button.portal-route-waypoint-name,
       '<button type="button" data-action="reverse-route"' + (pr.state.stops.length > 1 ? '' : ' disabled') + '>Reverse route</button>' +
       '<div class="portal-route-context-divider"></div>' +
       '<button type="button" data-action="clear-route"' + (pr.state.stops.length ? '' : ' disabled') + '>Clear route</button>';
+
+    document.body.appendChild(menu);
+    pr.positionContextMenu(menu, x, y);
+  };
+
+  pr.openRouteMenu = function(x, y) {
+    pr.closeAddMenu();
+
+    var menu = document.createElement('div');
+    menu.className = 'portal-route-context-menu portal-route-nav-menu';
+    menu.innerHTML = '' +
+      '<button type="button" data-action="open-points-list">Route</button>' +
+      '<button type="button" data-action="load-route">Library</button>' +
+      '<button type="button" data-action="open-main">Settings</button>';
 
     document.body.appendChild(menu);
     pr.positionContextMenu(menu, x, y);

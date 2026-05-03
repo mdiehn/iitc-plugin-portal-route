@@ -8,7 +8,7 @@
   };
 
   pr.renderEmptyHelp = function() {
-    return '<p class="portal-route-empty">There are no waypoints defined.<br>Use Add to start a route.</p>';
+    return '<p class="portal-route-empty">There are no waypoints defined.<br>Use Action to start a route.</p>';
   };
 
   pr.renderRouteSegment = function(leg) {
@@ -109,8 +109,7 @@
 
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
     html += '<button type="button" data-action="calculate-route">Recalc Route</button>';
-    html += '<button type="button" data-action="open-points-list">Open Route List</button>';
-    html += '<button type="button" data-action="load-route">Route Library</button>';
+    html += '<button type="button" class="portal-route-smart-button" data-action="open-route-menu">Menu</button>';
     html += '</div>';
 
     if (pr.SHOW_VERSION_IN_PANEL) {
@@ -384,14 +383,14 @@
     contentHtml += '<div class="portal-route-body">' + pr.renderStopsList(legsByToIndex) + '</div>';
     contentHtml += '</div>';
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-panel-actions">';
-    contentHtml += '<button type="button" data-action="smart-add" data-add-menu="true"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add</button>';
+    contentHtml += '<button type="button" data-action="smart-add" data-add-menu="true" class="portal-route-smart-button' + (pr.state.addPointMode ? ' portal-route-active-action' : '') + '">Action</button>';
     contentHtml += '<button type="button" data-action="fit-route">Fit</button>';
     contentHtml += '<button type="button" data-action="open-google-maps">Maps</button>';
     contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';
     contentHtml += '<button type="button" data-action="save-route">Save</button>';
     contentHtml += '<button type="button" data-action="load-route">Load</button>';
-    contentHtml += '<button type="button" data-action="open-main">Settings</button>';
+    contentHtml += '<button type="button" class="portal-route-smart-button" data-action="open-route-menu">Menu</button>';
     contentHtml += '</div>';
     var existingContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);
 

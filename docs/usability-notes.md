@@ -17,9 +17,9 @@ This file is current as of `1.1.0-dev`. Older Plot/Replot notes have been folded
 ### Mini control
 
 - Replaced mobile-unfriendly glyphs and emoji with plain labels.
-- Simplified the control around Maps, Loop, Smart Add/remove, route count, and settings.
+- Simplified the control around Maps, Loop, Action/add/remove, route count, and the route menu.
 - Removed Plot/Replot as a primary control because route calculation is automatic.
-- Kept long-press/right-click behavior for the Add context menu.
+- Kept long-press/right-click behavior for the Action context menu.
 
 ### Panels and dialogs
 

@@ -36,6 +36,7 @@ Current release: `1.0.0`
 - Added an initial Google Drive route-library backend with manual Connect, Pull, and Push actions.
 - Added Drive-backed route-library caching with a visible `IITC Portal Route/route-library.json` file.
 - Added Route Library panel messages for save/load/import/export and Drive actions.
+- Added a shared Route menu for Route, Library, and Settings navigation.
 
 ### Changed
 
@@ -46,6 +47,8 @@ Current release: `1.0.0`
 - Moved route summary info to the top of the route list panel and show distance in miles and kilometers.
 - Slimmed the settings panel by moving route actions and summary details into the route list workflow.
 - Replaced the settings panel Data box with a Route Library button.
+- Replaced repeated Route/Library/Settings navigation buttons with a distinct smart menu button.
+- Styled the smart route action button separately and renamed smart Add surfaces to Action.
 
 ## 1.0.0 - Released - 2026-05-02
 

@@ -376,6 +376,22 @@ button.portal-route-waypoint-badge-wide {
   background: rgba(255, 216, 0, 0.22) !important;
 }
 
+.portal-route-control-group-buttons button.portal-route-smart-button,
+.portal-route-smart-button {
+  border-color: rgba(128, 216, 255, 0.75) !important;
+  box-shadow: inset 0 0 0 1px rgba(128, 216, 255, 0.25) !important;
+}
+
+.portal-route-mini-control a.portal-route-smart-button {
+  outline: 1px solid rgba(128, 216, 255, 0.75);
+  outline-offset: -2px;
+}
+
+.portal-route-portal-action-links a.portal-route-smart-button {
+  outline: 1px solid rgba(128, 216, 255, 0.75);
+  outline-offset: 1px;
+}
+
 .portal-route-maps-stages .portal-route-control-group-buttons {
   display: block;
 }

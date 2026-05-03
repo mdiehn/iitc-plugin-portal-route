@@ -50,7 +50,7 @@ Optional:
 
 ---
 
-## Phase 2 – Smart Add (core behavior)
+## Phase 2 – Action / Smart Add (core behavior)
 
 Implement shared function:
 
@@ -74,7 +74,7 @@ Fallback:
 
 ---
 
-## Phase 3 – Add context menu (desktop + mobile)
+## Phase 3 – Action context menu (desktop + mobile)
 
 ### Trigger
 
@@ -98,9 +98,9 @@ Implementation notes:
 
 - Prevent default browser context menu
 - Reuse same handler across:
-  - settings panel Add
-  - mini control Add
-  - info panel Add
+  - route list Action
+  - mini control add/remove
+  - info panel Action
 
 ---
 
@@ -116,7 +116,7 @@ M   L   +/-   [#]   =
 
 - `+/-`
   - Tap → `smartAdd()`
-  - Long-press / right-click → open Add menu
+  - Long-press / right-click → open Action menu
 
 - `[#]`
   - Open route list
@@ -279,7 +279,7 @@ Notes:
 
 1. Autoroute + remove plot buttons
 2. `smartAdd()`
-3. Add context menu
+3. Action context menu
 4. Mini control update
 5. Settings panel cleanup
 6. Route list interaction changes
