@@ -108,7 +108,7 @@
     html += '</div>';
 
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
-    html += '<button type="button" data-action="smart-add" data-add-menu="true"' + (pr.state.addPointMode ? ' class="portal-route-active-action"' : '') + '>Add</button>';
+    html += '<button type="button" data-action="calculate-route">Recalc Route</button>';
     html += '<button type="button" data-action="open-points-list">Open Route List</button>';
     html += '<button type="button" data-action="load-route">Route Library</button>';
     html += '</div>';

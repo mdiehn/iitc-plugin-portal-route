@@ -767,7 +767,6 @@ button.portal-route-waypoint-badge-wide {
   display: flex;
   flex-wrap: wrap;
   flex: 0 0 100%;
-  gap: 4px;
   justify-content: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -775,14 +774,12 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-portal-action-links a {
   flex: 0 0 auto;
-  margin: 0;
-  padding: 2px 6px;
-  border: 1px solid rgba(255, 216, 0, 0.45);
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.14);
+  margin: 0 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   overflow: hidden;
   text-align: center;
-  text-decoration: none;
   text-overflow: ellipsis;
 }
 

@@ -19,6 +19,9 @@ Current release: `1.0.0`
 - Added a shared Add context menu for right-click and long-press actions.
 - Moved route-list row actions into a row context menu with delete, rename, set start, and set end.
 - Updated remaining route status text for automatic routing.
+- Replaced the Settings panel Add button with Recalc Route for manual route refreshes.
+- Added Save to the Route Library panel, with confirmation before overwriting a checked saved route.
+- Moved single-route Import to the Route Library action row.
 
 ### Changed
 

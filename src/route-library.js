@@ -206,17 +206,51 @@
   pr.saveCurrentRouteToLibrary = function() {
     if (!pr.state.stops.length) {
       pr.showMessage('No route to save.');
-      return;
+      return null;
     }
 
     var existing = pr.localRouteStorage.getRoute(pr.state.activeRouteId);
     var name = pr.promptRouteName(existing && existing.name);
-    if (name === null) return;
+    if (name === null) return null;
 
     var record = pr.makeRouteRecord(existing, name);
     pr.localRouteStorage.saveRoute(record);
     pr.state.activeRouteId = record.id;
     pr.showMessage('Route saved.');
+    return record;
+  };
+
+  pr.saveCurrentRouteAsNewLibraryRoute = function() {
+    if (!pr.state.stops.length) {
+      pr.showMessage('No route to save.');
+      return null;
+    }
+
+    var name = pr.promptRouteName(pr.suggestRouteName());
+    if (name === null) return null;
+
+    var record = pr.makeRouteRecord(null, name);
+    pr.localRouteStorage.saveRoute(record);
+    pr.state.activeRouteId = record.id;
+    pr.state.selectedLibraryRouteIds = [record.id];
+    pr.openRouteLibraryPanel();
+    pr.showMessage('Route saved.');
+    return record;
+  };
+
+  pr.saveCurrentRouteFromLibraryPanel = function() {
+    var ids = pr.getSelectedLibraryRouteIds();
+    if (ids.length > 1) {
+      pr.showMessage('Select one route to overwrite, or uncheck routes to save new.');
+      return;
+    }
+
+    if (ids.length === 1) {
+      pr.updateSavedRouteFromCurrent(ids[0]);
+      return;
+    }
+
+    pr.saveCurrentRouteAsNewLibraryRoute();
   };
 
   pr.setSavedRouteName = function(id, name) {
@@ -591,25 +625,26 @@
     var routes = pr.localRouteStorage.listRoutes();
     var selectedCount = pr.getSelectedLibraryRouteIds().length;
     var singleDisabled = selectedCount === 1 ? '' : ' disabled';
+    var saveDisabled = selectedCount <= 1 ? '' : ' disabled';
     var anyDisabled = selectedCount ? '' : ' disabled';
     var contentHtml = '<div class="portal-route-dialog-content portal-route-library-dialog-content" id="' + pr.DOM_IDS.routeLibraryContent + '" tabindex="-1">';
     contentHtml += '<div class="portal-route-library-source">Stored in: This browser</div>';
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-library-toolbar">';
-    contentHtml += '<button type="button" data-action="import-saved-route">Import Route</button>';
     contentHtml += '<button type="button" data-action="export-route-library">Export Library</button>';
     contentHtml += '<button type="button" data-action="import-route-library">Import Library</button>';
     contentHtml += '</div>';
     contentHtml += pr.renderRouteLibraryRows(routes);
     if (selectedCount === 1) {
-      contentHtml += '<div class="portal-route-library-tip">' + selectedCount + ' route selected.</div>';
+      contentHtml += '<div class="portal-route-library-tip">' + selectedCount + ' route selected. Save will overwrite it after confirmation.</div>';
     } else if (selectedCount > 1) {
-      contentHtml += '<div class="portal-route-library-tip portal-route-library-tip-active">Select one route to load or update. Export/Delete can use multiple.</div>';
+      contentHtml += '<div class="portal-route-library-tip portal-route-library-tip-active">Select one route to load or save over. Export/Delete can use multiple.</div>';
     } else {
-      contentHtml += '<div class="portal-route-library-tip portal-route-library-tip-active">Select one route to load or update.</div>';
+      contentHtml += '<div class="portal-route-library-tip portal-route-library-tip-active">Save creates a new route. Select one route to load or overwrite.</div>';
     }
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-library-actions">';
+    contentHtml += '<button type="button" data-action="save-route-from-library"' + saveDisabled + '>Save</button>';
     contentHtml += '<button type="button" data-action="load-selected-saved-route"' + singleDisabled + '>Load</button>';
-    contentHtml += '<button type="button" data-action="update-selected-saved-route"' + singleDisabled + '>Update</button>';
+    contentHtml += '<button type="button" data-action="import-saved-route">Import</button>';
     contentHtml += '<button type="button" data-action="export-selected-saved-route"' + anyDisabled + '>Export</button>';
     contentHtml += '<button type="button" data-action="delete-selected-saved-route"' + anyDisabled + '>Delete</button>';
     contentHtml += '</div>';

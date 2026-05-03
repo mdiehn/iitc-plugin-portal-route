@@ -164,6 +164,7 @@
       'fit-route': pr.fitRouteToMap,
       'open-google-maps': pr.openGoogleMaps,
       'save-route': pr.saveCurrentRouteToLibrary,
+      'save-route-from-library': pr.saveCurrentRouteFromLibraryPanel,
       'load-route': pr.openRouteLibraryPanel,
       'load-saved-route': function() {
         var route = pr.localRouteStorage.getRoute(target && target.getAttribute('data-route-id'));
