@@ -179,6 +179,7 @@
       'calculate-route': pr.calculateRoute,
       'fit-route': pr.fitRouteToMap,
       'open-google-maps': pr.openGoogleMaps,
+      'open-apple-maps': pr.openAppleMaps,
       'save-route': pr.saveCurrentRouteToLibrary,
       'save-route-from-library': pr.saveCurrentRouteFromLibraryPanel,
       'load-route': pr.openRouteLibraryPanel,

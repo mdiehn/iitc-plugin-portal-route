@@ -1,5 +1,6 @@
   pr.GOOGLE_MAPS_TOTAL_POINT_LIMIT = 11;
   pr.GOOGLE_MAPS_INTERMEDIATE_STOP_LIMIT = 9;
+  pr.APPLE_MAPS_TOTAL_POINT_LIMIT = 15;
   pr.ROUTE_EXPORT_FORMAT = 'portal-route.v1';
 
   pr.googleMapsUrlForStops = function(stops) {
@@ -28,49 +29,80 @@
     return pr.googleMapsUrlForStops(stops);
   };
 
-  pr.googleMapsStages = function() {
+  pr.appleMapsUrlForStops = function(stops) {
+    if (!stops || stops.length < 2) return null;
+    var origin = stops[0];
+    var destination = stops[stops.length - 1];
+    var waypoints = stops.slice(1, -1);
+
+    var params = new URLSearchParams();
+    params.set('source', origin.lat + ',' + origin.lng);
+    params.set('destination', destination.lat + ',' + destination.lng);
+    params.set('mode', 'driving');
+
+    waypoints.forEach(function(stop) {
+      params.append('waypoint', stop.lat + ',' + stop.lng);
+    });
+
+    return 'https://maps.apple.com/directions?' + params.toString();
+  };
+
+  pr.appleMapsUrl = function() {
+    var stops = pr.getRouteStops();
+    return pr.appleMapsUrlForStops(stops);
+  };
+
+  pr.mapsStages = function(pointLimit, urlForStops) {
     var stops = pr.getRouteStops();
     if (stops.length < 2) return [];
-    if (stops.length <= pr.GOOGLE_MAPS_TOTAL_POINT_LIMIT) {
+    if (stops.length <= pointLimit) {
       return [{
         number: 1,
         fromIndex: 0,
         toIndex: stops.length - 1,
         stops: stops,
-        url: pr.googleMapsUrlForStops(stops)
+        url: urlForStops(stops)
       }];
     }
 
     var stages = [];
     var fromIndex = 0;
     while (fromIndex < stops.length - 1) {
-      var toIndex = Math.min(fromIndex + pr.GOOGLE_MAPS_TOTAL_POINT_LIMIT - 1, stops.length - 1);
+      var toIndex = Math.min(fromIndex + pointLimit - 1, stops.length - 1);
       var stageStops = stops.slice(fromIndex, toIndex + 1);
       stages.push({
         number: stages.length + 1,
         fromIndex: fromIndex,
         toIndex: toIndex,
         stops: stageStops,
-        url: pr.googleMapsUrlForStops(stageStops)
+        url: urlForStops(stageStops)
       });
       fromIndex = toIndex;
     }
     return stages;
   };
 
-  pr.formatGoogleMapsStageNumber = function(number) {
+  pr.googleMapsStages = function() {
+    return pr.mapsStages(pr.GOOGLE_MAPS_TOTAL_POINT_LIMIT, pr.googleMapsUrlForStops);
+  };
+
+  pr.appleMapsStages = function() {
+    return pr.mapsStages(pr.APPLE_MAPS_TOTAL_POINT_LIMIT, pr.appleMapsUrlForStops);
+  };
+
+  pr.formatMapsStageNumber = function(number) {
     return number < 10 ? '0' + number : String(number);
   };
 
-  pr.openGoogleMapsStagesDialog = function(stages) {
+  pr.openMapsStagesDialog = function(stages, options) {
     var html = '<div class="portal-route-dialog-content portal-route-maps-stages">';
-    html += '<p class="portal-route-empty">Google Maps uses up to 11 route points per link. Open each stage in order.</p>';
+    html += '<p class="portal-route-empty">' + pr.escapeHtml(options.message) + '</p>';
     html += '<div class="portal-route-control-group-buttons">';
     var longestTextLength = 0;
     stages.forEach(function(stage) {
       var fromStop = stage.stops[0];
       var toStop = stage.stops[stage.stops.length - 1];
-      var label = 'Stage ' + stage.number + ': ' + pr.formatGoogleMapsStageNumber(stage.fromIndex + 1) + '-' + pr.formatGoogleMapsStageNumber(stage.toIndex + 1);
+      var label = 'Stage ' + stage.number + ': ' + pr.formatMapsStageNumber(stage.fromIndex + 1) + '-' + pr.formatMapsStageNumber(stage.toIndex + 1);
       var title = fromStop.title + ' to ' + toStop.title;
       longestTextLength = Math.max(longestTextLength, label.length, title.length);
       html += '<div class="portal-route-stage-item">';
@@ -85,16 +117,34 @@
       var maxWidth = Math.min(520, Math.max(320, viewportWidth - 40));
       var width = Math.min(maxWidth, Math.max(320, longestTextLength * 6 + 50));
       window.dialog({
-        id: 'iitc-plugin-portal-route-google-maps-stages',
-        title: 'Google Maps stages',
+        id: options.id,
+        title: options.title,
         html: html,
         dialogClass: 'portal-route-dialog',
         width: width
       });
     } else {
-      pr.showMessage('Route split into ' + stages.length + ' Google Maps stages.');
+      pr.showMessage('Route split into ' + stages.length + ' ' + options.name + ' stages.');
       window.open(stages[0].url, '_blank', 'noopener');
     }
+  };
+
+  pr.openGoogleMapsStagesDialog = function(stages) {
+    pr.openMapsStagesDialog(stages, {
+      id: 'iitc-plugin-portal-route-google-maps-stages',
+      title: 'Google Maps stages',
+      name: 'Google Maps',
+      message: 'Google Maps uses up to 11 route points per link. Open each stage in order.'
+    });
+  };
+
+  pr.openAppleMapsStagesDialog = function(stages) {
+    pr.openMapsStagesDialog(stages, {
+      id: 'iitc-plugin-portal-route-apple-maps-stages',
+      title: 'Apple Maps stages',
+      name: 'Apple Maps',
+      message: 'Apple Maps uses up to 15 route points per link. Open each stage in order.'
+    });
   };
 
   pr.openGoogleMaps = function() {
@@ -106,6 +156,21 @@
 
     if (stages.length > 1) {
       pr.openGoogleMapsStagesDialog(stages);
+      return;
+    }
+
+    window.open(stages[0].url, '_blank', 'noopener');
+  };
+
+  pr.openAppleMaps = function() {
+    var stages = pr.appleMapsStages();
+    if (!stages.length) {
+      pr.showMessage('Add at least two waypoints first.');
+      return;
+    }
+
+    if (stages.length > 1) {
+      pr.openAppleMapsStagesDialog(stages);
       return;
     }
 

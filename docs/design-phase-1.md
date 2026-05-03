@@ -89,5 +89,5 @@ The printable view is meant for quick paper or PDF output, not rich formatting.
 - Google Drive shared route-library storage.
 - Better manual point names from street address, place name, or another reverse-geocoding source.
 - Route optimization.
-- Apple Maps and Waze links.
+- Waze links.
 - Turn-by-turn directions inside IITC.

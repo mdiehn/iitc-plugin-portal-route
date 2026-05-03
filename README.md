@@ -10,7 +10,7 @@ Current release: `1.0.0`
 
 This is the first stable release.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/feat/v1.1.0/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/feat/apple-maps-support/dist/portal-route.user.js)
 
 ## Quick start
 
@@ -49,6 +49,7 @@ The points list shows the current route order. Drag rows to reorder stops. Right
 
 - Routes calculate automatically after changes.
 - **Maps** opens the route in Google Maps. Long routes are split into stage links.
+- **Apple** opens the route in Apple Maps. Long routes are split into stage links.
 - **Print** opens a printable route summary.
 
 When route data is available, the panel shows drive time, stop time, trip time, and distance.
@@ -120,6 +121,7 @@ The settings panel keeps general configuration and utility navigation separate f
 - Persist waypoints and calculated route data across IITC reloads.
 - Optionally show segment time labels on the map.
 - Export the route to Google Maps, with staged links for long routes.
+- Export the route to Apple Maps, with staged links for long routes.
 - Export and import route JSON.
 - Open a printable route summary.
 

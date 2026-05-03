@@ -11,6 +11,7 @@ The plugin is meant to help an agent:
 - calculate routes automatically after route changes
 - see drive time, stop time, trip time, distance, and per-leg details
 - export long routes to staged Google Maps links
+- export long routes to staged Apple Maps links
 - save and load named routes
 - import/export current routes, saved routes, and route libraries as JSON
 - print a simple route summary
@@ -38,6 +39,7 @@ Done in the early releases and stable in `1.0.0`:
 - persisted current route state
 - Google Maps export
 - Google Maps export-limit warning
+- staged Apple Maps export
 - JSON import/export
 - printable route summary
 
@@ -104,7 +106,7 @@ Likely useful polish before or after Drive:
 Later ideas:
 
 - route optimization
-- Apple Maps and Waze links
+- Waze links
 - GPX/KML export
 - manual shared map/view handoff with `current-map.json`
 - turn-by-turn directions inside IITC, only if it ever feels worth the complexity

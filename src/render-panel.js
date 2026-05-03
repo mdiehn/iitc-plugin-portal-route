@@ -398,6 +398,7 @@
     contentHtml += '<button type="button" data-action="open-add-menu" data-add-menu="true" class="portal-route-smart-button' + (pr.state.addPointMode ? ' portal-route-active-action' : '') + '">Actions</button>';
     contentHtml += '<button type="button" data-action="fit-route">Fit</button>';
     contentHtml += '<button type="button" data-action="open-google-maps">Maps</button>';
+    contentHtml += '<button type="button" data-action="open-apple-maps">Apple</button>';
     contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';
     contentHtml += '<button type="button" data-action="save-route">Save</button>';

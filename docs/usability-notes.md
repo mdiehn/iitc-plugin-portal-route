@@ -114,7 +114,7 @@ The next major usability improvement is Google Drive shared storage:
 ## Later ideas
 
 - Route optimization.
-- Apple Maps and Waze links.
+- Waze links.
 - GPX/KML export.
 - Manual shared map/view handoff with `current-map.json`.
 - Turn-by-turn directions inside IITC.

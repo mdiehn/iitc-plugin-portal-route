@@ -37,6 +37,7 @@ Current release: `1.0.0`
 - Added Drive-backed route-library caching with a visible `IITC Portal Route/route-library.json` file.
 - Added Route Library panel messages for save/load/import/export and Drive actions.
 - Added a shared Route menu for Route, Library, and Settings navigation.
+- Added staged Apple Maps route export links from the route list and info panel.
 
 ### Changed
 

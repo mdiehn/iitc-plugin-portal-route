@@ -160,6 +160,7 @@
 
     addActionLink('Fit', 'fit-route');
     addActionLink('Maps', 'open-google-maps');
+    addActionLink('Apple', 'open-apple-maps');
 
     var menuLink = addActionLink('Menus', 'open-route-menu');
     menuLink.className = 'portal-route-smart-button';

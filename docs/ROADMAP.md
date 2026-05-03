@@ -33,6 +33,7 @@ Done and released:
 - per-leg segment time/distance in the stop list
 - optional segment labels on the map
 - Google Maps export
+- staged Apple Maps export
 - staged Google Maps links for routes over the practical 11-point limit
 - JSON export/import of the current route
 - printable route summary
@@ -313,7 +314,6 @@ Open design questions:
 
 Possible future targets:
 
-- Apple Maps links
 - Waze links
 - copied stop list for external tools
 - GPX/KML export if useful
