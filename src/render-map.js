@@ -120,13 +120,8 @@
   pr.openRouteListForStop = function(index, e) {
     pr.stopMarkerEvent(e);
     pr.selectStopPortal(index, false);
-    if (pr.openMainPanel) {
-      pr.openMainPanel();
-    } else {
-      pr.state.panelOpen = true;
-      pr.savePanelOpen();
-      pr.renderPanel();
-    }
+    pr.state.pointsPanelOpen = true;
+    pr.renderPointsPanel();
   };
 
   pr.stopClickHandler = function(index) {

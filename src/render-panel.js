@@ -123,24 +123,40 @@
   };
 
 
+  pr.getDialogSize = function(defaultWidth, defaultHeight, minWidth, minHeight) {
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || defaultWidth;
+    var viewportHeight = window.innerHeight || document.documentElement.clientHeight || defaultHeight;
+    var maxWidth = viewportWidth <= 640 ? viewportWidth : viewportWidth - 40;
+    var maxHeight = viewportHeight - 90;
+
+    return {
+      width: Math.min(defaultWidth, Math.max(minWidth, maxWidth)),
+      height: Math.min(defaultHeight, Math.max(minHeight, maxHeight))
+    };
+  };
+
   pr.getDialogWidth = function() {
-    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 520;
+    return pr.getDialogSize(430, 210, 320, 210).width;
+  };
 
-    if (viewportWidth <= 640) {
-      return Math.max(320, viewportWidth);
-    }
-
-    return Math.min(480, Math.max(380, viewportWidth - 40));
+  pr.getDialogHeight = function() {
+    return pr.getDialogSize(430, 210, 320, 210).height;
   };
 
   pr.getPointsDialogWidth = function() {
-    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 640;
+    return pr.getDialogSize(600, 375, 320, 260).width;
+  };
 
-    if (viewportWidth <= 640) {
-      return Math.max(320, viewportWidth);
-    }
+  pr.getPointsDialogHeight = function() {
+    return pr.getDialogSize(600, 375, 320, 260).height;
+  };
 
-    return Math.min(760, Math.max(520, viewportWidth - 80));
+  pr.getRouteLibraryDialogWidth = function() {
+    return pr.getDialogSize(430, 375, 320, 260).width;
+  };
+
+  pr.getRouteLibraryDialogHeight = function() {
+    return pr.getDialogSize(430, 375, 320, 260).height;
   };
 
   pr.isDialogOpen = function(content) {
@@ -313,7 +329,8 @@
         title: 'Portal Route Settings',
         html: html,
         dialogClass: 'portal-route-dialog',
-        width: pr.getDialogWidth()
+        width: pr.getDialogWidth(),
+        height: pr.getDialogHeight()
       });
 
       var newContent = document.getElementById(pr.DOM_IDS.dialogContent);
@@ -391,7 +408,8 @@
         title: 'Portal Route Points',
         html: html,
         dialogClass: 'portal-route-dialog portal-route-points-dialog',
-        width: pr.getPointsDialogWidth()
+        width: pr.getPointsDialogWidth(),
+        height: pr.getPointsDialogHeight()
       });
 
       var newContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);

@@ -22,6 +22,14 @@ Current release: `1.0.0`
 - Replaced the Settings panel Add button with Recalc Route for manual route refreshes.
 - Added Save to the Route Library panel, with confirmation before overwriting a checked saved route.
 - Moved single-route Import to the Route Library action row.
+- Removed hidden auto-replot and old row-action plumbing after the smart Add refactor.
+- Kept the Route Library panel in place while changing row checkbox selection.
+- Kept the Route Library panel in place after save, update, delete, and import actions.
+- Automatically recalculated routes loaded from the library or restored from saved state.
+- Fixed double-clicking a map route handle to open the route list instead of settings.
+- Restored the Loop toggle to the mini control under Maps.
+- Updated README screenshots for the refreshed controls, route list, settings panel, and route library.
+- Set default dialog sizes for settings, route list, and route library panels.
 
 ### Changed
 

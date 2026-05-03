@@ -233,7 +233,7 @@
     pr.localRouteStorage.saveRoute(record);
     pr.state.activeRouteId = record.id;
     pr.state.selectedLibraryRouteIds = [record.id];
-    pr.openRouteLibraryPanel();
+    pr.refreshRouteLibraryPanel();
     pr.showMessage('Route saved.');
     return record;
   };
@@ -286,7 +286,7 @@
 
     if (pr.localRouteStorage.deleteRoute(id)) {
       if (pr.state.activeRouteId === id) pr.state.activeRouteId = null;
-      pr.openRouteLibraryPanel();
+      pr.refreshRouteLibraryPanel();
       pr.showMessage('Route deleted.');
     }
   };
@@ -309,7 +309,7 @@
     var record = pr.makeRouteRecord(existing, existing.name);
     pr.localRouteStorage.saveRoute(record);
     pr.state.activeRouteId = record.id;
-    pr.openRouteLibraryPanel();
+    pr.refreshRouteLibraryPanel();
     pr.showMessage('Route updated.');
   };
 
@@ -386,7 +386,7 @@
     pr.state.stops = stops;
     pr.applyRouteLibrarySettings(record.settings);
     pr.state.route = null;
-    pr.state.routeDirty = false;
+    pr.state.routeDirty = stops.length >= 2;
     pr.state.selectedMapPointIndex = null;
     pr.state.activeRouteId = record.id || null;
 
@@ -398,6 +398,7 @@
     pr.renderPanel();
     if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
     pr.renderMiniControl();
+    pr.queueRouteCalculationIfReady();
     pr.hydrateStopTitles();
 
     if (record.map && record.map.center && window.map && window.map.setView &&
@@ -505,7 +506,7 @@
 
     if (idMap[pr.state.activeRouteId]) pr.state.activeRouteId = null;
     pr.state.selectedLibraryRouteIds = [];
-    pr.openRouteLibraryPanel();
+    pr.refreshRouteLibraryPanel();
     pr.showMessage(ids.length + ' routes deleted.');
   };
 
@@ -549,7 +550,7 @@
 
     library.routes.push(imported);
     pr.saveRouteLibrary(library);
-    pr.openRouteLibraryPanel();
+    pr.refreshRouteLibraryPanel();
     pr.showMessage('Saved route imported.');
   };
 
@@ -582,7 +583,7 @@
     });
 
     pr.saveRouteLibrary(library);
-    pr.openRouteLibraryPanel();
+    pr.refreshRouteLibraryPanel();
     pr.showMessage(added ? 'Imported ' + added + ' saved routes.' : 'No routes imported.');
   };
 
@@ -621,13 +622,13 @@
     return html;
   };
 
-  pr.openRouteLibraryPanel = function() {
+  pr.renderRouteLibraryContent = function() {
     var routes = pr.localRouteStorage.listRoutes();
     var selectedCount = pr.getSelectedLibraryRouteIds().length;
     var singleDisabled = selectedCount === 1 ? '' : ' disabled';
     var saveDisabled = selectedCount <= 1 ? '' : ' disabled';
     var anyDisabled = selectedCount ? '' : ' disabled';
-    var contentHtml = '<div class="portal-route-dialog-content portal-route-library-dialog-content" id="' + pr.DOM_IDS.routeLibraryContent + '" tabindex="-1">';
+    var contentHtml = '';
     contentHtml += '<div class="portal-route-library-source">Stored in: This browser</div>';
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-library-toolbar">';
     contentHtml += '<button type="button" data-action="export-route-library">Export Library</button>';
@@ -648,6 +649,22 @@
     contentHtml += '<button type="button" data-action="export-selected-saved-route"' + anyDisabled + '>Export</button>';
     contentHtml += '<button type="button" data-action="delete-selected-saved-route"' + anyDisabled + '>Delete</button>';
     contentHtml += '</div>';
+    return contentHtml;
+  };
+
+  pr.refreshRouteLibraryPanel = function() {
+    var content = document.getElementById(pr.DOM_IDS.routeLibraryContent);
+    if (!content || !pr.isDialogOpen || !pr.isDialogOpen(content)) {
+      pr.openRouteLibraryPanel();
+      return;
+    }
+
+    content.innerHTML = pr.renderRouteLibraryContent();
+  };
+
+  pr.openRouteLibraryPanel = function() {
+    var contentHtml = '<div class="portal-route-dialog-content portal-route-library-dialog-content" id="' + pr.DOM_IDS.routeLibraryContent + '" tabindex="-1">';
+    contentHtml += pr.renderRouteLibraryContent();
     contentHtml += '</div>';
 
     if (typeof window.dialog === 'function') {
@@ -656,7 +673,8 @@
         title: 'Route Library',
         html: contentHtml,
         dialogClass: 'portal-route-dialog portal-route-library-dialog',
-        width: pr.getDialogWidth()
+        width: pr.getRouteLibraryDialogWidth(),
+        height: pr.getRouteLibraryDialogHeight()
       });
 
       var content = document.getElementById(pr.DOM_IDS.routeLibraryContent);

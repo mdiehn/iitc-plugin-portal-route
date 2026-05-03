@@ -31,7 +31,6 @@
     includeReturnToStart: false,
     startOnCurrentLocation: false,
     showSegmentTimesOnMap: false,
-    autoReplotOnEdit: true,
     showMiniControl: true,
     showPortalDetailsControls: true
   };

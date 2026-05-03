@@ -152,8 +152,6 @@
       'add-current-location': pr.addCurrentLocation,
       'toggle-loop-back': pr.toggleLoopBackToStart,
       'reverse-route': pr.reverseRoute,
-      'move-stop-up': function() { pr.moveStop(index, index - 1); },
-      'move-stop-down': function() { pr.moveStop(index, index + 1); },
       'remove-stop': function() { pr.removeStop(index); },
       'rename-stop': function() { pr.renameStop(index); },
       'set-stop-start': function() { pr.moveStopToEdge(index, 'start'); },
@@ -166,19 +164,11 @@
       'save-route': pr.saveCurrentRouteToLibrary,
       'save-route-from-library': pr.saveCurrentRouteFromLibraryPanel,
       'load-route': pr.openRouteLibraryPanel,
-      'load-saved-route': function() {
-        var route = pr.localRouteStorage.getRoute(target && target.getAttribute('data-route-id'));
-        if (pr.applyRouteRecord(route)) pr.closeRouteLibraryPanel();
-      },
       'load-selected-saved-route': function() {
         var route = pr.localRouteStorage.getRoute(pr.requireSingleSelectedLibraryRouteId());
         pr.applyRouteRecord(route);
       },
-      'update-saved-route': function() { pr.updateSavedRouteFromCurrent(target && target.getAttribute('data-route-id')); },
-      'update-selected-saved-route': function() { pr.updateSavedRouteFromCurrent(pr.requireSingleSelectedLibraryRouteId()); },
-      'delete-saved-route': function() { pr.deleteSavedRoute(target && target.getAttribute('data-route-id')); },
       'delete-selected-saved-route': function() { pr.deleteSelectedSavedRoutes(); },
-      'export-saved-route': function() { pr.exportSavedRouteJson(target && target.getAttribute('data-route-id')); },
       'export-selected-saved-route': function() { pr.exportSelectedSavedRoutesJson(); },
       'import-saved-route': pr.importSavedRouteJson,
       'export-route-library': pr.exportRouteLibraryJson,
@@ -281,9 +271,12 @@
     var addRemoveText = selectedInRoute ? '-' : '+';
     var addRemoveTitle = selectedInRoute ? 'Remove selected waypoint from route' : 'Add to route';
     var addRemoveAction = selectedInRoute ? 'toggle-selected-stop' : 'smart-add';
+    var loopClass = pr.state.settings.includeReturnToStart ? ' portal-route-mini-active' : '';
+    var loopTitle = pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start';
 
     container.innerHTML = '' +
       '<a href="#" title="Open route in Google Maps" data-action="open-google-maps">M</a>' +
+      '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
       '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '" data-add-menu="true">' + addRemoveText + '</a>' +
       '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
       '<a href="#" title="Open Portal Route menu" data-action="open-main">=</a>';
@@ -502,19 +495,6 @@
       return true;
     }
 
-    if (field === 'auto-replot-on-edit') {
-      pr.state.settings.autoReplotOnEdit = !!target.checked;
-      pr.saveSettings();
-      if (!pr.state.settings.autoReplotOnEdit && pr.state.autoReplotTimer) {
-        window.clearTimeout(pr.state.autoReplotTimer);
-        pr.state.autoReplotTimer = null;
-      }
-      if (pr.state.settings.autoReplotOnEdit && pr.state.routeDirty && pr.calculateRoute) {
-        pr.queueAutoReplot();
-      }
-      return true;
-    }
-
     if (field === 'show-mini-control') {
       pr.state.settings.showMiniControl = !!target.checked;
       pr.saveSettings();
@@ -578,7 +558,7 @@
       }
     } else if (field === 'selected-library-route') {
       pr.setLibraryRouteSelected(target.getAttribute('data-route-id'), target.checked);
-      pr.openRouteLibraryPanel();
+      pr.refreshRouteLibraryPanel();
     }
   };
 
@@ -738,6 +718,7 @@
       pr.renderMiniControl();
       pr.redrawLabels();
       pr.redrawRouteLine();
+      if (!pr.state.route || pr.state.routeDirty) pr.queueRouteCalculationIfReady();
       pr.injectPortalDetailsAction();
 
       if (typeof window.addHook === 'function' && !pr.portalHookRegistered) {

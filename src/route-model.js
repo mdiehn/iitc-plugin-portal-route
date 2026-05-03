@@ -28,6 +28,14 @@
     }, 0);
   };
 
+  pr.queueRouteCalculationIfReady = function() {
+    if (pr.getRouteStops().length < 2) return false;
+    pr.state.routeDirty = true;
+    pr.saveRoute();
+    pr.queueAutoReplot();
+    return true;
+  };
+
   pr.markRouteCurrent = function() {
     pr.state.routeDirty = false;
     if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
