@@ -1,10 +1,12 @@
 # Roadmap
 
-Current release: `1.0.0`
+#WARNING - needs update since 1.1.0 release
+
+Current release: `1.1.0`
 
 Portal Route has reached its first stable release. The main route-building loop is usable now: add portals, add manual points, add current location, loop back to start, drag/edit points, calculate routes, export to staged Google Maps links, import/export JSON, print, and keep state across reloads.
 
-## Current state: 1.0.0
+## Current state: 1.1.0
 
 Done and released:
 
@@ -39,6 +41,9 @@ Done and released:
 - printable route summary
 - external route import API used by Fan Fields 2
 - persistent current route state across IITC reloads
+- route library
+- Google Drive shared storage
+- Apple Maps export
 
 Known rough edges:
 

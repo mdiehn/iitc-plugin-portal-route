@@ -2,9 +2,9 @@
 
 This project is in active development.
 
-Current release: `1.0.0`
+Current release: `1.1.0`
 
-## 1.1.0-dev - Unreleased
+## 1.1.0 - Released 2026-05-03
 
 ### Added
 

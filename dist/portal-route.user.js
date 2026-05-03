@@ -2,10 +2,10 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version        1.1.0-dev.20260503170056
+// @version        1.1.0-dev.20260503170907
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
-// @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/v1.1.0/dist/portal-route.meta.js
-// @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/v1.1.0/dist/portal-route.user.js
+// @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/main/dist/portal-route.meta.js
+// @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/main/dist/portal-route.user.js
 // @description    Route planning through selected portals with segment drive times, stop-time accounting, and map export.
 // @include        https://intel.ingress.com/*
 // @include        http://intel.ingress.com/*
@@ -987,7 +987,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.1.0-dev.20260503170056';
+  pr.VERSION = '1.1.0-dev.20260503170907';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
