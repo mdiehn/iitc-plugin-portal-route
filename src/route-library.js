@@ -156,16 +156,23 @@
   pr.localRouteStorage = {
     id: 'local',
     label: 'This browser',
+    loadLibrary: function() {
+      return pr.loadRouteLibrary();
+    },
+    saveLibrary: function(library) {
+      pr.saveRouteLibrary(library);
+      return library;
+    },
     listRoutes: function() {
-      return pr.loadRouteLibrary().routes.slice().sort(function(a, b) {
+      return this.loadLibrary().routes.slice().sort(function(a, b) {
         return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
       });
     },
     getRoute: function(id) {
-      return pr.findLibraryRoute(pr.loadRouteLibrary(), id);
+      return pr.findLibraryRoute(this.loadLibrary(), id);
     },
     saveRoute: function(route) {
-      var library = pr.loadRouteLibrary();
+      var library = this.loadLibrary();
       var replaced = false;
 
       library.routes = library.routes.map(function(existing) {
@@ -177,21 +184,26 @@
       });
 
       if (!replaced) library.routes.push(route);
-      pr.saveRouteLibrary(library);
+      this.saveLibrary(library);
       return route;
     },
     deleteRoute: function(id) {
-      var library = pr.loadRouteLibrary();
+      var library = this.loadLibrary();
       var before = library.routes.length;
       library.routes = library.routes.filter(function(route) {
         return route && route.id !== id;
       });
-      pr.saveRouteLibrary(library);
+      this.saveLibrary(library);
       return library.routes.length !== before;
     }
   };
 
   pr.storageBackends.local = pr.localRouteStorage;
+
+  pr.routeLibraryStorage = function() {
+    var backendId = pr.state.routeLibraryBackendId || 'local';
+    return pr.storageBackends[backendId] || pr.localRouteStorage;
+  };
 
   pr.promptRouteName = function(defaultName) {
     if (!window.prompt) return defaultName || pr.suggestRouteName();
@@ -209,12 +221,13 @@
       return null;
     }
 
-    var existing = pr.localRouteStorage.getRoute(pr.state.activeRouteId);
+    var storage = pr.routeLibraryStorage();
+    var existing = storage.getRoute(pr.state.activeRouteId);
     var name = pr.promptRouteName(existing && existing.name);
     if (name === null) return null;
 
     var record = pr.makeRouteRecord(existing, name);
-    pr.localRouteStorage.saveRoute(record);
+    storage.saveRoute(record);
     pr.state.activeRouteId = record.id;
     pr.showMessage('Route saved.');
     return record;
@@ -230,7 +243,7 @@
     if (name === null) return null;
 
     var record = pr.makeRouteRecord(null, name);
-    pr.localRouteStorage.saveRoute(record);
+    pr.routeLibraryStorage().saveRoute(record);
     pr.state.activeRouteId = record.id;
     pr.state.selectedLibraryRouteIds = [record.id];
     pr.refreshRouteLibraryPanel();
@@ -254,7 +267,8 @@
   };
 
   pr.setSavedRouteName = function(id, name) {
-    var library = pr.loadRouteLibrary();
+    var storage = pr.routeLibraryStorage();
+    var library = storage.loadLibrary();
     var route = pr.findLibraryRoute(library, id);
     if (!route) {
       pr.showMessage('Saved route not found.');
@@ -269,14 +283,15 @@
 
     route.name = name;
     route.updatedAt = pr.routeLibraryNow();
-    pr.saveRouteLibrary(library);
+    storage.saveLibrary(library);
     pr.showMessage('Route renamed.');
     return true;
   };
 
   pr.deleteSavedRoute = function(id) {
     if (!id) return;
-    var route = pr.localRouteStorage.getRoute(id);
+    var storage = pr.routeLibraryStorage();
+    var route = storage.getRoute(id);
     if (!route) {
       pr.showMessage('Saved route not found.');
       return;
@@ -284,7 +299,7 @@
 
     if (window.confirm && !window.confirm('Delete saved route "' + (route.name || 'Unnamed route') + '"?')) return;
 
-    if (pr.localRouteStorage.deleteRoute(id)) {
+    if (storage.deleteRoute(id)) {
       if (pr.state.activeRouteId === id) pr.state.activeRouteId = null;
       pr.refreshRouteLibraryPanel();
       pr.showMessage('Route deleted.');
@@ -298,7 +313,7 @@
       return;
     }
 
-    var existing = pr.localRouteStorage.getRoute(id);
+    var existing = pr.routeLibraryStorage().getRoute(id);
     if (!existing) {
       pr.showMessage('Saved route not found.');
       return;
@@ -307,14 +322,15 @@
     if (window.confirm && !window.confirm('Overwrite "' + (existing.name || 'Unnamed route') + '" with current route?')) return;
 
     var record = pr.makeRouteRecord(existing, existing.name);
-    pr.localRouteStorage.saveRoute(record);
+    pr.routeLibraryStorage().saveRoute(record);
     pr.state.activeRouteId = record.id;
     pr.refreshRouteLibraryPanel();
     pr.showMessage('Route updated.');
   };
 
   pr.getSelectedLibraryRouteIds = function() {
-    var library = pr.loadRouteLibrary();
+    var storage = pr.routeLibraryStorage();
+    var library = storage.loadLibrary();
     var ids = Array.isArray(pr.state.selectedLibraryRouteIds) ? pr.state.selectedLibraryRouteIds : [];
     var selected = ids.filter(function(id, index) {
       return ids.indexOf(id) === index && !!pr.findLibraryRoute(library, id);
@@ -440,7 +456,7 @@
 
   pr.exportSavedRouteJson = function(id) {
     if (!id) return;
-    var route = pr.localRouteStorage.getRoute(id);
+    var route = pr.routeLibraryStorage().getRoute(id);
     if (!route) {
       pr.showMessage('Saved route not found.');
       return;
@@ -451,7 +467,7 @@
   };
 
   pr.exportRouteLibraryJson = function() {
-    var library = pr.loadRouteLibrary();
+    var library = pr.routeLibraryStorage().loadLibrary();
     pr.exportRouteLibraryRoutesJson(library.routes, 'Route library exported.');
   };
 
@@ -472,7 +488,7 @@
     var ids = pr.requireSelectedLibraryRouteIds();
     if (!ids) return;
 
-    var library = pr.loadRouteLibrary();
+    var library = pr.routeLibraryStorage().loadLibrary();
     var routes = ids.map(function(id) {
       return pr.findLibraryRoute(library, id);
     }).filter(Boolean);
@@ -496,13 +512,14 @@
 
     if (window.confirm && !window.confirm('Delete ' + ids.length + ' saved routes?')) return;
 
-    var library = pr.loadRouteLibrary();
+    var storage = pr.routeLibraryStorage();
+    var library = storage.loadLibrary();
     var idMap = {};
     ids.forEach(function(id) { idMap[id] = true; });
     library.routes = library.routes.filter(function(route) {
       return route && !idMap[route.id];
     });
-    pr.saveRouteLibrary(library);
+    storage.saveLibrary(library);
 
     if (idMap[pr.state.activeRouteId]) pr.state.activeRouteId = null;
     pr.state.selectedLibraryRouteIds = [];
@@ -544,12 +561,13 @@
   };
 
   pr.importSavedRouteRecord = function(record) {
-    var library = pr.loadRouteLibrary();
+    var storage = pr.routeLibraryStorage();
+    var library = storage.loadLibrary();
     var imported = pr.prepareImportedRouteRecord(record, library);
     if (!imported) throw new Error('JSON is not a compatible saved route.');
 
     library.routes.push(imported);
-    pr.saveRouteLibrary(library);
+    storage.saveLibrary(library);
     pr.refreshRouteLibraryPanel();
     pr.showMessage('Saved route imported.');
   };
@@ -572,7 +590,8 @@
     if (data.schemaVersion !== pr.ROUTE_LIBRARY_SCHEMA_VERSION) throw new Error('Route library version is not compatible.');
     if (!Array.isArray(data.routes)) throw new Error('Import data does not contain routes.');
 
-    var library = pr.loadRouteLibrary();
+    var storage = pr.routeLibraryStorage();
+    var library = storage.loadLibrary();
     var added = 0;
 
     data.routes.forEach(function(route) {
@@ -582,7 +601,7 @@
       added += 1;
     });
 
-    pr.saveRouteLibrary(library);
+    storage.saveLibrary(library);
     pr.refreshRouteLibraryPanel();
     pr.showMessage(added ? 'Imported ' + added + ' saved routes.' : 'No routes imported.');
   };
@@ -623,13 +642,14 @@
   };
 
   pr.renderRouteLibraryContent = function() {
-    var routes = pr.localRouteStorage.listRoutes();
+    var storage = pr.routeLibraryStorage();
+    var routes = storage.listRoutes();
     var selectedCount = pr.getSelectedLibraryRouteIds().length;
     var singleDisabled = selectedCount === 1 ? '' : ' disabled';
     var saveDisabled = selectedCount <= 1 ? '' : ' disabled';
     var anyDisabled = selectedCount ? '' : ' disabled';
     var contentHtml = '';
-    contentHtml += '<div class="portal-route-library-source">Stored in: This browser</div>';
+    contentHtml += '<div class="portal-route-library-source">Stored in: ' + pr.escapeHtml(storage.label || storage.id || 'Route library') + '</div>';
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-library-toolbar">';
     contentHtml += '<button type="button" data-action="export-route-library">Export Library</button>';
     contentHtml += '<button type="button" data-action="import-route-library">Import Library</button>';

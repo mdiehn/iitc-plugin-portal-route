@@ -1,6 +1,6 @@
 # Route Library Design Notes
 
-Working notes for the Portal Route / Driving Route plugin.
+Working notes for the Portal Route plugin.
 
 This file records planning decisions, design notes, and implementation context for humans and AI coding assistants working on the project.
 
@@ -14,9 +14,27 @@ Route library with Google Drive shared storage.
 
 The user-facing goal is to save/load named routes and make those routes available from both desktop and mobile. Google Drive is the first external storage target. Implementation should still start with a local backend so the route model and UI can be built safely before adding Drive auth/API work.
 
+Current implementation status:
+
+- Local route records, local storage, Route Library UI, and JSON portability are mostly implemented.
+- A synchronous local storage adapter is started.
+- Google Drive storage has not started yet.
+- IITC Google Drive sync still needs to be inspected before direct Drive work.
+
+Current local-library behavior:
+
+- The Route Library is a separate panel.
+- The top row contains whole-library actions: Export Library and Import Library.
+- The bottom row contains selected-route actions: Save, Load, Import, Export, Delete.
+- With no checked route, Save creates a new saved route.
+- With one checked route, Save overwrites that route after confirmation.
+- With multiple checked routes, Save and Load are disabled; Export and Delete support multiple routes.
+- Route names are edited inline.
+- Loading a saved route restores stops, map center/zoom, route-relevant settings, and queues automatic route calculation.
+
 ## Guiding decisions
 
-- Make the existing Save and Load buttons real in v1.1.0.
+- Keep Route Library Save and Load working while adding shared storage.
 - Build the route record schema once and use it for local storage, JSON import/export, and Google Drive.
 - Use `localStorage` as the first backend and test harness.
 - Keep route storage backend-agnostic where practical.
@@ -31,7 +49,7 @@ The user-facing goal is to save/load named routes and make those routes availabl
 
 ## Route record schema
 
-Initial saved-route records should look roughly like this:
+Saved-route records use `schemaVersion: 1` and look roughly like this:
 
 ```json
 {
@@ -61,15 +79,14 @@ Notes:
 - `map.center` and `map.zoom` capture the view when the route is saved.
 - `route.stops` should contain the same stop data needed by current JSON export/import.
 - `settings` should probably include only route-relevant settings, not every UI preference.
-- Saved plotted route data should probably not be trusted unless explicitly included with enough metadata to know it is still current.
+- Saved route geometry is not trusted for the local library slice. Loading restores stops and recalculates the route.
 
 Route-relevant settings might include:
 
 ```json
 {
-  "startOnMe": false,
-  "loop": true,
-  "stopMinutes": 2
+  "defaultStopMinutes": 5,
+  "includeReturnToStart": true
 }
 ```
 
@@ -86,6 +103,8 @@ Settings that feel more like user preferences should probably stay global:
 
 ### Phase 1: local route library
 
+Status: mostly done in `1.1.0-dev`.
+
 Save named routes to browser local storage.
 
 Minimum useful operations:
@@ -96,30 +115,36 @@ Minimum useful operations:
 - Rename a saved route.
 - Delete a saved route.
 
-This should wire the existing Save and Load buttons.
+This is currently handled in the Route Library panel rather than the Settings panel.
 
 The local backend should use the same route record shape planned for Google Drive. Do not let localStorage-only assumptions leak into the route library UI.
 
 ### Phase 2: route library UI
+
+Status: mostly done in `1.1.0-dev`.
 
 The UI should expose the useful local library operations without crowding the current route editor.
 
 Likely first behavior:
 
 - Save asks for a route name when saving a new route.
-- If the current route came from a saved record, Save can update/overwrite that record.
-- Load opens a list of saved routes.
+- Save overwrites one checked route after confirmation.
+- Load requires exactly one checked route.
 - The list shows name, updated time, stop count, and backend label.
 - Route library rows use checkboxes. Load and overwrite need exactly one selected route. Export and delete can use one or many.
+- Import of one route lives in the selected-route action row.
+- Whole-library import/export live in the top action row.
 
 Open questions:
 
-- Should Save always prompt, or should it update the active saved route by default?
-- Do we need Save As separately?
-- Should Load live inside the current panel or in a separate dialog?
-- Should loading a route restore map center/zoom automatically?
+- Do we need Save As separately, or is unchecked Save enough?
+- Should selected-route export use a different filename when multiple routes are selected?
+- Should library rows eventually support select-all for bulk export/delete?
+- Should Drive storage preserve the same checkbox/action model?
 
 ### Phase 3: JSON portability
+
+Status: mostly done in `1.1.0-dev`.
 
 Add file-style movement between browsers even before Drive is finished.
 
@@ -134,6 +159,8 @@ Conflict handling can stay simple at first. If an imported route ID already exis
 
 ### Phase 4: storage adapter
 
+Status: started with the local backend; still needs review before Drive.
+
 The route library UI should not talk directly to `localStorage`. Use a small backend interface so other storage backends can be added without replacing the UI.
 
 Approximate shape:
@@ -144,10 +171,16 @@ pr.storageBackends = {};
 pr.storageBackends.local = {
   id: 'local',
   label: 'This browser',
+  loadLibrary: function () {},
+  saveLibrary: function (library) {},
   listRoutes: function () {},
   getRoute: function (id) {},
   saveRoute: function (route) {},
   deleteRoute: function (id) {}
+};
+
+pr.routeLibraryStorage = function () {
+  return pr.storageBackends[pr.state.routeLibraryBackendId] || pr.storageBackends.local;
 };
 ```
 
@@ -157,6 +190,8 @@ Later backends can follow the same shape:
 pr.storageBackends.googleDrive = {
   id: 'googleDrive',
   label: 'Google Drive',
+  loadLibrary: function () {},
+  saveLibrary: function (library) {},
   listRoutes: function () {},
   getRoute: function (id) {},
   saveRoute: function (route) {},
@@ -164,7 +199,7 @@ pr.storageBackends.googleDrive = {
 };
 ```
 
-The exact interface can change once implementation starts, but the intent should stay: one route-library UI, multiple storage backends.
+The current first adapter slice keeps the backend synchronous and local-only. Google Drive may need async behavior later; if so, adapt the UI at the storage boundary rather than spreading Drive-specific code through route-library actions.
 
 ### Phase 5: Google Drive shared storage
 
@@ -268,6 +303,7 @@ No fancy UI required in this slice.
 - Rename.
 - Delete.
 - Overwrite.
+- Multi-select export/delete.
 
 ### Slice 3: JSON import/export
 
@@ -315,11 +351,10 @@ Start manual first, then consider Drive-backed shared state using `current-map.j
 ## Open questions
 
 - Should route records include all settings, or only route-relevant settings?
-- Should loading a route restore map center/zoom automatically?
+- Should loading a route restore map center/zoom automatically? Current behavior: yes.
 - Should imported duplicate route IDs overwrite, rename, or create copies?
-- Should Save overwrite the active route or always prompt for a name?
 - Should there be a separate Save As action?
-- Should Load open inside the existing panel or in a separate dialog?
+- Should Load remain in the Route Library panel when Drive storage is added?
 - Should route library JSON share code with the existing route export/import format?
 - Can Portal Route reuse IITC's Google Drive sync credentials or registration hooks?
 - What is the safest initial conflict behavior for Drive writes from phone and desktop?

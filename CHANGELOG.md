@@ -30,6 +30,9 @@ Current release: `1.0.0`
 - Restored the Loop toggle to the mini control under Maps.
 - Updated README screenshots for the refreshed controls, route list, settings panel, and route library.
 - Set default dialog sizes for settings, route list, and route library panels.
+- Updated design docs for smart Add, automatic routing, and current route-library behavior.
+- Added an active route-library storage backend helper so the UI can move beyond localStorage.
+- Stamped dev build versions with `YYYYMMDDHHMMSS` so userscript updaters notice fresh builds.
 
 ### Changed
 

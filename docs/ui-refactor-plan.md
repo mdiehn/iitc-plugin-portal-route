@@ -1,5 +1,7 @@
 # IITC Portal Route – UI Simplification Plan (Revised)
 
+Status: mostly implemented in `1.1.0-dev`; keep this as historical UI-plan context plus a checklist for remaining polish.
+
 ## Goal
 
 Reduce UI clutter, unify behavior across mobile/desktop, and make routing implicit.
@@ -104,10 +106,10 @@ Implementation notes:
 
 ## Phase 4 – Mini control cleanup
 
-### Layout
+### Target layout
 
 ```text
-+/-   [#]   M   ⚙
+M   L   +/-   [#]   =
 ```
 
 ### Behavior
@@ -122,10 +124,13 @@ Implementation notes:
 - `M`
   - Open route in Google Maps
 
+- `L`
+  - Toggle loop back to start
+
 - `⚙`
   - Open settings panel
 
-### Remove
+### Removed
 
 - Plot (`P`)
 - Any duplicate controls
@@ -143,19 +148,11 @@ Settings panel replaces “main panel”.
 - Loop toggle
 - Clear button
 
-### Keep / Add
+### Current role
 
-- Single **Add button**
-  - Tap → `smartAdd()`
-  - Long-press / right-click → Add menu
-
-### Role of Settings panel
-
-- Primary full control panel
-- Navigation hub to:
-  - Route list
-  - Library
-- Holds general configuration
+- Holds general configuration.
+- Opens Route list and Route Library.
+- Offers manual Recalc Route as a fallback.
 
 ---
 
@@ -305,3 +302,12 @@ Each step should leave the plugin functional.
   - building (Add)
   - managing (Library)
   - using (Maps)
+
+Implemented notes:
+
+- Mini control is `M`, `L`, add/remove, route count, and settings.
+- Settings panel keeps general preferences, Route List, Route Library, and manual Recalc Route.
+- Route list is the working console.
+- Route-list rows use tap to select and right-click/long-press for Delete, Rename, Set as start, and Set as end.
+- Info panel uses text links styled like other portal details plugins.
+- Route calculation is automatic after edits, with Recalc Route as a manual fallback.

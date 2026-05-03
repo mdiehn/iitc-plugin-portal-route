@@ -2,7 +2,7 @@
 
 ## Project
 
-This repo contains an IITC plugin called **Driving Route**.
+This repo contains an IITC plugin called **Portal Route**.
 
 Current version: `1.1.0-dev` planning after the `1.0.0` release.
 

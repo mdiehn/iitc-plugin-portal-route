@@ -2,6 +2,8 @@
 
 Practical UI/UX notes for `iitc-plugin-portal-route`.
 
+This file is current as of `1.1.0-dev`. Older Plot/Replot notes have been folded into the automatic routing model.
+
 ## Fixed issues
 
 ### Map interaction
@@ -9,52 +11,58 @@ Practical UI/UX notes for `iitc-plugin-portal-route`.
 - Waypoint markers no longer block portal selection.
 - Hover labels no longer block portal selection.
 - Route overlays no longer block normal map interaction.
+- Manual map points can be dragged from map handles.
+- Numbered waypoint labels can be dragged to replace a stop with a nearby portal or manual map point.
 
-### Mini-control
+### Mini control
 
-- Added compact buttons for Maps, Plot, add/remove, count, and menu.
-- Replaced mobile-unfriendly glyphs and emoji with ASCII labels.
-- Renamed `R` to `P` for Plot.
+- Replaced mobile-unfriendly glyphs and emoji with plain labels.
+- Simplified the control around Maps, Loop, Smart Add/remove, route count, and settings.
+- Removed Plot/Replot as a primary control because route calculation is automatic.
+- Kept long-press/right-click behavior for the Add context menu.
 
-### Panel and dialog
+### Panels and dialogs
 
 - Reduced panel width and font size.
 - Removed most custom CSS that fought IITC styles.
 - Stopped the panel recentering on every click.
 - Removed the horizontal scrollbar.
-- Mobile panel is full-width and bottom-anchored.
-- Close removes the panel.
-- Controls no longer move the panel unexpectedly.
+- Mobile panels stay compact and map-friendly.
+- Controls no longer move panels unexpectedly.
+- Route list, settings, and route library are separate panels with focused jobs.
 
 ### Waypoint editing
 
 - Added manual map points from map tap/click mode.
 - Added editable names for manual map points.
-
-- Removed the separate edit panel.
-- Moved waypoint editing into the main menu.
 - Replaced table-based rows with div/grid rows.
 - Fixed the clipped remove-stop button.
-- Restored yellow badge circles.
-- Removed unwanted yellow borders.
-- Centered row controls.
+- Restored stable numbered badges.
 - Added per-stop wait-time editing.
 - Added flexible wait-time input such as `15m`, `1.5h`, and `2d`.
-- Renamed the main-panel Add button to Add Portal.
-- Badge clicks center the map; name clicks do not.
+- Moved row actions into right-click/long-press menus.
+- Added drag-and-drop waypoint reordering.
+- Added reverse route, clear route, Start on me, Add Current Location, and loop back to start.
 
 ### Route behavior
 
-- Renamed Calculate to Plot.
-- Added stale route tracking for stop and wait-time changes.
-- Changed Plot to Replot when the route is stale.
+- Route calculation now queues automatically after route-affecting edits.
+- Route data is still marked stale while recalculation is pending.
 - Persisted route state across IITC reloads.
 - Added optional segment drive-time labels on the map.
-- Added Google Maps export-limit warning.
-- Added JSON route export and import.
+- Added staged Google Maps links for long routes.
+- Added current-route JSON export and import.
 - JSON import only applies known settings and ignores unknown setting keys.
 - Added printable route summary output.
 - Fixed blank print output in some browsers/WebViews.
+
+### Route library
+
+- Save and Load now use a local route library in this browser.
+- Saved routes can be named, renamed, loaded, overwritten, deleted, exported, and imported.
+- Multiple saved routes can be selected for export or delete.
+- Whole route libraries can be exported and imported as JSON.
+- The storage backend shape now has a local adapter and is ready to grow toward Drive.
 
 ### Segment display
 
@@ -69,37 +77,42 @@ Practical UI/UX notes for `iitc-plugin-portal-route`.
 
 Hover labels are still limited on mobile because touch devices do not have reliable hover.
 
-### Google Maps export limit
+### Browser/device location
 
-Google Maps appears to support the first point, final point, and up to 9 intermediate stops. Routes with more than 11 total points may export incompletely.
+Current location depends on browser geolocation. Desktop location may be coarse or wrong.
 
-Current behavior:
+### Manual point names
 
-- warn before opening Google Maps when exporting more than 11 points
-- list the stops Google Maps may omit
-- allow cancel or continue
+Manual points are easy to rename, but their automatic names are still generic. A useful next improvement would be reverse-geocoding a nearby street address or place name.
 
-Possible future fixes:
+Possible sources:
 
-- split large routes into multiple Google Maps links
-- offer a copied list of stops as a fallback
+- Google Maps/Places or Geocoding API, if auth and quota are acceptable
+- another lightweight reverse-geocoding service if it fits IITC/mobile constraints
+- coordinates as a better fallback label
 
-### Route freshness
+### Shared storage
 
-Saved route data can be stale after edits. The UI marks it stale and asks for Replot, but it does not recalculate automatically.
+Cross-device route sharing is still manual JSON import/export.
 
-## Planned improvements
+The next major usability improvement is Google Drive shared storage:
 
-- Split long Google Maps exports into multiple links.
+- visible user-selected Drive folder
+- `route-library.json`
+- manual read/write first
+- no automatic live sync until conflict behavior is clear
+
+## Remaining polish
+
+- Field-test waypoint replacement dragging on mobile.
 - Improve failures when a route cannot be calculated.
-- Add saved named routes.
-- Add cleaner route sharing/import workflows.
+- Improve Google Maps stage handoff text if needed.
+- Decide whether manual points should fetch a street address, place name, or both.
 
-## Future ideas
+## Later ideas
 
-- Drag-and-drop waypoint reordering.
-- Snap-to-portal behavior when dragging points near portals.
-- Better naming for non-portal points using place name, street address, or coordinates.
-- IITC Sync support.
 - Route optimization.
 - Apple Maps and Waze links.
+- GPX/KML export.
+- Manual shared map/view handoff with `current-map.json`.
+- Turn-by-turn directions inside IITC.

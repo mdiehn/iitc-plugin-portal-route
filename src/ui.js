@@ -165,7 +165,7 @@
       'save-route-from-library': pr.saveCurrentRouteFromLibraryPanel,
       'load-route': pr.openRouteLibraryPanel,
       'load-selected-saved-route': function() {
-        var route = pr.localRouteStorage.getRoute(pr.requireSingleSelectedLibraryRouteId());
+        var route = pr.routeLibraryStorage().getRoute(pr.requireSingleSelectedLibraryRouteId());
         pr.applyRouteRecord(route);
       },
       'delete-selected-saved-route': function() { pr.deleteSelectedSavedRoutes(); },
@@ -552,7 +552,7 @@
       pr.setStopMinutes(stopIndex, stopValue);
     } else if (field === 'saved-route-name') {
       var routeId = target.getAttribute('data-route-id');
-      var previous = pr.localRouteStorage.getRoute(routeId);
+      var previous = pr.routeLibraryStorage().getRoute(routeId);
       if (!pr.setSavedRouteName(routeId, target.value) && previous) {
         target.value = previous.name || '';
       }

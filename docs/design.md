@@ -1,44 +1,113 @@
 # Portal Route design
 
-Portal Route is a mobile-first IITC plugin for planning routes through selected portals.
+Portal Route is a mobile-first IITC plugin for planning routes through selected Ingress portals and manual map points.
 
 The plugin is meant to help an agent:
 
-- add portals to an ordered route
-- add manual map points
-- rename manual map points
-- label stops on the map
-- plot a driving route
-- include stop time at portals
-- see drive time, stop time, trip time, and distance
-- export the route to Google Maps
-- export/import route data as JSON
+- build an ordered stop list from portals, map points, or current location
+- edit, rename, reorder, reverse, and clear route stops
+- include per-stop and default stop time
+- loop back to the first stop when needed
+- calculate routes automatically after route changes
+- see drive time, stop time, trip time, distance, and per-leg details
+- export long routes to staged Google Maps links
+- save and load named routes
+- import/export current routes, saved routes, and route libraries as JSON
 - print a simple route summary
-- restore the current route after an IITC reload
+- restore current route state after an IITC reload
 
 ## Design docs
 
+- [Roadmap](ROADMAP.md)
+- [Route library design](route-library-design.md)
+- [UI refactor plan](ui-refactor-plan.md)
 - [Phase 1 design](design-phase-1.md)
 - [Usability notes](usability-notes.md)
 
-## Phase 1
+## Completed phases
 
-Phase 1 is a practical manual route planner.
+### Phase 1: manual route planner
 
-It includes:
+Done in the early releases and stable in `1.0.0`:
 
-- manual stop order
-- portal-based stops
-- route plotting
-- per-stop wait time
-- stale route tracking
-- persisted route state
+- portal stops
+- manual map points
+- route plotting/calculation
+- stop timing
+- stale/current route tracking
+- persisted current route state
 - Google Maps export
 - Google Maps export-limit warning
 - JSON import/export
 - printable route summary
 
-It does not try to be a full navigation app.
+### Phase 2: route editing and map polish
+
+Done:
+
+- drag-and-drop waypoint reordering
+- manual point dragging
+- waypoint replacement dragging
+- selectable map labels and handles
+- Start on me
+- Add Current Location
+- loop back to start
+- route reversal and clear route
+- staged Google Maps links for long routes
+
+### Phase 3: mobile-first UI simplification
+
+Mostly done in `1.1.0-dev`:
+
+- Smart Add
+- shared Add context menu
+- compact mini control
+- route list as the day-to-day work panel
+- settings panel as a small settings/navigation panel
+- portal details controls
+- automatic route calculation after edits
+
+### Phase 4: local route library
+
+Mostly done in `1.1.0-dev`:
+
+- schema version 1 saved route records
+- local saved-route library
+- Save, Load, overwrite, rename, delete
+- selected route import/export
+- whole-library import/export
+- route-library storage adapter shape started
+
+## Current phase: shared route library
+
+The remaining v1.1.0 goal is shared route storage.
+
+Preferred direction:
+
+- inspect IITC's existing Google Drive sync code first
+- use a visible, user-selected Google Drive folder
+- store `route-library.json` in that folder
+- remember the Drive folder ID locally on each device
+- keep sync manual at first
+- avoid hidden `appDataFolder` storage for the first Drive backend
+- avoid automatic polling/live sync until conflict handling is clear
+
+## Remaining polish
+
+Likely useful polish before or after Drive:
+
+- better names for manual map points, possibly by reverse-geocoding a street address or place name
+- field-test waypoint replacement dragging on mobile
+- improve Google Maps stage handoff text if needed
+- improve route calculation failure messages
+
+Later ideas:
+
+- route optimization
+- Apple Maps and Waze links
+- GPX/KML export
+- manual shared map/view handoff with `current-map.json`
+- turn-by-turn directions inside IITC, only if it ever feels worth the complexity
 
 ## UI direction
 
@@ -46,25 +115,12 @@ Keep the UI small, plain, and mobile-friendly.
 
 Prefer:
 
-- visible buttons over hidden gestures
+- obvious controls for core workflows
 - compact rows over wide tables
 - stable layout over clever animation
-- plain text over icons that render poorly on mobile
-- clear stale-state warnings over silent bad data
-
-## Later work
-
-Likely later phases:
-
-- split long Google Maps exports into multiple links
-- saved named routes
-- route optimization
-- snap-to-portal behavior
-- better names for non-portal points
-- Apple Maps and Waze links
-- IITC Sync support
-- turn-by-turn directions inside IITC
+- plain labels when icons render poorly on mobile
+- manual, inspectable storage before automatic sync
 
 ## Credit
 
-Portal Route is a separate implementation inspired in part by the IITC Traveling Agent plugin by yavidor and the Map Route Planner plugin.
+Portal Route is a separate implementation inspired in part by the IITC Traveling Agent plugin by yavidor and the Map Route Planner plugin by DanielOnDiordna

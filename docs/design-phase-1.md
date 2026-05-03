@@ -1,38 +1,50 @@
 # Phase 1 design
 
-`iitc-plugin-portal-route` helps an IITC user plan a route through selected portals.
+`iitc-plugin-portal-route` helps an IITC user plan a route through selected portals and manual map points.
 
-Phase 1 is the mobile-first manual route planner.
+Phase 1 was the mobile-first manual route planner. It is complete and should be treated as historical design context, not the current todo list.
 
-## Feature set
+## Completed feature set
 
 - Add portals to an ordered route from the portal details panel.
 - Add manual map points by tapping/clicking the map.
-- Rename manual map points from the waypoint list.
-- Show a compact route panel.
-- Label route stops on the map.
-- Plot a route through selected portals.
+- Rename manual map points from the route list.
+- Show route stops on the map.
+- Calculate a route through selected stops.
 - Show drive time and distance for each route leg.
 - Show total drive time, stop time, trip time, and distance.
 - Support a global default stop time.
 - Support per-stop wait-time overrides.
-- Mark plotted route data stale when stops or stop times change.
+- Mark route data stale/current after edits.
+- Recalculate routes automatically after route changes.
 - Show route leg details in the stop list.
 - Optionally show segment drive-time labels on the map.
-- Persist route state across IITC reloads.
+- Persist current route state across IITC reloads.
 - Export the current route to Google Maps.
-- Warn when Google Maps may omit stops.
-- Export and import route data as JSON.
+- Split long Google Maps routes into staged links.
+- Export and import current-route JSON.
 - Open a printable route summary.
+
+## Completed follow-up work
+
+These were deferred in the original Phase 1 notes, but are now implemented:
+
+- Drag-and-drop waypoint reordering.
+- Manual map point dragging.
+- Waypoint replacement dragging near portals or map locations.
+- Start on me.
+- Add Current Location.
+- Return-to-start routing.
+- Saved named routes in the local route library.
+- Selected-route and whole-library JSON import/export.
 
 ## Mobile-first rules
 
-- No hover-only controls.
-- No tiny buttons for core actions.
+- No hover-only controls for core workflows.
+- Avoid tiny buttons for frequent actions.
 - Avoid wide tables.
-- Do not depend on drag-and-drop.
 - Keep route controls compact.
-- Keep the map usable while the panel is open.
+- Keep the map usable while panels are open.
 - Use plain labels when glyphs are risky on mobile.
 
 ## Route state
@@ -42,18 +54,10 @@ The plugin tracks:
 - ordered stops
 - stop wait times
 - settings
-- plotted route data
-- whether the plotted route is stale
+- calculated route data
+- whether calculated route data is stale
 
-A plotted route becomes stale when:
-
-- a stop is added
-- a stop is removed
-- a stop is moved
-- a per-stop wait time changes
-- the default stop time changes
-
-When data is stale, the UI should show that the route needs to be replotted.
+Route data becomes stale when route-affecting data changes. Current behavior queues automatic recalculation when there are enough routeable stops.
 
 ## Google Maps export
 
@@ -62,36 +66,28 @@ Observed Google Maps behavior:
 - first point is used as the origin
 - final point is used as the destination
 - up to 9 intermediate stops are included
-- more than 11 total route points may export incompletely
+- more than 11 total route points may export incompletely in one link
 
 Current behavior:
 
-- warn before opening Google Maps when the route has more than 11 points
-- list the stops Google Maps may omit
-- let the user cancel or continue anyway
-
-Route splitting is deferred.
+- routes within the practical point limit open directly
+- longer routes are split into staged Google Maps links
+- the user opens stages in order
 
 ## Import, export, and print
 
-JSON export/import is meant to be simple route backup and sharing.
+Current-route JSON export/import is simple route backup and sharing.
 
-Imported routes restore stop order and stop timing. Imported route data should be treated as stale until replotted.
+Saved route and route-library JSON export/import live in the Route Library panel.
+
+Imported routes restore stop order and stop timing, then route calculation is queued when possible.
 
 The printable view is meant for quick paper or PDF output, not rich formatting.
 
-## Related plugins
+## Still deferred
 
-Portal Route is a separate implementation, but its design was informed by existing IITC route-planning plugins, including Traveling Agent and Map Route Planner.
-
-## Deferred features
-
+- Google Drive shared route-library storage.
+- Better manual point names from street address, place name, or another reverse-geocoding source.
 - Route optimization.
-- Drag-and-drop waypoint reordering.
-- Snap-to-portal behavior.
-- Player/map-center start location.
-- Return-to-start routing.
 - Apple Maps and Waze links.
-- Saved named routes.
-- IITC Sync support.
 - Turn-by-turn directions inside IITC.

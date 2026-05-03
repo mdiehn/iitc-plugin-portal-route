@@ -2,7 +2,7 @@
 
 Current release: `1.0.0`
 
-Portal Route has reached its first stable release. The main route-building loop is usable now: add portals, add manual points, add current location, loop back to start, drag/edit points, plot/replot, export to staged Google Maps links, import/export JSON, print, and keep state across reloads.
+Portal Route has reached its first stable release. The main route-building loop is usable now: add portals, add manual points, add current location, loop back to start, drag/edit points, calculate routes, export to staged Google Maps links, import/export JSON, print, and keep state across reloads.
 
 ## Current state: 1.0.0
 
@@ -21,7 +21,7 @@ Done and released:
 - per-stop wait times and default stop time
 - flexible wait-time inputs such as `15m`, `1.5h`, and `2d`
 - stale route tracking after edits
-- optional auto-replot after route edits
+- automatic route calculation after route edits
 - explicit Fit Route action
 - Start on me
 - Add Current Location
@@ -42,7 +42,7 @@ Done and released:
 Known rough edges:
 
 - Save and Load currently use a local route library in this browser.
-- JSON import/export now covers the current route, individual saved routes, and the local route library.
+- JSON import/export now covers individual saved routes and the local route library.
 - Cross-device sharing is manual only.
 - Browser/device location may be coarse or wrong, especially on desktop.
 - Mobile hover behavior is limited because touch devices do not really hover.
@@ -53,22 +53,34 @@ Known rough edges:
 
 Theme: **route library and Google Drive shared storage**.
 
-The next release should make Save and Load real. The user-facing goal is a route library that can be shared between desktop and phone, with Google Drive as the first external storage target.
+The next release should finish the route library by making it shareable between desktop and phone. Local Save and Load are already working in `1.1.0-dev`; Google Drive is the first external storage target.
 
-Implementation should still start local and boring. Build the route model, local backend, and UI first so the save/load behavior is reliable. Then add Google Drive behind the same storage shape.
+Implementation started local and boring. The route model, local backend, JSON portability, and UI are now mostly in place. Next, finish the storage adapter shape and add Google Drive behind it.
+
+Current v1.1.0-dev UI state:
+
+- Smart Add is the primary route-building control.
+- Routes calculate automatically after changes.
+- The mini control is `M`, `L`, add/remove, route count, and settings.
+- The route list is the working console for day-to-day route work.
+- Route-list row actions live in a right-click/long-press menu.
+- The settings panel is a small settings/navigation panel with manual Recalc Route.
+- The route library is a separate panel with Save, Load, Import, Export, and Delete.
+- Local route-library JSON portability works for single routes and whole libraries.
 
 ### v1.1.0-a: route record and local library
 
+Status: mostly done in `1.1.0-dev`.
+
 Goal: save and load named routes in this browser.
 
-Planned work:
+Implemented work:
 
 - define a saved route record schema
 - save the current route as a named route
 - load a saved route into the current route
-- overwrite/update an existing saved route
+- overwrite/update an existing saved route via Save with one checked route
 - rename saved routes
-- duplicate saved routes
 - delete saved routes
 - show route metadata such as created/updated time and stop count
 - save map center/zoom with the route
@@ -100,29 +112,35 @@ Notes:
 
 - Use `localStorage` first as the first backend and test target.
 - Save and Load should use the same route record shape that Google Drive will use later.
-- Loading a saved route should probably mark plotted route data stale unless route data is explicitly saved and trusted.
+- Loading a saved route should restore stops, map view, route-relevant settings, and then recalculate automatically.
 - Avoid OAuth in this first slice, but do not design localStorage in a way that assumes it is the only backend.
 
 ### v1.1.0-b: route library UI
 
-Goal: make the existing Save and Load buttons useful.
+Status: mostly done in `1.1.0-dev`.
 
-Planned work:
+Goal: make route-library Save and Load useful from the Route Library panel.
 
-- wire Save to save the current route
-- wire Load to show saved routes and load a selected route
-- support overwrite/update of an existing route
-- support rename, duplicate, and delete if the UI stays simple
+Implemented work:
+
+- wire Save to save the current route as a new route when none is checked
+- wire Save to overwrite one checked route after confirmation
+- wire Load to load exactly one checked route
+- support inline rename and delete
+- support selected-route JSON export/import
+- support whole-library JSON export/import
 - show where the route is stored, starting with `This browser`
 - keep UI text short enough for mobile
 
 Open UI questions:
 
-- Should Save overwrite the active saved route or always ask for a name?
-- Should Load open inside the existing panel or in a separate dialog?
-- Should loading a route restore map center/zoom automatically?
+- Should there be a separate Save As action later, or is unchecked Save enough?
+- Should multi-selected route export use a distinct filename/prompt?
+- Should loading a route restore map center/zoom automatically? Current behavior: yes.
 
 ### v1.1.0-c: storage adapter shape
+
+Status: started in the current worktree.
 
 Goal: keep the route library UI mostly independent from the storage backend.
 
@@ -147,9 +165,11 @@ Backends should be able to store the same route record schema:
 
 ### v1.1.0-d: JSON portability
 
+Status: mostly done in `1.1.0-dev`.
+
 Goal: keep route-library data inspectable and movable even before shared storage is finished.
 
-Planned work:
+Implemented work:
 
 - export one saved route as JSON
 - import one saved route from JSON
@@ -303,15 +323,13 @@ Possible future targets:
 
 Suggested next path:
 
-1. Start branch `feat/route-library`.
-2. Build route record schema and localStorage backend.
-3. Wire existing Save/Load buttons to local route-library behavior.
-4. Add route-library JSON export/import.
-5. Add a storage adapter shape if it is not already present.
-6. Inspect IITC's existing Google Drive sync code.
-7. Add Google Drive backend using a visible user-selected Drive folder.
-8. Field-test route library on desktop and phone.
-9. Cut v1.1.0 when saved routes and shared Drive storage feel boring and reliable.
+1. Review and commit the local storage-adapter cleanup.
+2. Field-test route library and smart Add on desktop and phone.
+3. Inspect IITC's existing Google Drive sync code.
+4. Add Google Drive backend using a visible user-selected Drive folder.
+5. Field-test shared storage on desktop and phone.
+6. Polish manual point naming if it stays annoying in use.
+7. Cut v1.1.0 when saved routes and shared Drive storage feel boring and reliable.
 
 ## Release habits
 

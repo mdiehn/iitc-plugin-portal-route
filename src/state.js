@@ -37,6 +37,7 @@
     addPointMode: false,
     selectedMapPointIndex: null,
     activeRouteId: null,
+    routeLibraryBackendId: 'local',
     selectedLibraryRouteIds: [],
     miniControl: null
   };

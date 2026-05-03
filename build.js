@@ -30,7 +30,7 @@ const sources = [
 
 fs.mkdirSync(distDir, { recursive: true });
 
-const output = sources
+let output = sources
   .map((file) => {
     const fullPath = path.join(root, file);
     if (!fs.existsSync(fullPath)) {
@@ -40,6 +40,42 @@ const output = sources
     return fs.readFileSync(fullPath, "utf8").trimEnd() + "\n";
   })
   .join("\n");
+
+function pad(value) {
+  return String(value).padStart(2, "0");
+}
+
+function buildStamp(date) {
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate()),
+    pad(date.getHours()),
+    pad(date.getMinutes()),
+    pad(date.getSeconds()),
+  ].join("");
+}
+
+function stampDevVersion(source) {
+  const versionMatch = source.match(/^\/\/ @version\s+(.+)$/m);
+  if (!versionMatch) return source;
+
+  const version = versionMatch[1].trim();
+  if (version.indexOf("-dev") === -1) return source;
+
+  const stampedVersion = `${version}.${buildStamp(new Date())}`;
+  return source
+    .replace(
+      /^\/\/ @version\s+.+$/m,
+      `// @version        ${stampedVersion}`
+    )
+    .replace(
+      /pr\.VERSION = ['"][^'"]+['"];/,
+      `pr.VERSION = '${stampedVersion}';`
+    );
+}
+
+output = stampDevVersion(output);
 
 fs.writeFileSync(outFile, output, "utf8");
 
