@@ -106,17 +106,16 @@
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="include-return-to-start" ' + (pr.state.settings.includeReturnToStart ? 'checked ' : '') + '> Loop to start</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-mini-control" ' + (pr.state.settings.showMiniControl ? 'checked ' : '') + '> Mini control</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-portal-details-controls" ' + (pr.state.settings.showPortalDetailsControls ? 'checked ' : '') + '> Info panel controls</label>';
-    html += '<button type="button" data-action="reverse-route"' + (pr.state.stops.length > 1 ? '' : ' disabled') + '>Reverse route</button>';
+    if (pr.SHOW_VERSION_IN_PANEL) {
+      html += '<span class="portal-route-version">Portal Route ' + pr.escapeHtml(pr.VERSION) + '</span>';
+    }
     html += '</div>';
 
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
     html += '<button type="button" data-action="calculate-route">Recalc Route</button>';
+    html += '<button type="button" data-action="reverse-route"' + (pr.state.stops.length > 1 ? '' : ' disabled') + '>Reverse route</button>';
     html += '<button type="button" class="portal-route-smart-button" data-action="open-route-menu" data-route-menu="true">Menus</button>';
     html += '</div>';
-
-    if (pr.SHOW_VERSION_IN_PANEL) {
-      html += '<div class="portal-route-version">Portal Route ' + pr.escapeHtml(pr.VERSION) + '</div>';
-    }
 
     html += '<div class="portal-route-message" id="portal-route-message"></div>';
     html += '</div>';
@@ -234,11 +233,23 @@
     pr.savePanelSize();
   };
 
-  pr.restorePanelSize = function(wrapper) {
+  pr.restorePanelSize = function(wrapper, dialogContent) {
     if (!wrapper || !wrapper.length || !pr.shouldRestorePanelPosition()) return;
 
     var size = pr.clampPanelSize(pr.state.panelSize);
     if (!size) return;
+
+    if (dialogContent && dialogContent.length) {
+      try {
+        dialogContent.dialog('option', {
+          width: size.width,
+          height: size.height
+        });
+        return;
+      } catch (e) {
+        // Fall back to direct sizing if the dialog API is unavailable.
+      }
+    }
 
     wrapper.css({ width: size.width + 'px', height: size.height + 'px' });
   };
@@ -263,7 +274,7 @@
     try {
       var dialogContent = window.jQuery(content).closest('.ui-dialog-content');
       var wrapper = dialogContent.closest('.ui-dialog');
-      pr.restorePanelSize(wrapper);
+      pr.restorePanelSize(wrapper, dialogContent);
       pr.restorePanelPosition(wrapper);
       dialogContent
         .off('dialogdragstop.portalRoute dialogresizestop.portalRoute')
@@ -343,7 +354,6 @@
             .closest('.ui-dialog-content')
             .off('dialogclose.portalRoute')
             .on('dialogclose.portalRoute', function() {
-              pr.saveCurrentPanelSize(window.jQuery(this).closest('.ui-dialog'));
               pr.state.panelOpen = false;
               pr.savePanelOpen();
             });

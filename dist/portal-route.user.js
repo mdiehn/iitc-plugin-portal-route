@@ -2,10 +2,10 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version        1.1.0-dev.20260503151247
+// @version        1.1.0-dev.20260503160545
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
-// @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/update-smartButtons/dist/portal-route.meta.js
-// @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/update-smartButtons/dist/portal-route.user.js
+// @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/v1.1.0/dist/portal-route.meta.js
+// @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/v1.1.0/dist/portal-route.user.js
 // @description    Route planning through selected portals with segment drive times, stop-time accounting, and Google Maps export.
 // @include        https://intel.ingress.com/*
 // @include        http://intel.ingress.com/*
@@ -97,6 +97,7 @@ function wrapper(plugin_info) {
   align-items: center;
   gap: 6px 12px;
   margin-top: 8px;
+  padding-bottom: 10px;
 }
 
 .portal-route-checkbox-setting {
@@ -623,10 +624,12 @@ button.portal-route-waypoint-badge-wide {
 }
 
 .portal-route-version {
-  margin-top: 6px;
+  align-self: flex-end;
+  margin-left: auto;
   opacity: 0.7;
   font-size: 10px;
   text-align: right;
+  white-space: nowrap;
 }
 
 .portal-route-totals {
@@ -899,6 +902,14 @@ button.portal-route-waypoint-badge-wide {
   overflow-x: visible !important;
 }
 
+.portal-route-dialog-content:focus,
+.portal-route-dialog-content:focus-visible,
+.ui-dialog.portal-route-dialog .ui-dialog-content:focus,
+.ui-dialog.portal-route-dialog .ui-dialog-content:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 .portal-route-waypoints-list,
 .portal-route-waypoint-row,
 .portal-route-waypoint-row > div,
@@ -976,11 +987,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-<<<<<<< HEAD
-  pr.VERSION = '1.1.0-dev.20260503151247';
-=======
-  pr.VERSION = '1.1.0-dev.20260503150036';
->>>>>>> 481cc46 (UI minor bugs and polish)
+  pr.VERSION = '1.1.0-dev.20260503160545';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -1001,6 +1008,7 @@ button.portal-route-waypoint-name,
     panelOpen: 'iitc-portal-route-panel-open',
     panelPosition: 'iitc-portal-route-panel-position',
     panelSize: 'iitc-portal-route-panel-size',
+    panelSizeUserSet: 'iitc-portal-route-panel-size-user-set',
     route: 'iitc-portal-route-route',
     routeDirty: 'iitc-portal-route-route-dirty',
     routeLibrary: 'iitc-portal-route-library',
@@ -1105,7 +1113,7 @@ button.portal-route-waypoint-name,
       }
 
       var rawPanelSize = localStorage.getItem(pr.STORAGE_KEYS.panelSize);
-      if (rawPanelSize) {
+      if (rawPanelSize && localStorage.getItem(pr.STORAGE_KEYS.panelSizeUserSet) === 'true') {
         var panelSize = JSON.parse(rawPanelSize);
         if (panelSize &&
             typeof panelSize.width === 'number' &&
@@ -1150,8 +1158,10 @@ button.portal-route-waypoint-name,
   pr.savePanelSize = function() {
     if (pr.state.panelSize) {
       localStorage.setItem(pr.STORAGE_KEYS.panelSize, JSON.stringify(pr.state.panelSize));
+      localStorage.setItem(pr.STORAGE_KEYS.panelSizeUserSet, 'true');
     } else {
       localStorage.removeItem(pr.STORAGE_KEYS.panelSize);
+      localStorage.removeItem(pr.STORAGE_KEYS.panelSizeUserSet);
     }
   };
 
@@ -2833,17 +2843,16 @@ button.portal-route-waypoint-name,
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="include-return-to-start" ' + (pr.state.settings.includeReturnToStart ? 'checked ' : '') + '> Loop to start</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-mini-control" ' + (pr.state.settings.showMiniControl ? 'checked ' : '') + '> Mini control</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-portal-details-controls" ' + (pr.state.settings.showPortalDetailsControls ? 'checked ' : '') + '> Info panel controls</label>';
-    html += '<button type="button" data-action="reverse-route"' + (pr.state.stops.length > 1 ? '' : ' disabled') + '>Reverse route</button>';
+    if (pr.SHOW_VERSION_IN_PANEL) {
+      html += '<span class="portal-route-version">Portal Route ' + pr.escapeHtml(pr.VERSION) + '</span>';
+    }
     html += '</div>';
 
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
     html += '<button type="button" data-action="calculate-route">Recalc Route</button>';
+    html += '<button type="button" data-action="reverse-route"' + (pr.state.stops.length > 1 ? '' : ' disabled') + '>Reverse route</button>';
     html += '<button type="button" class="portal-route-smart-button" data-action="open-route-menu" data-route-menu="true">Menus</button>';
     html += '</div>';
-
-    if (pr.SHOW_VERSION_IN_PANEL) {
-      html += '<div class="portal-route-version">Portal Route ' + pr.escapeHtml(pr.VERSION) + '</div>';
-    }
 
     html += '<div class="portal-route-message" id="portal-route-message"></div>';
     html += '</div>';
@@ -2961,11 +2970,23 @@ button.portal-route-waypoint-name,
     pr.savePanelSize();
   };
 
-  pr.restorePanelSize = function(wrapper) {
+  pr.restorePanelSize = function(wrapper, dialogContent) {
     if (!wrapper || !wrapper.length || !pr.shouldRestorePanelPosition()) return;
 
     var size = pr.clampPanelSize(pr.state.panelSize);
     if (!size) return;
+
+    if (dialogContent && dialogContent.length) {
+      try {
+        dialogContent.dialog('option', {
+          width: size.width,
+          height: size.height
+        });
+        return;
+      } catch (e) {
+        // Fall back to direct sizing if the dialog API is unavailable.
+      }
+    }
 
     wrapper.css({ width: size.width + 'px', height: size.height + 'px' });
   };
@@ -2990,7 +3011,7 @@ button.portal-route-waypoint-name,
     try {
       var dialogContent = window.jQuery(content).closest('.ui-dialog-content');
       var wrapper = dialogContent.closest('.ui-dialog');
-      pr.restorePanelSize(wrapper);
+      pr.restorePanelSize(wrapper, dialogContent);
       pr.restorePanelPosition(wrapper);
       dialogContent
         .off('dialogdragstop.portalRoute dialogresizestop.portalRoute')
@@ -3070,7 +3091,6 @@ button.portal-route-waypoint-name,
             .closest('.ui-dialog-content')
             .off('dialogclose.portalRoute')
             .on('dialogclose.portalRoute', function() {
-              pr.saveCurrentPanelSize(window.jQuery(this).closest('.ui-dialog'));
               pr.state.panelOpen = false;
               pr.savePanelOpen();
             });
@@ -4888,6 +4908,7 @@ button.portal-route-waypoint-name,
           var button = ev.target.closest('[data-action]');
           if (!button) return;
           ev.preventDefault();
+          ev.stopPropagation();
           if (pr.state.suppressNextAddClick && button.hasAttribute('data-add-menu')) {
             pr.state.suppressNextAddClick = false;
             return;
@@ -4953,7 +4974,7 @@ button.portal-route-waypoint-name,
     container.innerHTML = '' +
       '<a href="#" title="Open route in Google Maps" data-action="open-google-maps">M</a>' +
       '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
-      '<a href="#" class="portal-route-mini-add portal-route-smart-button' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '" data-add-menu="true">' + addRemoveText + '</a>' +
+      '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '">' + addRemoveText + '</a>' +
       '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
       '<a href="#" class="portal-route-smart-button" title="Open Portal Route menus" data-action="open-route-menu" data-route-menu="true">=</a>';
   };
@@ -5009,7 +5030,7 @@ button.portal-route-waypoint-name,
     menu.className = 'portal-route-context-menu';
     menu.innerHTML = '' +
       '<button type="button" data-action="toggle-selected-stop"' + (canAddRemoveSelected ? '' : ' disabled') + '>' + addRemoveSelectedLabel + '</button>' +
-      '<button type="button" data-action="smart-add">Add waypoint</button>' +
+      '<button type="button" data-action="add-map-point">Add waypoint</button>' +
       '<button type="button" data-action="add-current-location">Add current location</button>' +
       '<div class="portal-route-context-divider"></div>' +
       '<button type="button" data-action="toggle-loop-back">' + (pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop') + '</button>' +

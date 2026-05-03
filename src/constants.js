@@ -21,6 +21,7 @@
     panelOpen: 'iitc-portal-route-panel-open',
     panelPosition: 'iitc-portal-route-panel-position',
     panelSize: 'iitc-portal-route-panel-size',
+    panelSizeUserSet: 'iitc-portal-route-panel-size-user-set',
     route: 'iitc-portal-route-route',
     routeDirty: 'iitc-portal-route-route-dirty',
     routeLibrary: 'iitc-portal-route-library',

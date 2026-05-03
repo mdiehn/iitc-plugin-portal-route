@@ -33,7 +33,7 @@
       }
 
       var rawPanelSize = localStorage.getItem(pr.STORAGE_KEYS.panelSize);
-      if (rawPanelSize) {
+      if (rawPanelSize && localStorage.getItem(pr.STORAGE_KEYS.panelSizeUserSet) === 'true') {
         var panelSize = JSON.parse(rawPanelSize);
         if (panelSize &&
             typeof panelSize.width === 'number' &&
@@ -78,8 +78,10 @@
   pr.savePanelSize = function() {
     if (pr.state.panelSize) {
       localStorage.setItem(pr.STORAGE_KEYS.panelSize, JSON.stringify(pr.state.panelSize));
+      localStorage.setItem(pr.STORAGE_KEYS.panelSizeUserSet, 'true');
     } else {
       localStorage.removeItem(pr.STORAGE_KEYS.panelSize);
+      localStorage.removeItem(pr.STORAGE_KEYS.panelSizeUserSet);
     }
   };
 

@@ -75,6 +75,7 @@
   align-items: center;
   gap: 6px 12px;
   margin-top: 8px;
+  padding-bottom: 10px;
 }
 
 .portal-route-checkbox-setting {
@@ -601,10 +602,12 @@ button.portal-route-waypoint-badge-wide {
 }
 
 .portal-route-version {
-  margin-top: 6px;
+  align-self: flex-end;
+  margin-left: auto;
   opacity: 0.7;
   font-size: 10px;
   text-align: right;
+  white-space: nowrap;
 }
 
 .portal-route-totals {
@@ -875,6 +878,14 @@ button.portal-route-waypoint-badge-wide {
 .ui-dialog.portal-route-dialog .ui-dialog-content {
   box-sizing: border-box !important;
   overflow-x: visible !important;
+}
+
+.portal-route-dialog-content:focus,
+.portal-route-dialog-content:focus-visible,
+.ui-dialog.portal-route-dialog .ui-dialog-content:focus,
+.ui-dialog.portal-route-dialog .ui-dialog-content:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .portal-route-waypoints-list,
