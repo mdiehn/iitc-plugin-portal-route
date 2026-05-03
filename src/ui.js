@@ -541,16 +541,6 @@
       return true;
     }
 
-    if (field === 'reverse-route') {
-      if (target.checked) {
-        window.setTimeout(function() {
-          pr.reverseRoute();
-          target.checked = false;
-        }, 120);
-      }
-      return true;
-    }
-
     if (field === 'show-segment-times-on-map') {
       pr.state.settings.showSegmentTimesOnMap = !!target.checked;
       pr.saveSettings();

@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version        1.1.0-dev.20260503143524
+// @version        1.1.0-dev.20260503151247
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
 // @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/upd/UI-bugs-and-polish/dist/portal-route.meta.js
 // @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/upd/UI-bugs-and-polish/dist/portal-route.user.js
@@ -976,7 +976,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.1.0-dev.20260503143524';
+  pr.VERSION = '1.1.0-dev.20260503151247';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -2827,9 +2827,9 @@ button.portal-route-waypoint-name,
     html += '<div class="portal-route-settings-row">';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-segment-times-on-map" ' + (pr.state.settings.showSegmentTimesOnMap ? 'checked ' : '') + '> Show segment times on map</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="include-return-to-start" ' + (pr.state.settings.includeReturnToStart ? 'checked ' : '') + '> Loop to start</label>';
-    html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="reverse-route"> Reverse route</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-mini-control" ' + (pr.state.settings.showMiniControl ? 'checked ' : '') + '> Mini control</label>';
     html += '<label class="portal-route-setting portal-route-checkbox-setting"><input type="checkbox" data-field="show-portal-details-controls" ' + (pr.state.settings.showPortalDetailsControls ? 'checked ' : '') + '> Info panel controls</label>';
+    html += '<button type="button" data-action="reverse-route"' + (pr.state.stops.length > 1 ? '' : ' disabled') + '>Reverse route</button>';
     html += '</div>';
 
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
@@ -5189,16 +5189,6 @@ button.portal-route-waypoint-name,
 
     if (field === 'include-return-to-start') {
       pr.setLoopBackToStart(!!target.checked);
-      return true;
-    }
-
-    if (field === 'reverse-route') {
-      if (target.checked) {
-        window.setTimeout(function() {
-          pr.reverseRoute();
-          target.checked = false;
-        }, 120);
-      }
       return true;
     }
 
