@@ -30,8 +30,8 @@ This file is current as of `1.1.0-dev`. Older Plot/Replot notes have been folded
 - Mobile panels stay compact and map-friendly.
 - Controls no longer move panels unexpectedly.
 - Route list, settings, and route library are separate panels with focused jobs.
-- Blue-outlined smart buttons mark contextual controls such as Actions and Menus.
-- Plain buttons stay reserved for direct actions such as Maps, Print, Save, and Load.
+- Blue-outlined smart buttons mark contextual controls such as Actions, Maps, and Menus.
+- Plain buttons stay reserved for direct actions such as Fit, Print, Save, and Load.
 
 ### Waypoint editing
 

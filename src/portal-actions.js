@@ -151,6 +151,9 @@
       if (label === 'Actions') {
         link.className = 'portal-route-smart-button';
         link.setAttribute('data-add-menu', 'true');
+      } else if (label === 'Maps') {
+        link.className = 'portal-route-smart-button';
+        link.setAttribute('data-maps-menu', 'true');
       }
       links.appendChild(link);
       return link;
@@ -159,8 +162,7 @@
     if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) addActionLink('Actions', 'open-add-menu');
 
     addActionLink('Fit', 'fit-route');
-    addActionLink('Maps', 'open-google-maps');
-    addActionLink('Apple', 'open-apple-maps');
+    addActionLink('Maps', 'open-maps-menu');
 
     var menuLink = addActionLink('Menus', 'open-route-menu');
     menuLink.className = 'portal-route-smart-button';

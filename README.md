@@ -2,7 +2,7 @@
 
 Portal Route is an IITC plugin for planning a driving route through selected Ingress portals and manual map points.
 
-It is built for mobile-first use, but works on desktop IITC too. Build a stop list, account for stop time, export to Google Maps, or print a route summary.
+It is built for mobile-first use, but works on desktop IITC too. Build a stop list, account for stop time, export to a map app, or print a route summary.
 
 ## Status
 
@@ -10,7 +10,7 @@ Current release: `1.0.0`
 
 This is the first stable release.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/feat/apple-maps-support/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/feat/v1.1.0/dist/portal-route.user.js)
 
 ## Quick start
 
@@ -26,7 +26,7 @@ This is the first stable release.
 
 Portal Route is controlled from the mini control, the route list, the settings panel, the route library, and the portal details panel.
 
-Blue-outlined buttons such as **Actions** and **Menus** open contextual choices. Plain buttons such as **Maps**, **Print**, **Save**, and **Load** do the named action directly.
+Blue-outlined buttons such as **Actions**, **Maps**, and **Menus** open contextual choices. Plain buttons such as **Fit**, **Print**, **Save**, and **Load** do the named action directly.
 
 ### Points list
 
@@ -48,8 +48,7 @@ The points list shows the current route order. Drag rows to reorder stops. Right
 ### Route
 
 - Routes calculate automatically after changes.
-- **Maps** opens the route in Google Maps. Long routes are split into stage links.
-- **Apple** opens the route in Apple Maps. Long routes are split into stage links.
+- **Maps** opens map export choices, starting with Google Maps and Apple Maps. Long routes are split into stage links.
 - **Print** opens a printable route summary.
 
 When route data is available, the panel shows drive time, stop time, trip time, and distance.
@@ -80,7 +79,7 @@ The mini control is for quick route actions while mostly staying on the map.
 
 <img src="docs/images/minicontrol.png" alt="Portal Route mini control" width="82">
 
-- **M** opens the current route in Google Maps.
+- **M** opens map export choices.
 - **L** toggles loop back to start.
 - **+ / -** adds to the route or removes the selected portal or manual point. Right-click or long-press for the Actions menu.
 - **count button** opens the route list.

@@ -122,7 +122,7 @@ Prefer:
 - stable layout over clever animation
 - plain labels when icons render poorly on mobile
 - subtle blue-outlined smart buttons for contextual menus or smart flows
-- plain buttons for direct actions such as Maps, Print, Save, and Load
+- plain buttons for direct actions such as Fit, Print, Save, and Load
 - manual, inspectable storage before automatic sync
 
 ## Credit

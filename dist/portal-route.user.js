@@ -2,11 +2,11 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version        1.1.0-dev.20260503163209
+// @version        1.1.0-dev.20260503170056
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
-// @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/apple-maps-support/dist/portal-route.meta.js
-// @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/apple-maps-support/dist/portal-route.user.js
-// @description    Route planning through selected portals with segment drive times, stop-time accounting, and Google Maps export.
+// @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/v1.1.0/dist/portal-route.meta.js
+// @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/v1.1.0/dist/portal-route.user.js
+// @description    Route planning through selected portals with segment drive times, stop-time accounting, and map export.
 // @include        https://intel.ingress.com/*
 // @include        http://intel.ingress.com/*
 // @match          https://intel.ingress.com/*
@@ -987,7 +987,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.1.0-dev.20260503163209';
+  pr.VERSION = '1.1.0-dev.20260503170056';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -1357,6 +1357,9 @@ button.portal-route-waypoint-name,
       if (label === 'Actions') {
         link.className = 'portal-route-smart-button';
         link.setAttribute('data-add-menu', 'true');
+      } else if (label === 'Maps') {
+        link.className = 'portal-route-smart-button';
+        link.setAttribute('data-maps-menu', 'true');
       }
       links.appendChild(link);
       return link;
@@ -1365,8 +1368,7 @@ button.portal-route-waypoint-name,
     if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) addActionLink('Actions', 'open-add-menu');
 
     addActionLink('Fit', 'fit-route');
-    addActionLink('Maps', 'open-google-maps');
-    addActionLink('Apple', 'open-apple-maps');
+    addActionLink('Maps', 'open-maps-menu');
 
     var menuLink = addActionLink('Menus', 'open-route-menu');
     menuLink.className = 'portal-route-smart-button';
@@ -3135,8 +3137,7 @@ button.portal-route-waypoint-name,
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-panel-actions">';
     contentHtml += '<button type="button" data-action="open-add-menu" data-add-menu="true" class="portal-route-smart-button' + (pr.state.addPointMode ? ' portal-route-active-action' : '') + '">Actions</button>';
     contentHtml += '<button type="button" data-action="fit-route">Fit</button>';
-    contentHtml += '<button type="button" data-action="open-google-maps">Maps</button>';
-    contentHtml += '<button type="button" data-action="open-apple-maps">Apple</button>';
+    contentHtml += '<button type="button" class="portal-route-smart-button" data-action="open-maps-menu" data-maps-menu="true">Maps</button>';
     contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';
     contentHtml += '<button type="button" data-action="save-route">Save</button>';
@@ -4899,6 +4900,14 @@ button.portal-route-waypoint-name,
         var rect = target.getBoundingClientRect();
         pr.openRouteMenu(rect.left, rect.bottom + 4);
       },
+      'open-maps-menu': function() {
+        if (!target || !target.getBoundingClientRect) {
+          pr.openMapsMenu(20, 20);
+          return;
+        }
+        var rect = target.getBoundingClientRect();
+        pr.openMapsMenu(rect.left, rect.bottom + 4);
+      },
       'open-edit': pr.openMainPanel,
       'close-panel': function() {
         pr.state.panelOpen = false;
@@ -5040,7 +5049,7 @@ button.portal-route-waypoint-name,
     var loopTitle = pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start';
 
     container.innerHTML = '' +
-      '<a href="#" title="Open route in Google Maps" data-action="open-google-maps">M</a>' +
+      '<a href="#" class="portal-route-smart-button" title="Open map export menu" data-action="open-maps-menu" data-maps-menu="true">M</a>' +
       '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
       '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '">' + addRemoveText + '</a>' +
       '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
@@ -5082,6 +5091,10 @@ button.portal-route-waypoint-name,
     return target && target.closest ? target.closest('[data-route-menu]') : null;
   };
 
+  pr.mapsMenuTarget = function(target) {
+    return target && target.closest ? target.closest('[data-maps-menu]') : null;
+  };
+
   pr.closeAddMenu = function() {
     var menu = document.querySelector('.portal-route-context-menu');
     if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
@@ -5119,6 +5132,20 @@ button.portal-route-waypoint-name,
       '<button type="button" data-action="open-points-list">Route</button>' +
       '<button type="button" data-action="load-route">Library</button>' +
       '<button type="button" data-action="open-main">Settings</button>';
+
+    document.body.appendChild(menu);
+    pr.positionContextMenu(menu, x, y);
+  };
+
+  pr.openMapsMenu = function(x, y) {
+    pr.closeAddMenu();
+
+    var hasRoute = pr.getRouteStops && pr.getRouteStops().length >= 2;
+    var menu = document.createElement('div');
+    menu.className = 'portal-route-context-menu portal-route-maps-menu';
+    menu.innerHTML = '' +
+      '<button type="button" data-action="open-google-maps"' + (hasRoute ? '' : ' disabled') + '>Google Maps</button>' +
+      '<button type="button" data-action="open-apple-maps"' + (hasRoute ? '' : ' disabled') + '>Apple Maps</button>';
 
     document.body.appendChild(menu);
     pr.positionContextMenu(menu, x, y);
@@ -5171,6 +5198,13 @@ button.portal-route-waypoint-name,
       return;
     }
 
+    target = pr.mapsMenuTarget(ev.target);
+    if (target) {
+      ev.preventDefault();
+      pr.openMapsMenu(ev.clientX || 12, ev.clientY || 12);
+      return;
+    }
+
     target = pr.routeMenuTarget(ev.target);
     if (!target) return;
 
@@ -5180,9 +5214,10 @@ button.portal-route-waypoint-name,
 
   pr.handleAddMenuTouchStart = function(ev) {
     var target = pr.addMenuTarget(ev.target);
+    var mapsTarget = pr.mapsMenuTarget(ev.target);
     var routeTarget = pr.routeMenuTarget(ev.target);
     var row = ev.target.closest('.portal-route-stop');
-    if ((!target && !routeTarget && !row) || !window.setTimeout) return;
+    if ((!target && !mapsTarget && !routeTarget && !row) || !window.setTimeout) return;
 
     if (pr.state.addMenuLongPressTimer) window.clearTimeout(pr.state.addMenuLongPressTimer);
     var touch = ev.touches && ev.touches[0];
@@ -5194,6 +5229,8 @@ button.portal-route-waypoint-name,
       pr.state.suppressNextAddClick = true;
       if (row && !ev.target.closest('input, textarea, select')) {
         pr.openStopMenu(Number(row.getAttribute('data-index')), x, y);
+      } else if (mapsTarget) {
+        pr.openMapsMenu(x, y);
       } else if (routeTarget) {
         pr.openRouteMenu(x, y);
       } else {

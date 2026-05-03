@@ -38,6 +38,7 @@ Current release: `1.0.0`
 - Added Route Library panel messages for save/load/import/export and Drive actions.
 - Added a shared Route menu for Route, Library, and Settings navigation.
 - Added staged Apple Maps route export links from the route list and info panel.
+- Made Maps a smart menu with Google Maps and Apple Maps choices.
 
 ### Changed
 

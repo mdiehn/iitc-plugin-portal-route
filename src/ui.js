@@ -157,6 +157,14 @@
         var rect = target.getBoundingClientRect();
         pr.openRouteMenu(rect.left, rect.bottom + 4);
       },
+      'open-maps-menu': function() {
+        if (!target || !target.getBoundingClientRect) {
+          pr.openMapsMenu(20, 20);
+          return;
+        }
+        var rect = target.getBoundingClientRect();
+        pr.openMapsMenu(rect.left, rect.bottom + 4);
+      },
       'open-edit': pr.openMainPanel,
       'close-panel': function() {
         pr.state.panelOpen = false;
@@ -298,7 +306,7 @@
     var loopTitle = pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start';
 
     container.innerHTML = '' +
-      '<a href="#" title="Open route in Google Maps" data-action="open-google-maps">M</a>' +
+      '<a href="#" class="portal-route-smart-button" title="Open map export menu" data-action="open-maps-menu" data-maps-menu="true">M</a>' +
       '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
       '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '">' + addRemoveText + '</a>' +
       '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
@@ -340,6 +348,10 @@
     return target && target.closest ? target.closest('[data-route-menu]') : null;
   };
 
+  pr.mapsMenuTarget = function(target) {
+    return target && target.closest ? target.closest('[data-maps-menu]') : null;
+  };
+
   pr.closeAddMenu = function() {
     var menu = document.querySelector('.portal-route-context-menu');
     if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
@@ -377,6 +389,20 @@
       '<button type="button" data-action="open-points-list">Route</button>' +
       '<button type="button" data-action="load-route">Library</button>' +
       '<button type="button" data-action="open-main">Settings</button>';
+
+    document.body.appendChild(menu);
+    pr.positionContextMenu(menu, x, y);
+  };
+
+  pr.openMapsMenu = function(x, y) {
+    pr.closeAddMenu();
+
+    var hasRoute = pr.getRouteStops && pr.getRouteStops().length >= 2;
+    var menu = document.createElement('div');
+    menu.className = 'portal-route-context-menu portal-route-maps-menu';
+    menu.innerHTML = '' +
+      '<button type="button" data-action="open-google-maps"' + (hasRoute ? '' : ' disabled') + '>Google Maps</button>' +
+      '<button type="button" data-action="open-apple-maps"' + (hasRoute ? '' : ' disabled') + '>Apple Maps</button>';
 
     document.body.appendChild(menu);
     pr.positionContextMenu(menu, x, y);
@@ -429,6 +455,13 @@
       return;
     }
 
+    target = pr.mapsMenuTarget(ev.target);
+    if (target) {
+      ev.preventDefault();
+      pr.openMapsMenu(ev.clientX || 12, ev.clientY || 12);
+      return;
+    }
+
     target = pr.routeMenuTarget(ev.target);
     if (!target) return;
 
@@ -438,9 +471,10 @@
 
   pr.handleAddMenuTouchStart = function(ev) {
     var target = pr.addMenuTarget(ev.target);
+    var mapsTarget = pr.mapsMenuTarget(ev.target);
     var routeTarget = pr.routeMenuTarget(ev.target);
     var row = ev.target.closest('.portal-route-stop');
-    if ((!target && !routeTarget && !row) || !window.setTimeout) return;
+    if ((!target && !mapsTarget && !routeTarget && !row) || !window.setTimeout) return;
 
     if (pr.state.addMenuLongPressTimer) window.clearTimeout(pr.state.addMenuLongPressTimer);
     var touch = ev.touches && ev.touches[0];
@@ -452,6 +486,8 @@
       pr.state.suppressNextAddClick = true;
       if (row && !ev.target.closest('input, textarea, select')) {
         pr.openStopMenu(Number(row.getAttribute('data-index')), x, y);
+      } else if (mapsTarget) {
+        pr.openMapsMenu(x, y);
       } else if (routeTarget) {
         pr.openRouteMenu(x, y);
       } else {

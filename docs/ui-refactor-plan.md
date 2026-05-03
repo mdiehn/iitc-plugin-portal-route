@@ -124,7 +124,7 @@ M   L   +/-   [#]   =
   - Open route list
 
 - `M`
-  - Open route in Google Maps
+  - Open map export choices
 
 - `L`
   - Toggle loop back to start
@@ -237,7 +237,7 @@ Exists in:
 
 Behavior:
 
-- Tap → open in Google Maps
+- Tap → open map export choices
 
 Optional future:
 
