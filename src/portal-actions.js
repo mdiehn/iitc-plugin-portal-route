@@ -160,14 +160,8 @@
     }
 
     if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) addActionLink('Action', function() {
-      if (isInRoute) {
-        pr.removeStop(selectedIndex);
-      } else if (window.selectedPortal) {
-        pr.addSelectedPortal();
-      } else {
-        pr.setAddPointMode(true);
-      }
-      pr.injectPortalDetailsAction();
+      var rect = links.getBoundingClientRect();
+      pr.openAddMenu(rect.left, rect.bottom + 4);
     });
 
     addActionLink('Maps', function() {
@@ -179,6 +173,7 @@
       pr.openRouteMenu(rect.left, rect.bottom + 4);
     });
     menuLink.className = 'portal-route-smart-button';
+    menuLink.setAttribute('data-route-menu', 'true');
 
     wrapper.appendChild(links);
   };

@@ -347,10 +347,11 @@
   pr.openAddMenu = function(x, y) {
     pr.closeAddMenu();
 
+    var selectedInRoute = pr.selectedStopIndex && pr.selectedStopIndex() >= 0;
     var menu = document.createElement('div');
     menu.className = 'portal-route-context-menu';
     menu.innerHTML = '' +
-      '<button type="button" data-action="smart-add">Auto action</button>' +
+      '<button type="button" data-action="' + (selectedInRoute ? 'toggle-selected-stop' : 'smart-add') + '">' + (selectedInRoute ? 'Remove selected' : 'Auto action') + '</button>' +
       '<button type="button" data-action="add-current-location">Add current location</button>' +
       '<button type="button" data-action="add-selected-stop"' + (window.selectedPortal ? '' : ' disabled') + '>Add selected portal</button>' +
       '<button type="button" data-action="add-map-point">Add point</button>' +
