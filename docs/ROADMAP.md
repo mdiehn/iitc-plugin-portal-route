@@ -59,7 +59,7 @@ Implementation started local and boring. The route model, local backend, JSON po
 
 Current v1.1.0-dev UI state:
 
-- Action is the primary route-building control.
+- Actions is the primary route-building control.
 - Routes calculate automatically after changes.
 - The mini control is `M`, `L`, add/remove, route count, and route menu.
 - The route list is the working console for day-to-day route work.
@@ -324,7 +324,7 @@ Possible future targets:
 Suggested next path:
 
 1. Review and commit the local storage-adapter cleanup.
-2. Field-test route library and Action behavior on desktop and phone.
+2. Field-test route library and Actions behavior on desktop and phone.
 3. Inspect IITC's existing Google Drive sync code.
 4. Add Google Drive backend using a visible user-selected Drive folder.
 5. Field-test shared storage on desktop and phone.

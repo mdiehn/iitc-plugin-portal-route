@@ -143,35 +143,25 @@
     var links = document.createElement('div');
     links.className = 'portal-route-portal-action-links';
 
-    function addActionLink(label, handler) {
+    function addActionLink(label, action) {
       var link = document.createElement('a');
       link.href = '#';
       link.textContent = label;
-      if (label === 'Action') {
+      link.setAttribute('data-action', action);
+      if (label === 'Actions') {
         link.className = 'portal-route-smart-button';
         link.setAttribute('data-add-menu', 'true');
       }
-      link.addEventListener('click', function(ev) {
-        ev.preventDefault();
-        handler();
-      });
       links.appendChild(link);
       return link;
     }
 
-    if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) addActionLink('Action', function() {
-      var rect = links.getBoundingClientRect();
-      pr.openAddMenu(rect.left, rect.bottom + 4);
-    });
+    if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) addActionLink('Actions', 'open-add-menu');
 
-    addActionLink('Maps', function() {
-      pr.openGoogleMaps();
-    });
+    addActionLink('Fit', 'fit-route');
+    addActionLink('Maps', 'open-google-maps');
 
-    var menuLink = addActionLink('Menu', function() {
-      var rect = links.getBoundingClientRect();
-      pr.openRouteMenu(rect.left, rect.bottom + 4);
-    });
+    var menuLink = addActionLink('Menus', 'open-route-menu');
     menuLink.className = 'portal-route-smart-button';
     menuLink.setAttribute('data-route-menu', 'true');
 

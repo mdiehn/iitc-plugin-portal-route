@@ -17,9 +17,9 @@ This file is current as of `1.1.0-dev`. Older Plot/Replot notes have been folded
 ### Mini control
 
 - Replaced mobile-unfriendly glyphs and emoji with plain labels.
-- Simplified the control around Maps, Loop, Action/add/remove, route count, and the route menu.
+- Simplified the control around Maps, Loop, Actions/add/remove, route count, and the route menu.
 - Removed Plot/Replot as a primary control because route calculation is automatic.
-- Kept long-press/right-click behavior for the Action context menu.
+- Kept long-press/right-click behavior for the Actions context menu.
 
 ### Panels and dialogs
 
@@ -30,7 +30,7 @@ This file is current as of `1.1.0-dev`. Older Plot/Replot notes have been folded
 - Mobile panels stay compact and map-friendly.
 - Controls no longer move panels unexpectedly.
 - Route list, settings, and route library are separate panels with focused jobs.
-- Blue-outlined smart buttons mark contextual controls such as Action and Menu.
+- Blue-outlined smart buttons mark contextual controls such as Actions and Menus.
 - Plain buttons stay reserved for direct actions such as Maps, Print, Save, and Load.
 
 ### Waypoint editing

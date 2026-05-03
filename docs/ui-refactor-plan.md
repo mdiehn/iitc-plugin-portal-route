@@ -52,7 +52,7 @@ Optional:
 
 ---
 
-## Phase 2 – Action / Smart Add (core behavior)
+## Phase 2 – Actions / Smart Add (core behavior)
 
 Implement shared function:
 
@@ -76,7 +76,7 @@ Fallback:
 
 ---
 
-## Phase 3 – Action context menu (desktop + mobile)
+## Phase 3 – Actions context menu (desktop + mobile)
 
 ### Trigger
 
@@ -87,8 +87,8 @@ Fallback:
 
 ```text
 Add current location
-Add selected portal (if available)
-Add point
+Add/Remove selected
+Add waypoint
 —
 Loop / Unloop
 Reverse route
@@ -100,9 +100,9 @@ Implementation notes:
 
 - Prevent default browser context menu
 - Reuse same handler across:
-  - route list Action
+  - route list Actions
   - mini control add/remove
-  - info panel Action
+  - info panel Actions
 
 ---
 
@@ -118,7 +118,7 @@ M   L   +/-   [#]   =
 
 - `+/-`
   - Tap → `smartAdd()`
-  - Long-press / right-click → open Action menu
+  - Long-press / right-click → open Actions menu
 
 - `[#]`
   - Open route list
@@ -188,11 +188,11 @@ Set as end
 ```text
 If selected item is in route:
   Label: Remove
-  Action: remove waypoint
+  Actions: remove waypoint
 
 Else:
   Label: Add
-  Action:
+  Actions:
     - portal selected → add portal
     - no selection → close panel + enter point mode
 ```
@@ -281,7 +281,7 @@ Notes:
 
 1. Autoroute + remove plot buttons
 2. `smartAdd()`
-3. Action context menu
+3. Actions context menu
 4. Mini control update
 5. Settings panel cleanup
 6. Route list interaction changes

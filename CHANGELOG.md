@@ -48,9 +48,11 @@ Current release: `1.0.0`
 - Slimmed the settings panel by moving route actions and summary details into the route list workflow.
 - Replaced the settings panel Data box with a Route Library button.
 - Replaced repeated Route/Library/Settings navigation buttons with a distinct smart menu button.
-- Styled the smart route action button separately and renamed smart Add surfaces to Action.
+- Styled the smart route action button separately and renamed smart Add surfaces to Actions.
 - Kept portal details controls from disappearing after dismissing a context menu.
-- Made Action and Menu smart buttons open menus consistently on left-click.
+- Made Actions and Menus smart buttons open menus consistently on left-click.
+- Renamed smart buttons to Actions and Menus, revised the Actions menu, and added Fit to the info panel.
+- Added Loop to start and Reverse route controls to the settings panel.
 
 ## 1.0.0 - Released - 2026-05-02
 

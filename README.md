@@ -15,7 +15,7 @@ This is the first stable release.
 ## Quick start
 
 1. Select a portal in IITC.
-2. Click **Action**.
+2. Click **Actions**.
 3. Add more portals, manual points, or your current location.
 4. Adjust stop times if needed.
 5. Use **Maps**, **Print**, **Save**, or **Load** as needed.
@@ -26,7 +26,7 @@ This is the first stable release.
 
 Portal Route is controlled from the mini control, the route list, the settings panel, the route library, and the portal details panel.
 
-Blue-outlined buttons such as **Action** and **Menu** open contextual choices. Plain buttons such as **Maps**, **Print**, **Save**, and **Load** do the named action directly.
+Blue-outlined buttons such as **Actions** and **Menus** open contextual choices. Plain buttons such as **Maps**, **Print**, **Save**, and **Load** do the named action directly.
 
 ### Points list
 
@@ -38,10 +38,10 @@ The points list shows the current route order. Drag rows to reorder stops. Right
 
 - **Show segment times on map** shows per-leg labels on the route line when route data is available.
 
-### Action
+### Actions
 
-- **Action** starts with your current location for an empty route, adds the selected portal when one is selected, or lets you place a manual map point.
-- Right-click or long-press **Action** for Add current location, Add selected portal, Add point, Loop/Unloop, Reverse route, and Clear route.
+- **Actions** opens route-building choices.
+- Use **Add/Remove selected** for the selected portal or route stop, **Add waypoint** for the smart add flow, or choose a specific action such as Add current location, Loop/Unloop, Reverse route, or Clear.
 
 ![Portal Route Add menu](docs/screen_02_add_menu.png)
 
@@ -81,7 +81,7 @@ The mini control is for quick route actions while mostly staying on the map.
 
 - **M** opens the current route in Google Maps.
 - **L** toggles loop back to start.
-- **+ / -** adds to the route or removes the selected portal or manual point. Right-click or long-press for the Action menu.
+- **+ / -** adds to the route or removes the selected portal or manual point. Right-click or long-press for the Actions menu.
 - **count button** opens the route list.
 - **=** opens settings.
 

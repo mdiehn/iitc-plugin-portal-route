@@ -300,7 +300,7 @@
       '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
       '<a href="#" class="portal-route-mini-add portal-route-smart-button' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '" data-add-menu="true">' + addRemoveText + '</a>' +
       '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
-      '<a href="#" class="portal-route-smart-button" title="Open Portal Route menu" data-action="open-route-menu" data-route-menu="true">=</a>';
+      '<a href="#" class="portal-route-smart-button" title="Open Portal Route menus" data-action="open-route-menu" data-route-menu="true">=</a>';
   };
 
   pr.panelForEvent = function(ev) {
@@ -348,13 +348,13 @@
     pr.closeAddMenu();
 
     var selectedInRoute = pr.selectedStopIndex && pr.selectedStopIndex() >= 0;
+    var canAddRemoveSelected = selectedInRoute || !!window.selectedPortal;
     var menu = document.createElement('div');
     menu.className = 'portal-route-context-menu';
     menu.innerHTML = '' +
-      '<button type="button" data-action="' + (selectedInRoute ? 'toggle-selected-stop' : 'smart-add') + '">' + (selectedInRoute ? 'Remove selected' : 'Auto action') + '</button>' +
+      '<button type="button" data-action="toggle-selected-stop"' + (canAddRemoveSelected ? '' : ' disabled') + '>Add/Remove selected</button>' +
+      '<button type="button" data-action="smart-add">Add waypoint</button>' +
       '<button type="button" data-action="add-current-location">Add current location</button>' +
-      '<button type="button" data-action="add-selected-stop"' + (window.selectedPortal ? '' : ' disabled') + '>Add selected portal</button>' +
-      '<button type="button" data-action="add-map-point">Add point</button>' +
       '<div class="portal-route-context-divider"></div>' +
       '<button type="button" data-action="toggle-loop-back">' + (pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop') + '</button>' +
       '<button type="button" data-action="reverse-route"' + (pr.state.stops.length > 1 ? '' : ' disabled') + '>Reverse route</button>' +
@@ -537,6 +537,12 @@
 
     if (field === 'include-return-to-start') {
       pr.setLoopBackToStart(!!target.checked);
+      return true;
+    }
+
+    if (field === 'reverse-route') {
+      if (target.checked) pr.reverseRoute();
+      target.checked = false;
       return true;
     }
 
