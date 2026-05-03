@@ -23,6 +23,8 @@ Notes:
 - Settings panel replaces what was previously referred to as “main panel”
 - No separate “main panel” exists
 - Library remains a separate panel with current design
+- Smart buttons use a subtle blue outline and mean "open a contextual menu or smart flow"
+- Plain buttons mean "perform this direct action now"
 
 ---
 

@@ -26,6 +26,8 @@ This is the first stable release.
 
 Portal Route is controlled from the mini control, the route list, the settings panel, the route library, and the portal details panel.
 
+Blue-outlined buttons such as **Action** and **Menu** open contextual choices. Plain buttons such as **Maps**, **Print**, **Save**, and **Load** do the named action directly.
+
 ### Points list
 
 The points list shows the current route order. Drag rows to reorder stops. Right-click or long-press a row to delete, rename, or move it to the start or end.

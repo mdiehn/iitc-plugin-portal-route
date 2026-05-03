@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version        1.1.0-dev.20260503132752
+// @version        1.1.0-dev.20260503133630
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
 // @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/update-smartButtons/dist/portal-route.meta.js
 // @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/feat/update-smartButtons/dist/portal-route.user.js
@@ -830,23 +830,21 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-portal-action-links a {
   flex: 0 0 auto;
-  margin: 0 5px;
-  padding: 0;
-  border: 0;
+  display: inline-block;
+  margin: 0 4px 2px;
+  padding: 1px 4px;
+  border: 1px solid transparent;
+  border-radius: 3px;
   background: transparent;
+  line-height: 1.2;
   overflow: hidden;
   text-align: center;
   text-overflow: ellipsis;
 }
 
 .portal-route-portal-action-links a.portal-route-smart-button {
-  display: inline-block;
-  margin: 0 4px 3px;
-  padding: 2px 6px;
-  border: 1px solid rgba(128, 216, 255, 0.75);
-  border-radius: 4px;
+  border-color: rgba(128, 216, 255, 0.55);
   outline: 0;
-  line-height: 1.25;
 }
 
 .portal-route-context-menu {
@@ -978,7 +976,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.1.0-dev.20260503132752';
+  pr.VERSION = '1.1.0-dev.20260503133630';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
