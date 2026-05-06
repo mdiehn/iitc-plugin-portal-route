@@ -143,30 +143,54 @@
     var links = document.createElement('div');
     links.className = 'portal-route-portal-action-links';
 
-    function addActionLink(label, action) {
+    function addActionLink(label, action, className, attrs) {
       var link = document.createElement('a');
       link.href = '#';
       link.textContent = label;
       link.setAttribute('data-action', action);
-      if (label === 'Actions') {
-        link.className = 'portal-route-smart-button';
-        link.setAttribute('data-add-menu', 'true');
-      } else if (label === 'Maps') {
-        link.className = 'portal-route-smart-button';
-        link.setAttribute('data-maps-menu', 'true');
+      if (className) link.className = className;
+      if (attrs) {
+        Object.keys(attrs).forEach(function(name) {
+          link.setAttribute(name, attrs[name]);
+        });
       }
       links.appendChild(link);
       return link;
     }
 
-    if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) addActionLink('Actions', 'open-add-menu');
+    function addActionButton(label, action, title, disabled) {
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = label;
+      button.title = title;
+      button.setAttribute('data-action', action);
+      if (disabled) button.disabled = true;
+      button.className = label === 'Del' ? 'portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
+      links.appendChild(button);
+      return button;
+    }
+
+    if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) {
+      addActionButton(
+        isInRoute ? 'Del' : 'Add',
+        isInRoute ? 'toggle-selected-stop' : 'smart-add',
+        isInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or create a waypoint'
+      );
+    }
+
+    addActionButton(
+      'Undo',
+      'undo-route-edit',
+      'Undo last route edit',
+      !(pr.canUndoRouteEdit && pr.canUndoRouteEdit())
+    );
 
     addActionLink('Fit', 'fit-route');
-    addActionLink('Maps', 'open-maps-menu');
-
-    var menuLink = addActionLink('Menus', 'open-route-menu');
-    menuLink.className = 'portal-route-smart-button';
-    menuLink.setAttribute('data-route-menu', 'true');
+    addActionLink('Menu', 'open-main-menu', 'portal-route-smart-button', { 'data-main-menu': 'true' });
 
     wrapper.appendChild(links);
+
+    if (pr.renderCompactRouteStats) {
+      wrapper.insertAdjacentHTML('beforeend', pr.renderCompactRouteStats(pr.state.route));
+    }
   };

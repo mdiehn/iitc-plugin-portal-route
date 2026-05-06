@@ -266,6 +266,8 @@
     var stops = data.stops.map(pr.normalizeImportedStop).filter(Boolean);
     if (stops.length !== data.stops.length) throw new Error('One or more stops are missing valid coordinates.');
 
+    if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('import route');
+
     pr.state.stops = stops;
     pr.state.settings = pr.normalizeSettings(data.settings);
     pr.state.route = data.route && Array.isArray(data.route.legs) ? data.route : null;

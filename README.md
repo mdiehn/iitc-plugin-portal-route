@@ -6,19 +6,19 @@ It is built for mobile-first use, but works on desktop IITC too. Build a stop li
 
 ## Status
 
-Current release: `1.1.0`
+Current release: `1.2.0`
 
-This is the first fully-featured, stable, public release.
+This release adds small control polish, a unified Menu button, Undo, and selected-portal add fixes.
 
 **Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/main/dist/portal-route.user.js)
 
 ## Quick start
 
 1. Select a portal in IITC.
-2. Click **Actions**.
+2. Click **Add** or the mini-control **+**.
 3. Add more portals, manual points, or your current location.
 4. Adjust stop times if needed.
-5. Use **Maps**, **Print**, **Save**, or **Load** as needed.
+5. Use **Menu**, **Print**, **Save**, or **Load** as needed.
 
 ## Route controls
 
@@ -26,11 +26,11 @@ This is the first fully-featured, stable, public release.
 
 Portal Route is controlled from the mini control, the route list, the settings panel, the route library, and the portal details panel.
 
-Blue-outlined buttons such as **Actions**, **Maps**, and **Menus** open contextual choices. Plain buttons such as **Fit**, **Print**, **Save**, and **Load** do the named action directly.
+Blue-outlined **Menu** buttons open the shared route menu. Plain buttons such as **Add**, **Del**, **Undo**, **Fit**, **Print**, **Save**, and **Load** do the named action directly.
 
 ### Points list
 
-The points list shows the current route order. Drag rows to reorder stops. Right-click or long-press a row to delete, rename, or move it to the start or end.
+The points list shows the current route order. Drag rows to reorder stops, or use the compact **Up**, **Dn**, and **Del** row buttons. Right-click or long-press a row for rename and start/end actions.
 
 **Default stop time** applies to stops that do not have their own stop time.
 
@@ -38,20 +38,22 @@ The points list shows the current route order. Drag rows to reorder stops. Right
 
 - **Show segment times on map** shows per-leg labels on the route line when route data is available.
 
-### Actions
+### Direct actions and Menu
 
-- **Actions** opens route-building choices.
-- Use **Add selected** or **Remove selected** for the selected portal or route stop, **Add waypoint** for the smart add flow, or choose a specific action such as Add current location, Loop/Unloop, Reverse route, or Clear.
+- **Add** adds the selected portal, or starts the waypoint/current-location add flow when nothing addable is selected.
+- **Del** removes the selected route waypoint.
+- **Undo** reverses the last route edit.
+- **Menu** opens Add me, Loop/Unloop, Clear Route, Save, Google Maps, Apple Maps, Route, Library, and Settings.
 
-![Portal Route Add menu](docs/screen_02_add_menu.png)
+![Portal Route menu](docs/screen_02_add_menu.png)
 
 ### Route
 
 - Routes calculate automatically after changes.
-- **Maps** opens map export choices, starting with Google Maps and Apple Maps. Long routes are split into stage links.
+- **Menu** includes Google Maps and Apple Maps export choices. Long routes are split into stage links.
 - **Print** opens a printable route summary.
 
-When route data is available, the panel shows drive time, stop time, trip time, and distance.
+When route data is available, the panels show drive time, wait time, trip time, and distance. The portal info panel shows a small abbreviated stats row under its route buttons.
 
 ![Portal Route point list](docs/point_list.png)
 
@@ -79,21 +81,20 @@ The mini control is for quick route actions while mostly staying on the map.
 
 <img src="docs/images/minicontrol.png" alt="Portal Route mini control" width="82">
 
-- **M** opens map export choices.
+- **M** opens the shared Menu.
 - **L** toggles loop back to start.
-- **+ / -** adds to the route or removes the selected portal or manual point. Right-click or long-press for the Actions menu.
+- **+ / -** adds the selected portal or removes the selected route waypoint.
 - **count button** opens the route list.
-- **=** opens settings.
 
 ## Location notes
 
 Browser location can be very accurate on a phone and very wrong on a desktop. Desktop browsers may report the location of a network exit point instead of your real position.
 
-Use **Add current location** when you are on the device you will actually navigate from.
+Use **Menu -> Add me** when you are on the device you will actually navigate from.
 
 ## Map views
 
-After you add enough stops, Portal Route draws the route line and fills in drive time, trip time, and distance. With **Loop** enabled, the generated loop endpoint is labeled `L`.
+After you add enough stops, Portal Route draws the route line and fills in drive time, trip time, and distance. With **Loop** enabled, the generated loop endpoint stays numbered, and the start/end markers turn loop-blue without losing their end labels.
 
 ![Portal Route with loop enabled](docs/screen_03_looped.png)
 
@@ -114,7 +115,7 @@ The settings panel keeps general configuration and utility navigation separate f
 - Override stop time per stop.
 - Use flexible stop times like `15m`, `1.5h`, and `2d`.
 - Calculate a route through the stop list automatically.
-- Show total drive time, stop time, trip time, and distance.
+- Show total drive time, wait time, trip time, and distance.
 - Show per-leg time and distance in the stop list.
 - Mark route data as updating after edits.
 - Persist waypoints and calculated route data across IITC reloads.

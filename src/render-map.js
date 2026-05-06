@@ -91,17 +91,16 @@
     var isSelected = !isLoop && pr.selectedStopIndex && pr.selectedStopIndex() === index;
     var isMapPoint = stop.type === 'map';
     var canDragRouteStop = !isLoop && !pr.isManagedStartStop(stop);
-    var label = isLoop ? 'L' : (index + 1);
+    var label = index + 1;
     var className = 'portal-route-stop-label';
 
     if (String(label).length > 2) className += ' portal-route-stop-label-wide';
     if (!isLoop && hasLoopStop && (index === 0 || index === pr.state.stops.length - 1)) {
       className += ' portal-route-stop-label-loop-endpoint';
-    } else {
-      if (!isLoop && index === 0) className += ' portal-route-stop-label-start';
-      if (!isLoop && pr.state.stops.length > 1 && index === pr.state.stops.length - 1) {
-        className += ' portal-route-stop-label-end';
-      }
+    }
+    if (!isLoop && index === 0) className += ' portal-route-stop-label-start';
+    if (!isLoop && pr.state.stops.length > 1 && index === pr.state.stops.length - 1) {
+      className += ' portal-route-stop-label-end';
     }
     if (isMapPoint) className += ' portal-route-map-point-label';
     if (canDragRouteStop) className += ' portal-route-stop-label-draggable';
@@ -173,7 +172,7 @@
 
   pr.createStopLabelMarker = function(stop, index, hasLoopStop, title, clickHandler) {
     var isLoop = !!stop.generatedLoop;
-    var label = isLoop ? 'L' : (index + 1);
+    var label = index + 1;
     var icon = L.divIcon({
       className: pr.stopLabelClass(stop, index, hasLoopStop),
       html: '<span>' + label + '</span>',
@@ -206,6 +205,7 @@
     if (!pointMarker) return;
 
     pointMarker.on('dragstart', function(e) {
+      if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('move waypoint');
       if (e.target && e.target._icon) e.target._icon.classList.add('portal-route-map-point-marker-dragging');
       pr.state.selectedMapPointIndex = index;
       if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
@@ -221,7 +221,7 @@
     });
     pointMarker.on('dragend', function(e) {
       if (e.target && e.target._icon) e.target._icon.classList.remove('portal-route-map-point-marker-dragging');
-      pr.updateMapPointPosition(index, e.target.getLatLng());
+      pr.updateMapPointPosition(index, e.target.getLatLng(), { skipUndo: true });
     });
   };
 

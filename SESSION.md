@@ -2,9 +2,20 @@
 
 Current repo: IITC plugin **Portal Route**.
 
-Current branch: `feat/v1.1.0`.
+Current branch: `feat/v1.2.0`.
 
-Current version: `1.1.0-dev`, after the `1.0.0` release.
+Current version: `1.2.0`, after the `1.1.0` release.
+
+
+## v1.2.0 current work
+
+- Fix smart add so a selected portal wins even when the route is empty.
+- Restore direct Add/Del controls outside the shared Menu.
+- Restore compact Up/Dn/Del row buttons.
+- Keep loop endpoint markers numbered while changing loop styling to loop-blue.
+- Show compact route stats in the portal info panel.
+- Add Undo for recent route edits, following the Walk/Bike/Run pattern.
+- Collapse Actions, Maps, and route navigation into one shared Menu smart button.
 
 ## Project rules
 

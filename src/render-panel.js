@@ -8,7 +8,7 @@
   };
 
   pr.renderEmptyHelp = function() {
-    return '<p class="portal-route-empty">There are no waypoints defined.<br>Use Actions to start a route.</p>';
+    return '<p class="portal-route-empty">There are no waypoints defined.<br>Use Add or Menu to start a route.</p>';
   };
 
   pr.renderRouteSegment = function(leg) {
@@ -60,6 +60,19 @@
 
       html += '<div class="portal-route-leg-cell">' + (index < stops.length - 1 ? pr.renderRouteSegment(legsByToIndex[index + 1]) : '') + '</div>';
       html += '<div class="portal-route-wait-cell"><input class="portal-route-wait-input" type="text" inputmode="decimal" value="' + pr.escapeHtml(waitValue) + '" title="Examples: 15m, 1.5h, 2d" data-field="stop-minutes" data-index="' + index + '" ' + (isLoop || isManagedStart ? 'disabled' : '') + '></div>';
+
+      if (isLoop) {
+        html += '<div class="portal-route-row-actions"></div>';
+      } else {
+        var canMoveUp = !isManagedStart && index > 0 && !(pr.state.settings.startOnCurrentLocation && index <= 1);
+        var canMoveDown = !isManagedStart && index < pr.state.stops.length - 1;
+        var canRemove = !isManagedStart;
+        html += '<div class="portal-route-row-actions">';
+        html += '<button type="button" title="Move waypoint up" data-action="move-stop-up" data-index="' + index + '"' + (canMoveUp ? '' : ' disabled') + '>Up</button>';
+        html += '<button type="button" title="Move waypoint down" data-action="move-stop-down" data-index="' + index + '"' + (canMoveDown ? '' : ' disabled') + '>Dn</button>';
+        html += '<button type="button" title="Delete waypoint" data-action="remove-stop" data-index="' + index + '"' + (canRemove ? '' : ' disabled') + '>Del</button>';
+        html += '</div>';
+      }
       html += '</div>';
     });
 
@@ -93,6 +106,42 @@
     return html;
   };
 
+  pr.renderCompactRouteStats = function(route) {
+    if (!route || !route.totals) return '';
+
+    var staleClass = pr.state.routeDirty ? ' portal-route-compact-stats-stale' : '';
+    var html = '';
+    html += '<div class="portal-route-compact-stats' + staleClass + '">';
+    html += '<span><b>Tot</b> ' + pr.escapeHtml(pr.formatDuration(route.totals.tripSeconds)) + '</span>';
+    html += '<span><b>Drv</b> ' + pr.escapeHtml(pr.formatDuration(route.totals.driveSeconds)) + '</span>';
+    html += '<span><b>Wait</b> ' + pr.escapeHtml(pr.formatDuration(route.totals.stopSeconds)) + '</span>';
+    html += '<span><b>Dist</b> ' + pr.escapeHtml(pr.formatDistance(route.totals.distanceMeters)) + '</span>';
+    html += '</div>';
+    return html;
+  };
+
+  pr.selectedAddDeleteButton = function(labelMode) {
+    var selectedInRoute = pr.selectedStopIndex && pr.selectedStopIndex() >= 0;
+    var label = selectedInRoute ? 'Del' : 'Add';
+    var text = labelMode === 'symbol' ? (selectedInRoute ? '-' : '+') : label;
+    var title = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or create a waypoint';
+    var action = selectedInRoute ? 'toggle-selected-stop' : 'smart-add';
+    var className = selectedInRoute ? 'portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
+
+    return '<button type="button" data-action="' + action + '" title="' + title + '" class="' + className + '">' + text + '</button>';
+  };
+
+  pr.undoRouteEditButton = function() {
+    var disabled = pr.canUndoRouteEdit && pr.canUndoRouteEdit() ? '' : ' disabled';
+    return '<button type="button" data-action="undo-route-edit" title="Undo last route edit" class="portal-route-smart-button"' + disabled + '>Undo</button>';
+  };
+
+  pr.mainMenuButton = function(label, extraClass) {
+    label = label || 'Menu';
+    var className = 'portal-route-smart-button' + (extraClass ? ' ' + extraClass : '');
+    return '<button type="button" class="' + className + '" data-action="open-main-menu" data-main-menu="true">' + pr.escapeHtml(label) + '</button>';
+  };
+
   pr.renderMainPanel = function(legsByToIndex) {
     var html = '';
 
@@ -112,9 +161,11 @@
     html += '</div>';
 
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
-    html += '<button type="button" data-action="calculate-route">Recalc Route</button>';
+    html += pr.selectedAddDeleteButton();
+    html += pr.undoRouteEditButton();
+    html += '<button type="button" data-action="calculate-route">Recalc Route</button>'; 
     html += '<button type="button" data-action="reverse-route"' + (pr.state.stops.length > 1 ? '' : ' disabled') + '>Reverse route</button>';
-    html += '<button type="button" class="portal-route-smart-button" data-action="open-route-menu" data-route-menu="true">Menus</button>';
+    html += pr.mainMenuButton();
     html += '</div>';
 
     html += '<div class="portal-route-message" id="portal-route-message"></div>';
@@ -395,14 +446,14 @@
     contentHtml += '<div class="portal-route-body">' + pr.renderStopsList(legsByToIndex) + '</div>';
     contentHtml += '</div>';
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-panel-actions">';
-    contentHtml += '<button type="button" data-action="open-add-menu" data-add-menu="true" class="portal-route-smart-button' + (pr.state.addPointMode ? ' portal-route-active-action' : '') + '">Actions</button>';
+    contentHtml += pr.selectedAddDeleteButton();
+    contentHtml += pr.undoRouteEditButton();
     contentHtml += '<button type="button" data-action="fit-route">Fit</button>';
-    contentHtml += '<button type="button" class="portal-route-smart-button" data-action="open-maps-menu" data-maps-menu="true">Maps</button>';
+    contentHtml += pr.mainMenuButton();
     contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';
     contentHtml += '<button type="button" data-action="save-route">Save</button>';
     contentHtml += '<button type="button" data-action="load-route">Load</button>';
-    contentHtml += '<button type="button" class="portal-route-smart-button" data-action="open-route-menu" data-route-menu="true">Menus</button>';
     contentHtml += '</div>';
     var existingContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);
 

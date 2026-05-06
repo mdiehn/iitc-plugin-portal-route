@@ -477,6 +477,8 @@
       return false;
     }
 
+    if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('load route');
+
     pr.state.stops = stops;
     pr.applyRouteLibrarySettings(record.settings);
     pr.state.route = null;
@@ -771,6 +773,7 @@
     contentHtml += '<button type="button" data-action="import-saved-route">Import</button>';
     contentHtml += '<button type="button" data-action="export-selected-saved-route"' + anyDisabled + '>Export</button>';
     contentHtml += '<button type="button" data-action="delete-selected-saved-route"' + anyDisabled + '>Delete</button>';
+    contentHtml += pr.mainMenuButton('Menu', 'portal-route-library-menu-button');
     contentHtml += '</div>';
     contentHtml += '<div class="portal-route-message"></div>';
     return contentHtml;

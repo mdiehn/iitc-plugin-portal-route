@@ -1,6 +1,6 @@
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.1.0-dev';
+  pr.VERSION = '1.2.0';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {

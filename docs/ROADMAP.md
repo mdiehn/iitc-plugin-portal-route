@@ -2,11 +2,11 @@
 
 #WARNING - needs update since 1.1.0 release
 
-Current release: `1.1.0`
+Current release: `1.2.0`
 
 Portal Route has reached its first stable release. The main route-building loop is usable now: add portals, add manual points, add current location, loop back to start, drag/edit points, calculate routes, export to staged Google Maps links, import/export JSON, print, and keep state across reloads.
 
-## Current state: 1.1.0
+## Current state: 1.2.0
 
 Done and released:
 
@@ -55,23 +55,22 @@ Known rough edges:
 - Google Maps export works, but the staging/export flow could be clearer.
 - Waypoint dragging and portal snapping need more field testing.
 
-## Current focus: v1.1.0
+## Current focus: v1.2.0
 
-Theme: **route library and Google Drive shared storage**.
+Theme: small route-control polish after the route library release.
 
-The next release should finish the route library by making it shareable between desktop and phone. Local Save and Load are already working in `1.1.0-dev`; Google Drive is the first external storage target.
+This release keeps the route-library work intact and tightens the day-to-day route controls: direct Add/Del, row Up/Dn/Del buttons, selected-portal smart add behavior, loop marker readability, compact info-panel stats, and route-edit Undo.
 
-Implementation started local and boring. The route model, local backend, JSON portability, and UI are now mostly in place. Next, finish the storage adapter shape and add Google Drive behind it.
+Current v1.2.0 UI state:
 
-Current v1.1.0-dev UI state:
-
-- Actions is the primary route-building control.
+- Add/Del handles the common selected-point action, with Menu as the wider route-building/export/navigation menu.
+- Undo is available for recent route edits.
 - Routes calculate automatically after changes.
-- The mini control is `M`, `L`, add/remove, route count, and route menu.
+- The mini control is `M`, `L`, add/remove, and route count.
 - The route list is the working console for day-to-day route work.
-- Route-list row actions live in a right-click/long-press menu.
-- The settings panel is a small settings/navigation panel with manual Recalc Route.
-- The route library is a separate panel with Save, Load, Import, Export, and Delete.
+- Route-list rows have compact Up/Dn/Del controls, with rename and start/end actions still in the context menu.
+- The settings panel is a small settings/navigation panel with Add/Del, manual Recalc Route, and Menu.
+- The route library is a separate panel with Save, Load, Import, Export, Delete, and Menu.
 - Local route-library JSON portability works for single routes and whole libraries.
 
 ### v1.1.0-a: route record and local library
@@ -329,7 +328,7 @@ Possible future targets:
 Suggested next path:
 
 1. Review and commit the local storage-adapter cleanup.
-2. Field-test route library and Actions behavior on desktop and phone.
+2. Field-test route library and Menu behavior on desktop and phone.
 3. Inspect IITC's existing Google Drive sync code.
 4. Add Google Drive backend using a visible user-selected Drive folder.
 5. Field-test shared storage on desktop and phone.

@@ -123,12 +123,15 @@
     );
   };
 
-  pr.applyStartOnCurrentLocation = function(position) {
+  pr.applyStartOnCurrentLocation = function(position, options) {
+    options = options || {};
     var stop = pr.currentLocationStopFromPosition(position, { startOnMe: true });
     if (!stop) {
       pr.showMessage('Could not read current location.');
       return false;
     }
+
+    if (!options.skipUndo && pr.pushUndoSnapshot) pr.pushUndoSnapshot('update start location');
 
     var selectedIndex = pr.state.selectedMapPointIndex;
     var selectedStop = typeof selectedIndex === 'number' ? pr.state.stops[selectedIndex] : null;
@@ -153,11 +156,17 @@
     pr.redrawLabels();
     pr.renderPanel();
     pr.renderMiniControl();
+    if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
     return true;
   };
 
   pr.setStartOnCurrentLocation = function(enabled) {
-    pr.state.settings.startOnCurrentLocation = !!enabled;
+    enabled = !!enabled;
+    if (enabled !== !!pr.state.settings.startOnCurrentLocation && pr.pushUndoSnapshot) {
+      pr.pushUndoSnapshot(enabled ? 'enable start on me' : 'disable start on me');
+    }
+
+    pr.state.settings.startOnCurrentLocation = enabled;
     pr.saveSettings();
 
     if (!enabled) {
@@ -169,7 +178,7 @@
     pr.getCurrentLocation(
       function(position) {
         if (!pr.state.settings.startOnCurrentLocation) return;
-        if (pr.applyStartOnCurrentLocation(position)) {
+        if (pr.applyStartOnCurrentLocation(position, { skipUndo: true })) {
           pr.showMessage('Start set to current location.');
         }
       },
@@ -183,12 +192,18 @@
   };
 
   pr.setLoopBackToStart = function(enabled) {
-    pr.state.settings.includeReturnToStart = !!enabled;
+    enabled = !!enabled;
+    if (enabled !== !!pr.state.settings.includeReturnToStart && pr.pushUndoSnapshot) {
+      pr.pushUndoSnapshot(enabled ? 'enable loop' : 'disable loop');
+    }
+
+    pr.state.settings.includeReturnToStart = enabled;
     pr.saveSettings();
     pr.markRouteStale({ clearRoute: true });
     pr.redrawLabels();
     pr.renderPanel();
     pr.renderMiniControl();
+    if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
   };
 
   pr.toggleLoopBackToStart = function() {
@@ -215,6 +230,11 @@
   };
 
   pr.smartAdd = function() {
+    if (window.selectedPortal && pr.portalToStop && pr.portalToStop(window.selectedPortal)) {
+      pr.addSelectedPortal();
+      return;
+    }
+
     if (!pr.state.stops.length) {
       pr.showMessage('Getting current location...');
       pr.getCurrentLocation(
@@ -234,11 +254,6 @@
           pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '') + '. Tap the map to add a point.');
         }
       );
-      return;
-    }
-
-    if (window.selectedPortal && pr.portalToStop && pr.portalToStop(window.selectedPortal)) {
-      pr.addSelectedPortal();
       return;
     }
 
@@ -347,6 +362,7 @@
         pr.redrawLabels();
         pr.renderPanel();
         pr.renderMiniControl();
+        if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
       }
 
       if (finishedCount >= guids.length) {
@@ -404,6 +420,8 @@
       return;
     }
 
+    if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('add waypoint');
+
     pr.state.stops.push({
       guid: guid,
       type: stopType,
@@ -426,6 +444,7 @@
     pr.redrawLabels();
     pr.renderPanel();
     pr.renderMiniControl();
+    if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
   };
 
   pr.nextMapPointTitle = function() {
@@ -455,6 +474,8 @@
     if (!stop || stop.type !== 'map') return false;
     if (pr.isManagedStartStop(stop)) return false;
 
+    if (!options.live && !options.skipUndo && pr.pushUndoSnapshot) pr.pushUndoSnapshot('move waypoint');
+
     stop.lat = latlng.lat;
     stop.lng = latlng.lng;
 
@@ -466,6 +487,7 @@
     pr.redrawLabels();
     pr.renderPanel();
     pr.renderMiniControl();
+    if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
     return true;
   };
 
@@ -486,6 +508,8 @@
 
     var stopType = replacement.type || (guid ? 'portal' : 'map');
     var title = pr.hydratedStopTitle(replacement, stopType, index);
+
+    if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('move waypoint');
 
     pr.state.stops[index] = Object.assign({}, existing, {
       guid: guid,
@@ -526,6 +550,7 @@
     pr.state.addPointMode = !!enabled;
     pr.renderPanel();
     pr.renderMiniControl();
+    if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
     pr.showMessage(pr.state.addPointMode ? 'Tap the map to add a point.' : 'Add point canceled.');
   };
 
@@ -535,6 +560,8 @@
       pr.showMessage('Untick Start on me before removing that point.');
       return;
     }
+
+    if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('delete waypoint');
 
     if (pr.state.selectedMapPointIndex === index) {
       pr.state.selectedMapPointIndex = null;
@@ -548,10 +575,14 @@
     pr.redrawLabels();
     pr.renderPanel();
     pr.renderMiniControl();
+    if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
   };
 
   pr.clearStops = function() {
     var restoreStartOnMe = !!pr.state.settings.startOnCurrentLocation;
+    if ((pr.state.stops.length || pr.state.route || pr.state.routeDirty) && pr.pushUndoSnapshot) {
+      pr.pushUndoSnapshot('clear route');
+    }
 
     pr.state.stops = [];
     pr.state.route = null;
@@ -564,6 +595,7 @@
     pr.redrawLabels();
     pr.renderPanel();
     pr.renderMiniControl();
+    if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
 
     if (restoreStartOnMe) {
       pr.setStartOnCurrentLocation(true);
@@ -581,6 +613,8 @@
       return;
     }
 
+    if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('reverse route');
+
     var selectedStop = typeof pr.state.selectedMapPointIndex === 'number' ? pr.state.stops[pr.state.selectedMapPointIndex] : null;
     var pinnedStart = pr.isManagedStartIndex(0) ? pr.state.stops.slice(0, 1) : [];
     var routeStops = pr.state.stops.slice(pinnedStart.length).reverse();
@@ -594,6 +628,7 @@
     pr.redrawLabels();
     pr.renderPanel();
     pr.renderMiniControl();
+    if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
     pr.showMessage('Route reversed.');
   };
 
@@ -608,12 +643,15 @@
     title = String(title).trim();
     if (!title) title = stop.type === 'map' ? pr.nextMapPointTitle() : 'Unnamed portal';
 
+    if (title !== stop.title && pr.pushUndoSnapshot) pr.pushUndoSnapshot('rename waypoint');
+
     stop.title = title;
     pr.saveStops();
     pr.redrawLabels();
     pr.redrawSegmentTimeLabels();
     pr.renderPanel();
     pr.renderMiniControl();
+    if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
   };
 
   pr.moveStopToEdge = function(index, edge) {
@@ -628,6 +666,7 @@
   pr.replaceStops = function(stops, options) {
     options = options || {};
     if (!Array.isArray(stops)) return;
+    if (!options.skipUndo && pr.pushUndoSnapshot) pr.pushUndoSnapshot('replace route');
 
     pr.state.stops = [];
     pr.state.route = null;
@@ -662,6 +701,7 @@
     pr.renderPanel();
     pr.renderPointsPanel();
     pr.renderMiniControl();
+    if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
     pr.showMessage('Imported ' + pr.state.stops.length + ' stops.');
     pr.hydrateStopTitles();
   };
@@ -673,6 +713,8 @@
     if (pr.isManagedStartIndex(fromIndex)) return;
     if (pr.state.settings.startOnCurrentLocation && toIndex === 0) toIndex = 1;
     if (fromIndex === toIndex) return;
+
+    if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('move waypoint');
 
     var selectedIndex = pr.state.selectedMapPointIndex;
     var item = pr.state.stops.splice(fromIndex, 1)[0];
@@ -693,6 +735,7 @@
     pr.redrawLabels();
     pr.renderPanel();
     pr.renderMiniControl();
+    if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
   };
 
 
@@ -705,6 +748,8 @@
 
     var cleanTitle = String(title == null ? '' : title).trim();
     if (!cleanTitle) cleanTitle = pr.nextMapPointTitle();
+
+    if (cleanTitle !== stop.title && pr.pushUndoSnapshot) pr.pushUndoSnapshot('rename waypoint');
 
     stop.title = cleanTitle;
     pr.saveStops();
@@ -719,7 +764,11 @@
     if (pr.isManagedStartIndex(index)) return;
     if (typeof minutes !== 'number' || !isFinite(minutes) || minutes < 0) return;
 
-    pr.state.stops[index].stopMinutes = Math.round(minutes);
+    minutes = Math.round(minutes);
+    if (pr.state.stops[index].stopMinutes === minutes) return;
+    if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('change wait time');
+
+    pr.state.stops[index].stopMinutes = minutes;
     pr.markRouteStale();
     pr.saveStops();
     pr.renderPanel();
@@ -764,13 +813,13 @@
     if (!stop.guid) {
       pr.state.selectedMapPointIndex = index;
       if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
-      if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
       if (center && window.map) {
         window.map.setView([stop.lat, stop.lng], window.map.getZoom());
       }
       pr.redrawLabels();
       pr.renderPanel();
       pr.renderMiniControl();
+      if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
       return;
     }
 
@@ -790,6 +839,7 @@
     pr.redrawLabels();
     pr.renderPanel();
     pr.renderMiniControl();
+    if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
   };
 
 
