@@ -47,19 +47,19 @@
       var dragAttr = canDragRow ? ' draggable="true"' : '';
       var dragHandleAttr = canDragRow ? ' draggable="true"' : '';
       var selectTitle = isLoop ? 'Loop back to start' : 'Select and center stop';
-      var badgeTitle = canDragRow ? 'Drag to reorder; click to select and center' : selectTitle;
+      var badgeLabel = canDragRow ? 'Drag to reorder; click to select and center' : selectTitle;
 
       html += '<div class="portal-route-waypoint-row portal-route-stop' + rowClass + dragClass + '" data-index="' + index + '"' + dragAttr + '>';
-      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge portal-route-waypoint-drag-handle' + badgeClass + (isLoop ? ' portal-route-loop-badge' : '') + '" title="' + badgeTitle + '" data-action="select-stop-center" data-index="' + index + '"' + dragHandleAttr + '>' + badge + '</button></div>';
+      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge portal-route-waypoint-drag-handle' + badgeClass + (isLoop ? ' portal-route-loop-badge' : '') + '" aria-label="' + pr.escapeHtml(badgeLabel) + '" data-action="select-stop-center" data-index="' + index + '"' + dragHandleAttr + '>' + badge + '</button></div>';
 
       if (isLoop) {
-        html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Loop back to first waypoint" data-action="select-stop-center" data-index="' + index + '">Loop back to ' + pr.escapeHtml(stop.title) + '</button></div>';
+        html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" aria-label="Loop back to first waypoint" data-action="select-stop-center" data-index="' + index + '">Loop back to ' + pr.escapeHtml(stop.title) + '</button></div>';
       } else {
-        html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Select stop" data-action="select-stop" data-index="' + index + '">' + pr.escapeHtml(stop.title) + '</button></div>';
+        html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" aria-label="Select stop" data-action="select-stop" data-index="' + index + '">' + pr.escapeHtml(stop.title) + '</button></div>';
       }
 
       html += '<div class="portal-route-leg-cell">' + (index < stops.length - 1 ? pr.renderRouteSegment(legsByToIndex[index + 1]) : '') + '</div>';
-      html += '<div class="portal-route-wait-cell"><input class="portal-route-wait-input" type="text" inputmode="decimal" value="' + pr.escapeHtml(waitValue) + '" title="Examples: 15m, 1.5h, 2d" data-field="stop-minutes" data-index="' + index + '" ' + (isLoop || isManagedStart ? 'disabled' : '') + '></div>';
+      html += '<div class="portal-route-wait-cell"><input class="portal-route-wait-input" type="text" inputmode="decimal" value="' + pr.escapeHtml(waitValue) + '" aria-label="Stop wait time" placeholder="15m" data-field="stop-minutes" data-index="' + index + '" ' + (isLoop || isManagedStart ? 'disabled' : '') + '></div>';
 
       if (isLoop) {
         html += '<div class="portal-route-row-actions"></div>';
@@ -68,9 +68,9 @@
         var canMoveDown = !isManagedStart && index < pr.state.stops.length - 1;
         var canRemove = !isManagedStart;
         html += '<div class="portal-route-row-actions">';
-        html += '<button type="button" title="Move waypoint up" data-action="move-stop-up" data-index="' + index + '"' + (canMoveUp ? '' : ' disabled') + '>Up</button>';
-        html += '<button type="button" title="Move waypoint down" data-action="move-stop-down" data-index="' + index + '"' + (canMoveDown ? '' : ' disabled') + '>Dn</button>';
-        html += '<button type="button" title="Delete waypoint" data-action="remove-stop" data-index="' + index + '"' + (canRemove ? '' : ' disabled') + '>Del</button>';
+        html += '<button type="button" aria-label="Move waypoint up" data-action="move-stop-up" data-index="' + index + '"' + (canMoveUp ? '' : ' disabled') + '>Up</button>';
+        html += '<button type="button" aria-label="Move waypoint down" data-action="move-stop-down" data-index="' + index + '"' + (canMoveDown ? '' : ' disabled') + '>Dn</button>';
+        html += '<button type="button" aria-label="Delete waypoint" data-action="remove-stop" data-index="' + index + '"' + (canRemove ? '' : ' disabled') + '>Del</button>';
         html += '</div>';
       }
       html += '</div>';
@@ -129,12 +129,12 @@
     var className = selectedInRoute ? 'portal-route-smart-button portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
     if (!selectedInRoute && pr.state.addPointMode) className += ' portal-route-add-point-active';
 
-    return '<button type="button" data-action="' + action + '" title="' + title + '" class="' + className + '">' + text + '</button>';
+    return '<button type="button" data-action="' + action + '" aria-label="' + title + '" class="' + className + '">' + text + '</button>';
   };
 
   pr.undoRouteEditButton = function() {
     var disabled = pr.canUndoRouteEdit && pr.canUndoRouteEdit() ? '' : ' disabled';
-    return '<button type="button" data-action="undo-route-edit" title="Undo last route edit" class="portal-route-smart-button"' + disabled + '>Undo</button>';
+    return '<button type="button" data-action="undo-route-edit" aria-label="Undo last route edit" class="portal-route-smart-button"' + disabled + '>Undo</button>';
   };
 
   pr.mainMenuButton = function(label, extraClass) {
@@ -148,7 +148,7 @@
 
     html += '<div class="portal-route-body">';
     html += '<div class="portal-route-list-options">';
-    html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" title="Examples: 15m, 1.5h, 2d" data-field="default-stop-minutes"> per portal</label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" aria-label="Default stop time" placeholder="15m" data-field="default-stop-minutes"> per portal</label>';
     html += '</div>';
 
     html += '<div class="portal-route-settings-row">';

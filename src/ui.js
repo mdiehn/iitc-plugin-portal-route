@@ -304,17 +304,17 @@
     var addRemoveClass = selectedInRoute ? ' portal-route-mini-remove' : '';
     if (addPointActive && !selectedInRoute) addRemoveClass += ' portal-route-mini-add-active';
     var addRemoveText = selectedInRoute ? '-' : '+';
-    var addRemoveTitle = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or place a map point';
+    var addRemoveLabel = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or place a map point';
     var addRemoveAction = selectedInRoute ? 'toggle-selected-stop' : 'smart-add';
     var loopClass = pr.state.settings.includeReturnToStart ? ' portal-route-mini-active' : '';
-    var loopTitle = pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start';
+    var loopLabel = pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start';
 
     container.innerHTML = '' +
-      '<a href="#" class="portal-route-mini-maps" title="Open map export choices" data-action="open-maps-menu" data-maps-menu="true">M</a>' +
-      '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
-      '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '">' + addRemoveText + '</a>' +
-      '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
-      '<a href="#" class="portal-route-smart-button" title="Open Portal Route menu" data-action="open-main-menu" data-main-menu="true">=</a>';
+      '<a href="#" class="portal-route-mini-maps" aria-label="Open map export choices" data-action="open-maps-menu" data-maps-menu="true">M</a>' +
+      '<a href="#" class="portal-route-mini-loop' + loopClass + '" aria-label="' + loopLabel + '" data-action="toggle-loop-back">L</a>' +
+      '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" aria-label="' + addRemoveLabel + '" data-action="' + addRemoveAction + '">' + addRemoveText + '</a>' +
+      '<a href="#" aria-label="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
+      '<a href="#" aria-label="Open Portal Route menu" data-action="open-main-menu" data-main-menu="true">=</a>';
   };
 
   pr.panelForEvent = function(ev) {

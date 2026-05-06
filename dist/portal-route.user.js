@@ -1624,7 +1624,7 @@ button.portal-route-waypoint-name,
       var button = document.createElement('button');
       button.type = 'button';
       button.textContent = label;
-      button.title = title;
+      button.setAttribute('aria-label', title);
       button.setAttribute('data-action', action);
       if (disabled) button.disabled = true;
       button.className = label === 'Del' ? 'portal-route-smart-button portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
@@ -2771,8 +2771,7 @@ button.portal-route-waypoint-name,
       draggable: !pr.isManagedStartStop(stop),
       interactive: true,
       keyboard: false,
-      bubblingMouseEvents: false,
-      title: title
+      bubblingMouseEvents: false
     });
 
     marker.on('click', clickHandler);
@@ -2794,18 +2793,10 @@ button.portal-route-waypoint-name,
       draggable: !isLoop && !pr.isManagedStartStop(stop),
       interactive: true,
       keyboard: false,
-      bubblingMouseEvents: false,
-      title: title
+      bubblingMouseEvents: false
     });
 
     marker.on('click', clickHandler);
-    marker.bindTooltip(title, {
-      direction: 'right',
-      offset: [16, -10],
-      opacity: 0.9,
-      interactive: false,
-      className: 'portal-route-stop-tooltip'
-    });
 
     return marker;
   };
@@ -3106,19 +3097,19 @@ button.portal-route-waypoint-name,
       var dragAttr = canDragRow ? ' draggable="true"' : '';
       var dragHandleAttr = canDragRow ? ' draggable="true"' : '';
       var selectTitle = isLoop ? 'Loop back to start' : 'Select and center stop';
-      var badgeTitle = canDragRow ? 'Drag to reorder; click to select and center' : selectTitle;
+      var badgeLabel = canDragRow ? 'Drag to reorder; click to select and center' : selectTitle;
 
       html += '<div class="portal-route-waypoint-row portal-route-stop' + rowClass + dragClass + '" data-index="' + index + '"' + dragAttr + '>';
-      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge portal-route-waypoint-drag-handle' + badgeClass + (isLoop ? ' portal-route-loop-badge' : '') + '" title="' + badgeTitle + '" data-action="select-stop-center" data-index="' + index + '"' + dragHandleAttr + '>' + badge + '</button></div>';
+      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge portal-route-waypoint-drag-handle' + badgeClass + (isLoop ? ' portal-route-loop-badge' : '') + '" aria-label="' + pr.escapeHtml(badgeLabel) + '" data-action="select-stop-center" data-index="' + index + '"' + dragHandleAttr + '>' + badge + '</button></div>';
 
       if (isLoop) {
-        html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Loop back to first waypoint" data-action="select-stop-center" data-index="' + index + '">Loop back to ' + pr.escapeHtml(stop.title) + '</button></div>';
+        html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" aria-label="Loop back to first waypoint" data-action="select-stop-center" data-index="' + index + '">Loop back to ' + pr.escapeHtml(stop.title) + '</button></div>';
       } else {
-        html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Select stop" data-action="select-stop" data-index="' + index + '">' + pr.escapeHtml(stop.title) + '</button></div>';
+        html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" aria-label="Select stop" data-action="select-stop" data-index="' + index + '">' + pr.escapeHtml(stop.title) + '</button></div>';
       }
 
       html += '<div class="portal-route-leg-cell">' + (index < stops.length - 1 ? pr.renderRouteSegment(legsByToIndex[index + 1]) : '') + '</div>';
-      html += '<div class="portal-route-wait-cell"><input class="portal-route-wait-input" type="text" inputmode="decimal" value="' + pr.escapeHtml(waitValue) + '" title="Examples: 15m, 1.5h, 2d" data-field="stop-minutes" data-index="' + index + '" ' + (isLoop || isManagedStart ? 'disabled' : '') + '></div>';
+      html += '<div class="portal-route-wait-cell"><input class="portal-route-wait-input" type="text" inputmode="decimal" value="' + pr.escapeHtml(waitValue) + '" aria-label="Stop wait time" placeholder="15m" data-field="stop-minutes" data-index="' + index + '" ' + (isLoop || isManagedStart ? 'disabled' : '') + '></div>';
 
       if (isLoop) {
         html += '<div class="portal-route-row-actions"></div>';
@@ -3127,9 +3118,9 @@ button.portal-route-waypoint-name,
         var canMoveDown = !isManagedStart && index < pr.state.stops.length - 1;
         var canRemove = !isManagedStart;
         html += '<div class="portal-route-row-actions">';
-        html += '<button type="button" title="Move waypoint up" data-action="move-stop-up" data-index="' + index + '"' + (canMoveUp ? '' : ' disabled') + '>Up</button>';
-        html += '<button type="button" title="Move waypoint down" data-action="move-stop-down" data-index="' + index + '"' + (canMoveDown ? '' : ' disabled') + '>Dn</button>';
-        html += '<button type="button" title="Delete waypoint" data-action="remove-stop" data-index="' + index + '"' + (canRemove ? '' : ' disabled') + '>Del</button>';
+        html += '<button type="button" aria-label="Move waypoint up" data-action="move-stop-up" data-index="' + index + '"' + (canMoveUp ? '' : ' disabled') + '>Up</button>';
+        html += '<button type="button" aria-label="Move waypoint down" data-action="move-stop-down" data-index="' + index + '"' + (canMoveDown ? '' : ' disabled') + '>Dn</button>';
+        html += '<button type="button" aria-label="Delete waypoint" data-action="remove-stop" data-index="' + index + '"' + (canRemove ? '' : ' disabled') + '>Del</button>';
         html += '</div>';
       }
       html += '</div>';
@@ -3188,12 +3179,12 @@ button.portal-route-waypoint-name,
     var className = selectedInRoute ? 'portal-route-smart-button portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
     if (!selectedInRoute && pr.state.addPointMode) className += ' portal-route-add-point-active';
 
-    return '<button type="button" data-action="' + action + '" title="' + title + '" class="' + className + '">' + text + '</button>';
+    return '<button type="button" data-action="' + action + '" aria-label="' + title + '" class="' + className + '">' + text + '</button>';
   };
 
   pr.undoRouteEditButton = function() {
     var disabled = pr.canUndoRouteEdit && pr.canUndoRouteEdit() ? '' : ' disabled';
-    return '<button type="button" data-action="undo-route-edit" title="Undo last route edit" class="portal-route-smart-button"' + disabled + '>Undo</button>';
+    return '<button type="button" data-action="undo-route-edit" aria-label="Undo last route edit" class="portal-route-smart-button"' + disabled + '>Undo</button>';
   };
 
   pr.mainMenuButton = function(label, extraClass) {
@@ -3207,7 +3198,7 @@ button.portal-route-waypoint-name,
 
     html += '<div class="portal-route-body">';
     html += '<div class="portal-route-list-options">';
-    html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" title="Examples: 15m, 1.5h, 2d" data-field="default-stop-minutes"> per portal</label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" aria-label="Default stop time" placeholder="15m" data-field="default-stop-minutes"> per portal</label>';
     html += '</div>';
 
     html += '<div class="portal-route-settings-row">';
@@ -4700,9 +4691,9 @@ button.portal-route-waypoint-name,
       var stopCount = route.route && Array.isArray(route.route.stops) ? route.route.stops.length : 0;
       var selected = selectedIds.indexOf(route.id) !== -1;
       html += '<div class="portal-route-library-row' + (selected ? ' portal-route-library-row-selected' : '') + '">';
-      html += '<label class="portal-route-library-select" title="Select route"><input type="checkbox" data-field="selected-library-route" data-route-id="' + pr.escapeHtml(route.id) + '"' + (selected ? ' checked' : '') + '></label>';
+      html += '<label class="portal-route-library-select" aria-label="Select route"><input type="checkbox" data-field="selected-library-route" data-route-id="' + pr.escapeHtml(route.id) + '"' + (selected ? ' checked' : '') + '></label>';
       html += '<div class="portal-route-library-info">';
-      html += '<input type="text" class="portal-route-library-name-input" value="' + pr.escapeHtml(route.name || 'Unnamed route') + '" data-field="saved-route-name" data-route-id="' + pr.escapeHtml(route.id) + '" title="Edit route name">';
+      html += '<input type="text" class="portal-route-library-name-input" value="' + pr.escapeHtml(route.name || 'Unnamed route') + '" data-field="saved-route-name" data-route-id="' + pr.escapeHtml(route.id) + '" aria-label="Edit route name">';
       html += '<span>' + stopCount + ' stops - ' + pr.escapeHtml(route.updatedAt || '') + '</span>';
       html += '</div>';
       html += '</div>';
@@ -5423,17 +5414,17 @@ button.portal-route-waypoint-name,
     var addRemoveClass = selectedInRoute ? ' portal-route-mini-remove' : '';
     if (addPointActive && !selectedInRoute) addRemoveClass += ' portal-route-mini-add-active';
     var addRemoveText = selectedInRoute ? '-' : '+';
-    var addRemoveTitle = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or place a map point';
+    var addRemoveLabel = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or place a map point';
     var addRemoveAction = selectedInRoute ? 'toggle-selected-stop' : 'smart-add';
     var loopClass = pr.state.settings.includeReturnToStart ? ' portal-route-mini-active' : '';
-    var loopTitle = pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start';
+    var loopLabel = pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start';
 
     container.innerHTML = '' +
-      '<a href="#" class="portal-route-mini-maps" title="Open map export choices" data-action="open-maps-menu" data-maps-menu="true">M</a>' +
-      '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
-      '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '">' + addRemoveText + '</a>' +
-      '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
-      '<a href="#" class="portal-route-smart-button" title="Open Portal Route menu" data-action="open-main-menu" data-main-menu="true">=</a>';
+      '<a href="#" class="portal-route-mini-maps" aria-label="Open map export choices" data-action="open-maps-menu" data-maps-menu="true">M</a>' +
+      '<a href="#" class="portal-route-mini-loop' + loopClass + '" aria-label="' + loopLabel + '" data-action="toggle-loop-back">L</a>' +
+      '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" aria-label="' + addRemoveLabel + '" data-action="' + addRemoveAction + '">' + addRemoveText + '</a>' +
+      '<a href="#" aria-label="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
+      '<a href="#" aria-label="Open Portal Route menu" data-action="open-main-menu" data-main-menu="true">=</a>';
   };
 
   pr.panelForEvent = function(ev) {

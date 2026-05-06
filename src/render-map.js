@@ -162,8 +162,7 @@
       draggable: !pr.isManagedStartStop(stop),
       interactive: true,
       keyboard: false,
-      bubblingMouseEvents: false,
-      title: title
+      bubblingMouseEvents: false
     });
 
     marker.on('click', clickHandler);
@@ -185,18 +184,10 @@
       draggable: !isLoop && !pr.isManagedStartStop(stop),
       interactive: true,
       keyboard: false,
-      bubblingMouseEvents: false,
-      title: title
+      bubblingMouseEvents: false
     });
 
     marker.on('click', clickHandler);
-    marker.bindTooltip(title, {
-      direction: 'right',
-      offset: [16, -10],
-      opacity: 0.9,
-      interactive: false,
-      className: 'portal-route-stop-tooltip'
-    });
 
     return marker;
   };

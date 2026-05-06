@@ -19,6 +19,8 @@ Current version: `1.2.0`, after the `1.1.0` release.
 - Keep the mini-control exception layout as M, L, +/-, count, =.
 - Keep mini-control M as the dedicated maps button and mini-control = as the shared Menu button.
 - Make Add with nothing selected arm manual map-point placement instead of adding current location.
+- Remove native tooltips from controls and use accessible labels instead.
+- Keep the mini-control = button in the normal black mini-control style.
 
 ## Project rules
 

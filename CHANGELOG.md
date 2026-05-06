@@ -20,6 +20,8 @@ Current release: `1.2.0`
 - Loop mode now keeps start/end marker letters visible and only changes their styling to loop-blue.
 - Replaced the separate panel Actions, Maps, and Menus smart buttons with the shared **Menu** button.
 - Kept the mini control exception layout as **M**, **L**, **+/-**, **count**, **=**, with **M** for map exports and **=** for Menu.
+- Removed native browser/mobile tooltips from controls; controls now use accessible labels instead.
+- Restored the mini-control **=** button to the normal black mini-control styling.
 
 ### Fixed
 

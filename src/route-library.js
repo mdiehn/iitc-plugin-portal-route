@@ -734,9 +734,9 @@
       var stopCount = route.route && Array.isArray(route.route.stops) ? route.route.stops.length : 0;
       var selected = selectedIds.indexOf(route.id) !== -1;
       html += '<div class="portal-route-library-row' + (selected ? ' portal-route-library-row-selected' : '') + '">';
-      html += '<label class="portal-route-library-select" title="Select route"><input type="checkbox" data-field="selected-library-route" data-route-id="' + pr.escapeHtml(route.id) + '"' + (selected ? ' checked' : '') + '></label>';
+      html += '<label class="portal-route-library-select" aria-label="Select route"><input type="checkbox" data-field="selected-library-route" data-route-id="' + pr.escapeHtml(route.id) + '"' + (selected ? ' checked' : '') + '></label>';
       html += '<div class="portal-route-library-info">';
-      html += '<input type="text" class="portal-route-library-name-input" value="' + pr.escapeHtml(route.name || 'Unnamed route') + '" data-field="saved-route-name" data-route-id="' + pr.escapeHtml(route.id) + '" title="Edit route name">';
+      html += '<input type="text" class="portal-route-library-name-input" value="' + pr.escapeHtml(route.name || 'Unnamed route') + '" data-field="saved-route-name" data-route-id="' + pr.escapeHtml(route.id) + '" aria-label="Edit route name">';
       html += '<span>' + stopCount + ' stops - ' + pr.escapeHtml(route.updatedAt || '') + '</span>';
       html += '</div>';
       html += '</div>';
