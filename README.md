@@ -10,7 +10,7 @@ Current release: `1.3.0`
 
 This release adds placement-mode cancel polish, clearer stale-route cues, mobile row-control polish, and the v1.2.0 route-control cleanup.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/feat/v1.3.0/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/main/dist/portal-route.user.js)
 
 ## Quick start
 
@@ -43,13 +43,13 @@ The points list shows the current route order. Drag rows to reorder stops, or us
 - **Add** adds the selected portal, or toggles manual map-point placement when nothing addable is selected. Press **Add** again or **Esc** to cancel placement mode.
 - **Del** removes the selected route waypoint.
 - **Undo** reverses the last route edit.
-- **Menu** opens Add me, Loop/Unloop, Clear Route, Save, Google Maps, Apple Maps, Route, Library, and Settings.
+- **Menu** opens Add me, Loop/Unloop, Clear Route, Save, Google Maps, Apple Maps, Route/Replot, Route List, Library, and Settings.
 
 ![Portal Route menu](docs/screen_02_add_menu.png)
 
 ### Route
 
-- Routes calculate automatically after changes.
+- Routes calculate automatically after changes. If stale state remains, use **Menu → Route/Replot** to refresh it.
 - **Menu** includes Google Maps and Apple Maps export choices. Long routes are split into stage links.
 - **Print** opens a printable route summary.
 

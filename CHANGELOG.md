@@ -9,7 +9,7 @@ Current release: `1.3.0`
 ### Added
 
 - Added clearer manual-point placement feedback, including a small panel/info-panel hint while Add placement mode is armed.
-- Added a stronger stale-route cue with a highlighted Replot button and stale compact stats.
+- Added a stronger stale-route cue with a highlighted Replot button, stale compact stats, and a Menu Route/Replot fallback.
 
 ### Changed
 
@@ -17,6 +17,7 @@ Current release: `1.3.0`
 - Escape now cancels manual point placement on desktop.
 - Opening Menu, Maps, Route, Library, or Settings cancels manual point placement.
 - Route row buttons use compact symbols on mobile while keeping full Up/Dn/Del labels on wider screens.
+- The shared Menu now has a direct Route/Replot action, with the route list split out as Route List.
 
 ## 1.2.0 - Released 2026-05-06
 

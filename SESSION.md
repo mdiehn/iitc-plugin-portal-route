@@ -24,8 +24,9 @@ Current version: `1.3.0`, after the `1.2.0` work.
 
 - Add placement mode can now be canceled by pressing Add again, pressing Esc, or opening Menu/Maps/Route/Library/Settings.
 - Add placement mode shows a small hint in panels/info panel.
-- Stale routes now show a clearer Replot cue and stale compact stats.
+- Stale routes now show a clearer Replot cue, stale compact stats, and a Menu Route/Replot fallback.
 - Route row buttons use mobile-friendly symbols on narrow screens.
+- Successful Route/Replot refreshes the route list, points list, mini control, and info panel controls so stale markers clear everywhere.
 
 ## Project rules
 

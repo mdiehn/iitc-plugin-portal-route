@@ -65,14 +65,14 @@ Current v1.3.0 UI state:
 
 - Add/Del handles the common selected-point action, with Menu as the wider route-building/export/navigation menu. Add toggles manual point placement when nothing is selected.
 - Undo is available for recent route edits.
-- Routes calculate automatically after changes.
+- Routes calculate automatically after changes, with a Menu Route/Replot fallback.
 - The mini control is `M`, `L`, add/remove, route count, and `=` Menu.
 - The route list is the working console for day-to-day route work.
 - Route-list rows have compact Up/Dn/Del controls, with mobile-friendly symbols on narrow screens and rename/start/end actions still in the context menu.
-- The settings panel is a small settings/navigation panel with Add/Del, Replot/Route, and Menu.
+- The settings panel is a small settings/navigation panel with Add/Del and Menu; Menu includes Route/Replot.
 - The route library is a separate panel with Save, Load, Import, Export, Delete, and Menu.
 - Local route-library JSON portability works for single routes and whole libraries.
-- Stale route data has a clearer Replot cue and stale compact stats.
+- Stale route data has a clearer Replot cue, stale compact stats, and a Menu Route/Replot fallback.
 
 ### v1.1.0-a: route record and local library
 

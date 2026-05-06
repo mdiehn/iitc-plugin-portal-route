@@ -367,6 +367,8 @@
 
     var hasStops = pr.state.stops.length > 0;
     var hasRoute = pr.getRouteStops && pr.getRouteStops().length >= 2;
+    var routeActionLabel = pr.state.routeDirty ? 'Replot' : (pr.state.route ? 'Replot' : 'Route');
+    var routeActionClass = pr.state.routeDirty ? ' class="portal-route-context-stale"' : '';
     var menu = document.createElement('div');
     menu.className = 'portal-route-context-menu portal-route-main-menu';
     menu.innerHTML = '' +
@@ -378,7 +380,8 @@
       '<button type="button" data-action="open-google-maps"' + (hasRoute ? '' : ' disabled') + '>Google Maps</button>' +
       '<button type="button" data-action="open-apple-maps"' + (hasRoute ? '' : ' disabled') + '>Apple Maps</button>' +
       '<div class="portal-route-context-divider"></div>' +
-      '<button type="button" data-action="open-points-list"' + (pr.state.routeDirty ? ' class="portal-route-context-stale"' : '') + '>' + (pr.state.routeDirty ? 'Route changed' : 'Route') + '</button>' +
+      '<button type="button" data-action="calculate-route"' + routeActionClass + (hasRoute ? '' : ' disabled') + '>' + routeActionLabel + '</button>' +
+      '<button type="button" data-action="open-points-list"' + (hasStops ? '' : ' disabled') + '>Route List</button>' +
       '<button type="button" data-action="load-route">Library</button>' +
       '<button type="button" data-action="open-main">Settings</button>';
 

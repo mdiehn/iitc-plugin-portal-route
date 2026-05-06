@@ -124,7 +124,7 @@ The next major usability improvement is Google Drive shared storage:
 
 - Add placement mode can be canceled by pressing Add again, pressing Esc, or opening Menu/Maps/Route/Library/Settings.
 - Placement mode shows a small hint in panels and the portal info panel.
-- Stale route data has a stronger Replot cue and stale compact stats.
+- Stale route data has a stronger Replot cue, stale compact stats, and a Menu Route/Replot fallback.
 - Route row buttons use compact symbols on mobile.
 
 ## v1.2.0 notes
