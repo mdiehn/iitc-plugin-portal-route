@@ -231,11 +231,12 @@
 
   pr.smartAdd = function() {
     if (window.selectedPortal && pr.portalToStop && pr.portalToStop(window.selectedPortal)) {
+      pr.setAddPointMode(false, { silent: true });
       pr.addSelectedPortal();
       return;
     }
 
-    pr.setAddPointMode(true);
+    pr.setAddPointMode(!pr.state.addPointMode);
   };
 
   pr.stopTitleNeedsHydration = function(title) {
@@ -534,10 +535,26 @@
     if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
   };
 
-  pr.setAddPointMode = function(enabled) {
-    pr.state.addPointMode = !!enabled;
+  pr.cancelAddPointMode = function(options) {
+    options = options || {};
+    if (!pr.state.addPointMode) return false;
+    pr.state.addPointMode = false;
     pr.syncAddPointModeUi();
-    pr.showMessage(pr.state.addPointMode ? 'Click or tap the map to add a point.' : 'Add point canceled.');
+    if (!options.silent) pr.showMessage(options.message || 'Add point canceled.');
+    return true;
+  };
+
+  pr.setAddPointMode = function(enabled, options) {
+    options = options || {};
+    enabled = !!enabled;
+    if (enabled === !!pr.state.addPointMode) return false;
+
+    pr.state.addPointMode = enabled;
+    pr.syncAddPointModeUi();
+    if (!options.silent) {
+      pr.showMessage(enabled ? 'Click or tap the map to add a point. Press Add again or Esc to cancel.' : 'Add point canceled.');
+    }
+    return true;
   };
 
   pr.removeStop = function(index) {

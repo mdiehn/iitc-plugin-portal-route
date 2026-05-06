@@ -790,6 +790,7 @@
   };
 
   pr.openRouteLibraryPanel = function() {
+    if (pr.cancelAddPointMode) pr.cancelAddPointMode({ silent: true });
     var contentHtml = '<div class="portal-route-dialog-content portal-route-library-dialog-content" id="' + pr.DOM_IDS.routeLibraryContent + '" tabindex="-1">';
     contentHtml += pr.renderRouteLibraryContent();
     contentHtml += '</div>';

@@ -2,7 +2,21 @@
 
 This project is in active development.
 
-Current release: `1.2.0`
+Current release: `1.3.0`
+
+## 1.3.0 - Unreleased
+
+### Added
+
+- Added clearer manual-point placement feedback, including a small panel/info-panel hint while Add placement mode is armed.
+- Added a stronger stale-route cue with a highlighted Replot button and stale compact stats.
+
+### Changed
+
+- Add now toggles manual point placement when nothing is selected, so pressing Add again cancels placement mode.
+- Escape now cancels manual point placement on desktop.
+- Opening Menu, Maps, Route, Library, or Settings cancels manual point placement.
+- Route row buttons use compact symbols on mobile while keeping full Up/Dn/Del labels on wider screens.
 
 ## 1.2.0 - Released 2026-05-06
 
@@ -20,6 +34,7 @@ Current release: `1.2.0`
 - Loop mode now keeps start/end marker letters visible and only changes their styling to loop-blue.
 - Replaced the separate panel Actions, Maps, and Menus smart buttons with the shared **Menu** button.
 - Kept the mini control exception layout as **M**, **L**, **+/-**, **count**, **=**, with **M** for map exports and **=** for Menu.
+- Make compact route stats in the info panel slightly more visible while keeping them small.
 - Removed native browser/mobile tooltips from controls; controls now use accessible labels instead.
 - Restored the mini-control **=** button to the normal black mini-control styling.
 

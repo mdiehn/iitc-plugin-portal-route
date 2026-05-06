@@ -2,7 +2,7 @@
 
 Practical UI/UX notes for `iitc-plugin-portal-route`.
 
-This file is current as of `1.2.0`. Older Plot/Replot notes have been folded into the automatic routing model.
+This file is current as of `1.3.0`. Older Plot/Replot notes have been folded into the automatic routing model.
 
 ## Fixed issues
 
@@ -35,7 +35,7 @@ This file is current as of `1.2.0`. Older Plot/Replot notes have been folded int
 
 ### Waypoint editing
 
-- Added manual map points from map tap/click mode.
+- Added manual map points from map tap/click mode, with Add/Esc cancel behavior.
 - Added editable names for manual map points.
 - Replaced table-based rows with div/grid rows.
 - Fixed the clipped remove-stop button.
@@ -119,6 +119,13 @@ The next major usability improvement is Google Drive shared storage:
 - Manual shared map/view handoff with `current-map.json`.
 - Turn-by-turn directions inside IITC.
 
+
+## v1.3.0 notes
+
+- Add placement mode can be canceled by pressing Add again, pressing Esc, or opening Menu/Maps/Route/Library/Settings.
+- Placement mode shows a small hint in panels and the portal info panel.
+- Stale route data has a stronger Replot cue and stale compact stats.
+- Route row buttons use compact symbols on mobile.
 
 ## v1.2.0 notes
 

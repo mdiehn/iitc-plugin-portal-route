@@ -127,6 +127,7 @@
   };
 
   pr.openMainPanel = function() {
+    if (pr.cancelAddPointMode) pr.cancelAddPointMode({ silent: true });
     pr.state.panelOpen = true;
     pr.savePanelOpen();
     pr.renderPanel();
@@ -142,6 +143,7 @@
     var actions = {
       'open-main': pr.openMainPanel,
       'open-main-menu': function() {
+        if (pr.cancelAddPointMode) pr.cancelAddPointMode({ silent: true });
         if (!target || !target.getBoundingClientRect) {
           pr.openMainMenu(20, 20);
           return;
@@ -156,6 +158,7 @@
         pr.handleAction('open-main-menu', target);
       },
       'open-maps-menu': function() {
+        if (pr.cancelAddPointMode) pr.cancelAddPointMode({ silent: true });
         if (!target || !target.getBoundingClientRect) {
           pr.openMapsMenu(20, 20);
           return;
@@ -209,6 +212,7 @@
       'import-route-json': pr.importRouteJson,
       'print-route': pr.printRoute,
       'open-points-list': function() {
+        if (pr.cancelAddPointMode) pr.cancelAddPointMode({ silent: true });
         pr.state.pointsPanelOpen = true;
         pr.renderPointsPanel();
       },
@@ -374,7 +378,7 @@
       '<button type="button" data-action="open-google-maps"' + (hasRoute ? '' : ' disabled') + '>Google Maps</button>' +
       '<button type="button" data-action="open-apple-maps"' + (hasRoute ? '' : ' disabled') + '>Apple Maps</button>' +
       '<div class="portal-route-context-divider"></div>' +
-      '<button type="button" data-action="open-points-list">Route</button>' +
+      '<button type="button" data-action="open-points-list"' + (pr.state.routeDirty ? ' class="portal-route-context-stale"' : '') + '>' + (pr.state.routeDirty ? 'Route changed' : 'Route') + '</button>' +
       '<button type="button" data-action="load-route">Library</button>' +
       '<button type="button" data-action="open-main">Settings</button>';
 
@@ -629,11 +633,18 @@
     }
   };
 
-  pr.handleUndoKeydown = function(ev) {
+  pr.handleRouteKeydown = function(ev) {
     var key = ev.key || '';
-    if (!(ev.ctrlKey || ev.metaKey) || key.toLowerCase() !== 'z') return;
     if (ev.target && ev.target.closest && ev.target.closest('input, textarea, select, [contenteditable="true"]')) return;
     if (pr.isLayerEnabled && !pr.isLayerEnabled()) return;
+
+    if (key === 'Escape' && pr.state.addPointMode) {
+      ev.preventDefault();
+      if (pr.cancelAddPointMode) pr.cancelAddPointMode();
+      return;
+    }
+
+    if (!(ev.ctrlKey || ev.metaKey) || key.toLowerCase() !== 'z') return;
 
     ev.preventDefault();
     if (ev.shiftKey) {
@@ -653,7 +664,7 @@
     document.addEventListener('dragover', pr.handleDialogDragOver);
     document.addEventListener('drop', pr.handleDialogDrop);
     document.addEventListener('change', pr.handleDialogFieldChange);
-    document.addEventListener('keydown', pr.handleUndoKeydown);
+    document.addEventListener('keydown', pr.handleRouteKeydown);
     document.addEventListener('contextmenu', pr.handleAddMenuContext);
     document.addEventListener('touchstart', pr.handleAddMenuTouchStart);
     document.addEventListener('touchend', pr.cancelAddMenuTouch);
@@ -773,8 +784,12 @@
       if (!pr.state.addPointMode) return;
       if (pr.isLayerEnabled && !pr.isLayerEnabled()) return;
 
-      pr.state.addPointMode = false;
-      if (pr.syncAddPointModeUi) pr.syncAddPointModeUi();
+      if (pr.cancelAddPointMode) {
+        pr.cancelAddPointMode({ silent: true });
+      } else {
+        pr.state.addPointMode = false;
+        if (pr.syncAddPointModeUi) pr.syncAddPointModeUi();
+      }
       pr.addMapPointAtLatLng(e.latlng);
       pr.showMessage('Map point added.');
     });

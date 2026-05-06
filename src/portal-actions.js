@@ -193,6 +193,10 @@
 
     wrapper.appendChild(links);
 
+    if (pr.renderAddPointModeHint) {
+      wrapper.insertAdjacentHTML('beforeend', pr.renderAddPointModeHint());
+    }
+
     if (pr.renderCompactRouteStats) {
       wrapper.insertAdjacentHTML('beforeend', pr.renderCompactRouteStats(pr.state.route));
     }

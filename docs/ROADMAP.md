@@ -2,11 +2,11 @@
 
 #WARNING - needs update since 1.1.0 release
 
-Current release: `1.2.0`
+Current release: `1.3.0`
 
 Portal Route has reached its first stable release. The main route-building loop is usable now: add portals, add manual points, add current location, loop back to start, drag/edit points, calculate routes, export to staged Google Maps links, import/export JSON, print, and keep state across reloads.
 
-## Current state: 1.2.0
+## Current state: 1.3.0
 
 Done and released:
 
@@ -55,23 +55,24 @@ Known rough edges:
 - Google Maps export works, but the staging/export flow could be clearer.
 - Waypoint dragging and portal snapping need more field testing.
 
-## Current focus: v1.2.0
+## Current focus: v1.3.0
 
-Theme: small route-control polish after the route library release.
+Theme: placement-mode and stale-route polish after the v1.2.0 route-control cleanup.
 
-This release keeps the route-library work intact and tightens the day-to-day route controls: direct Add/Del, row Up/Dn/Del buttons, selected-portal smart add behavior, loop marker readability, compact info-panel stats, and route-edit Undo.
+This release keeps the route-library work intact and tightens the day-to-day route controls: manual point placement can be canceled, stale routes are easier to notice, and route-row buttons fit better on mobile.
 
-Current v1.2.0 UI state:
+Current v1.3.0 UI state:
 
-- Add/Del handles the common selected-point action, with Menu as the wider route-building/export/navigation menu.
+- Add/Del handles the common selected-point action, with Menu as the wider route-building/export/navigation menu. Add toggles manual point placement when nothing is selected.
 - Undo is available for recent route edits.
 - Routes calculate automatically after changes.
-- The mini control is `M`, `L`, add/remove, and route count.
+- The mini control is `M`, `L`, add/remove, route count, and `=` Menu.
 - The route list is the working console for day-to-day route work.
-- Route-list rows have compact Up/Dn/Del controls, with rename and start/end actions still in the context menu.
-- The settings panel is a small settings/navigation panel with Add/Del, manual Recalc Route, and Menu.
+- Route-list rows have compact Up/Dn/Del controls, with mobile-friendly symbols on narrow screens and rename/start/end actions still in the context menu.
+- The settings panel is a small settings/navigation panel with Add/Del, Replot/Route, and Menu.
 - The route library is a separate panel with Save, Load, Import, Export, Delete, and Menu.
 - Local route-library JSON portability works for single routes and whole libraries.
+- Stale route data has a clearer Replot cue and stale compact stats.
 
 ### v1.1.0-a: route record and local library
 

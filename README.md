@@ -6,11 +6,11 @@ It is built for mobile-first use, but works on desktop IITC too. Build a stop li
 
 ## Status
 
-Current release: `1.2.0`
+Current release: `1.3.0`
 
-This release adds small control polish, a unified Menu button, Undo, and selected-portal add fixes.
+This release adds placement-mode cancel polish, clearer stale-route cues, mobile row-control polish, and the v1.2.0 route-control cleanup.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/fix/v1.1.1/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/feat/v1.3.0/dist/portal-route.user.js)
 
 ## Quick start
 
@@ -40,7 +40,7 @@ The points list shows the current route order. Drag rows to reorder stops, or us
 
 ### Direct actions and Menu
 
-- **Add** adds the selected portal, or arms manual map-point placement when nothing addable is selected.
+- **Add** adds the selected portal, or toggles manual map-point placement when nothing addable is selected. Press **Add** again or **Esc** to cancel placement mode.
 - **Del** removes the selected route waypoint.
 - **Undo** reverses the last route edit.
 - **Menu** opens Add me, Loop/Unloop, Clear Route, Save, Google Maps, Apple Maps, Route, Library, and Settings.
@@ -53,7 +53,7 @@ The points list shows the current route order. Drag rows to reorder stops, or us
 - **Menu** includes Google Maps and Apple Maps export choices. Long routes are split into stage links.
 - **Print** opens a printable route summary.
 
-When route data is available, the panels show drive time, wait time, trip time, and distance. The portal info panel shows a small abbreviated stats row under its route buttons.
+When route data is available, the panels show drive time, wait time, trip time, and distance. The portal info panel shows a small abbreviated stats row under its route buttons, and stale route data is marked until the route is replotted.
 
 ![Portal Route point list](docs/point_list.png)
 

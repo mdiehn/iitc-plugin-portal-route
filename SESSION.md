@@ -2,12 +2,12 @@
 
 Current repo: IITC plugin **Portal Route**.
 
-Current branch: `feat/v1.2.0`.
+Current branch: `feat/v1.3.0`.
 
-Current version: `1.2.0`, after the `1.1.0` release.
+Current version: `1.3.0`, after the `1.2.0` work.
 
 
-## v1.2.0 current work
+## v1.3.0 current work
 
 - Fix smart add so a selected portal wins even when the route is empty.
 - Restore direct Add/Del controls outside the shared Menu.
@@ -21,6 +21,11 @@ Current version: `1.2.0`, after the `1.1.0` release.
 - Make Add with nothing selected arm manual map-point placement instead of adding current location.
 - Remove native tooltips from controls and use accessible labels instead.
 - Keep the mini-control = button in the normal black mini-control style.
+
+- Add placement mode can now be canceled by pressing Add again, pressing Esc, or opening Menu/Maps/Route/Library/Settings.
+- Add placement mode shows a small hint in panels/info panel.
+- Stale routes now show a clearer Replot cue and stale compact stats.
+- Route row buttons use mobile-friendly symbols on narrow screens.
 
 ## Project rules
 
@@ -185,3 +190,4 @@ Commit message notes:
 - Can Portal Route keep using IITC Sync's public Google client ID safely long term?
 - What is the safest initial conflict behavior for Drive writes from phone and desktop?
 - Should shared current-map handoff use `current-map.json` later? Treat as later than route-library storage.
+- Made the compact info-panel route stats slightly more visible without making them large.
