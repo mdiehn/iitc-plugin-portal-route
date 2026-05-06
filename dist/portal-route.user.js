@@ -52,6 +52,17 @@ function wrapper(plugin_info) {
   text-decoration: underline;
 }
 
+.portal-route-mini-control .portal-route-mini-add-active {
+  border-color: rgba(128, 216, 255, 0.95) !important;
+  background: rgba(128, 216, 255, 0.22) !important;
+  box-shadow: inset 0 0 0 1px rgba(128, 216, 255, 0.35), 0 0 8px rgba(128, 216, 255, 0.35) !important;
+}
+
+.leaflet-container.portal-route-add-point-mode,
+.leaflet-container.portal-route-add-point-mode * {
+  cursor: crosshair !important;
+}
+
 .portal-route-dialog-content * {
   box-sizing: border-box;
 }
@@ -429,7 +440,25 @@ button.portal-route-waypoint-badge-wide {
 .portal-route-control-group-buttons button.portal-route-smart-button,
 .portal-route-smart-button {
   border-color: rgba(128, 216, 255, 0.75) !important;
+  color: #ffd800 !important;
   box-shadow: inset 0 0 0 1px rgba(128, 216, 255, 0.25) !important;
+}
+
+.portal-route-control-group-buttons button.portal-route-smart-button:hover,
+.portal-route-control-group-buttons button.portal-route-smart-button:focus,
+.portal-route-control-group-buttons button.portal-route-smart-button:active,
+.portal-route-smart-button:hover,
+.portal-route-smart-button:focus,
+.portal-route-smart-button:active {
+  border-color: rgba(128, 216, 255, 0.95) !important;
+  color: #ffd800 !important;
+}
+
+.portal-route-control-group-buttons button.portal-route-add-point-active,
+.portal-route-portal-action-links button.portal-route-add-point-active {
+  border-color: rgba(128, 216, 255, 0.95) !important;
+  background: rgba(128, 216, 255, 0.22) !important;
+  box-shadow: inset 0 0 0 1px rgba(128, 216, 255, 0.35), 0 0 8px rgba(128, 216, 255, 0.35) !important;
 }
 
 .portal-route-mini-control a.portal-route-smart-button {
@@ -878,7 +907,8 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-portal-action-links a.portal-route-smart-button,
 .portal-route-portal-action-links button.portal-route-smart-button {
-  border-color: rgba(128, 216, 255, 0.55);
+  border-color: rgba(128, 216, 255, 0.75) !important;
+  color: #ffd800 !important;
   outline: 0;
 }
 
@@ -886,12 +916,29 @@ button.portal-route-waypoint-badge-wide {
   cursor: pointer;
 }
 
-.portal-route-portal-action-links button.portal-route-add-delete-button {
-  border-color: rgba(255, 216, 0, 0.55) !important;
+.portal-route-portal-action-links button.portal-route-add-delete-button,
+.portal-route-control-group-buttons button.portal-route-add-delete-button {
+  border-color: rgba(128, 216, 255, 0.75) !important;
+  color: #ffd800 !important;
+  box-shadow: inset 0 0 0 1px rgba(128, 216, 255, 0.25) !important;
+}
+
+.portal-route-portal-action-links button.portal-route-add-delete-button:hover,
+.portal-route-portal-action-links button.portal-route-add-delete-button:focus,
+.portal-route-portal-action-links button.portal-route-add-delete-button:active,
+.portal-route-control-group-buttons button.portal-route-add-delete-button:hover,
+.portal-route-control-group-buttons button.portal-route-add-delete-button:focus,
+.portal-route-control-group-buttons button.portal-route-add-delete-button:active,
+.portal-route-add-delete-button.portal-route-remove-action:hover,
+.portal-route-add-delete-button.portal-route-remove-action:focus,
+.portal-route-add-delete-button.portal-route-remove-action:active {
+  border-color: rgba(128, 216, 255, 0.95) !important;
+  color: #ffd800 !important;
 }
 
 .portal-route-add-delete-button.portal-route-remove-action {
-  border-color: rgba(255, 130, 130, 0.62) !important;
+  border-color: rgba(128, 216, 255, 0.75) !important;
+  color: #ffd800 !important;
 }
 
 .portal-route-compact-stats {
@@ -1580,7 +1627,10 @@ button.portal-route-waypoint-name,
       button.title = title;
       button.setAttribute('data-action', action);
       if (disabled) button.disabled = true;
-      button.className = label === 'Del' ? 'portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
+      button.className = label === 'Del' ? 'portal-route-smart-button portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
+      if (label !== 'Del' && action === 'smart-add' && pr.state.addPointMode) {
+        button.className += ' portal-route-add-point-active';
+      }
       links.appendChild(button);
       return button;
     }
@@ -1844,28 +1894,6 @@ button.portal-route-waypoint-name,
   pr.smartAdd = function() {
     if (window.selectedPortal && pr.portalToStop && pr.portalToStop(window.selectedPortal)) {
       pr.addSelectedPortal();
-      return;
-    }
-
-    if (!pr.state.stops.length) {
-      pr.showMessage('Getting current location...');
-      pr.getCurrentLocation(
-        function(position) {
-          var stop = pr.currentLocationStopFromPosition(position, { title: 'Current location' });
-          if (!stop) {
-            pr.setAddPointMode(true);
-            pr.showMessage('Could not read current location. Tap the map to add a point.');
-            return;
-          }
-          delete stop.startOnMe;
-          pr.addStop(stop);
-          pr.showMessage('Current location added.');
-        },
-        function(error) {
-          pr.setAddPointMode(true);
-          pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '') + '. Tap the map to add a point.');
-        }
-      );
       return;
     }
 
@@ -2158,12 +2186,20 @@ button.portal-route-waypoint-name,
     return true;
   };
 
-  pr.setAddPointMode = function(enabled) {
-    pr.state.addPointMode = !!enabled;
+  pr.syncAddPointModeUi = function() {
+    var mapContainer = window.map && window.map.getContainer ? window.map.getContainer() : null;
+    if (mapContainer && mapContainer.classList) {
+      mapContainer.classList.toggle('portal-route-add-point-mode', !!pr.state.addPointMode);
+    }
     pr.renderPanel();
     pr.renderMiniControl();
     if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
-    pr.showMessage(pr.state.addPointMode ? 'Tap the map to add a point.' : 'Add point canceled.');
+  };
+
+  pr.setAddPointMode = function(enabled) {
+    pr.state.addPointMode = !!enabled;
+    pr.syncAddPointModeUi();
+    pr.showMessage(pr.state.addPointMode ? 'Click or tap the map to add a point.' : 'Add point canceled.');
   };
 
   pr.removeStop = function(index) {
@@ -3149,7 +3185,8 @@ button.portal-route-waypoint-name,
     var text = labelMode === 'symbol' ? (selectedInRoute ? '-' : '+') : label;
     var title = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or create a waypoint';
     var action = selectedInRoute ? 'toggle-selected-stop' : 'smart-add';
-    var className = selectedInRoute ? 'portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
+    var className = selectedInRoute ? 'portal-route-smart-button portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
+    if (!selectedInRoute && pr.state.addPointMode) className += ' portal-route-add-point-active';
 
     return '<button type="button" data-action="' + action + '" title="' + title + '" class="' + className + '">' + text + '</button>';
   };
@@ -5238,7 +5275,12 @@ button.portal-route-waypoint-name,
         pr.handleAction('open-main-menu', target);
       },
       'open-maps-menu': function() {
-        pr.handleAction('open-main-menu', target);
+        if (!target || !target.getBoundingClientRect) {
+          pr.openMapsMenu(20, 20);
+          return;
+        }
+        var rect = target.getBoundingClientRect();
+        pr.openMapsMenu(rect.left, rect.bottom + 4);
       },
       'open-edit': pr.openMainPanel,
       'close-panel': function() {
@@ -5377,18 +5419,21 @@ button.portal-route-waypoint-name,
     pr.setMiniControlVisible(true);
 
     var selectedInRoute = pr.selectedStopIndex() >= 0;
+    var addPointActive = !!pr.state.addPointMode;
     var addRemoveClass = selectedInRoute ? ' portal-route-mini-remove' : '';
+    if (addPointActive && !selectedInRoute) addRemoveClass += ' portal-route-mini-add-active';
     var addRemoveText = selectedInRoute ? '-' : '+';
-    var addRemoveTitle = selectedInRoute ? 'Remove selected waypoint from route' : 'Add to route';
+    var addRemoveTitle = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or place a map point';
     var addRemoveAction = selectedInRoute ? 'toggle-selected-stop' : 'smart-add';
     var loopClass = pr.state.settings.includeReturnToStart ? ' portal-route-mini-active' : '';
     var loopTitle = pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start';
 
     container.innerHTML = '' +
-      '<a href="#" class="portal-route-smart-button" title="Open Portal Route menu" data-action="open-main-menu" data-main-menu="true">M</a>' +
+      '<a href="#" class="portal-route-mini-maps" title="Open map export choices" data-action="open-maps-menu" data-maps-menu="true">M</a>' +
       '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
       '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '">' + addRemoveText + '</a>' +
-      '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>';
+      '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
+      '<a href="#" class="portal-route-smart-button" title="Open Portal Route menu" data-action="open-main-menu" data-main-menu="true">=</a>';
   };
 
   pr.panelForEvent = function(ev) {
@@ -5456,9 +5501,22 @@ button.portal-route-waypoint-name,
     pr.positionContextMenu(menu, x, y);
   };
 
+  pr.openMapsMenu = function(x, y) {
+    pr.closeAddMenu();
+
+    var hasRoute = pr.getRouteStops && pr.getRouteStops().length >= 2;
+    var menu = document.createElement('div');
+    menu.className = 'portal-route-context-menu portal-route-maps-menu';
+    menu.innerHTML = '' +
+      '<button type="button" data-action="open-google-maps"' + (hasRoute ? '' : ' disabled') + '>Google Maps</button>' +
+      '<button type="button" data-action="open-apple-maps"' + (hasRoute ? '' : ' disabled') + '>Apple Maps</button>';
+
+    document.body.appendChild(menu);
+    pr.positionContextMenu(menu, x, y);
+  };
+
   pr.openAddMenu = pr.openMainMenu;
   pr.openRouteMenu = pr.openMainMenu;
-  pr.openMapsMenu = pr.openMainMenu;
 
   pr.positionContextMenu = function(menu, x, y) {
     var rect = menu.getBoundingClientRect();
@@ -5835,6 +5893,7 @@ button.portal-route-waypoint-name,
       if (pr.isLayerEnabled && !pr.isLayerEnabled()) return;
 
       pr.state.addPointMode = false;
+      if (pr.syncAddPointModeUi) pr.syncAddPointModeUi();
       pr.addMapPointAtLatLng(e.latlng);
       pr.showMessage('Map point added.');
     });

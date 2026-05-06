@@ -10,7 +10,7 @@ Current release: `1.2.0`
 
 This release adds small control polish, a unified Menu button, Undo, and selected-portal add fixes.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/main/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/fix/v1.1.1/dist/portal-route.user.js)
 
 ## Quick start
 
@@ -26,7 +26,7 @@ This release adds small control polish, a unified Menu button, Undo, and selecte
 
 Portal Route is controlled from the mini control, the route list, the settings panel, the route library, and the portal details panel.
 
-Blue-outlined **Menu** buttons open the shared route menu. Plain buttons such as **Add**, **Del**, **Undo**, **Fit**, **Print**, **Save**, and **Load** do the named action directly.
+Blue-outlined smart buttons mark the primary route controls. **Menu** opens the shared route menu. **Add**, **Del**, **Undo**, **Fit**, **Print**, **Save**, and **Load** do the named action directly.
 
 ### Points list
 
@@ -40,7 +40,7 @@ The points list shows the current route order. Drag rows to reorder stops, or us
 
 ### Direct actions and Menu
 
-- **Add** adds the selected portal, or starts the waypoint/current-location add flow when nothing addable is selected.
+- **Add** adds the selected portal, or arms manual map-point placement when nothing addable is selected.
 - **Del** removes the selected route waypoint.
 - **Undo** reverses the last route edit.
 - **Menu** opens Add me, Loop/Unloop, Clear Route, Save, Google Maps, Apple Maps, Route, Library, and Settings.
@@ -81,10 +81,11 @@ The mini control is for quick route actions while mostly staying on the map.
 
 <img src="docs/images/minicontrol.png" alt="Portal Route mini control" width="82">
 
-- **M** opens the shared Menu.
+- **M** opens the map export choices.
 - **L** toggles loop back to start.
-- **+ / -** adds the selected portal or removes the selected route waypoint.
+- **+ / -** adds the selected portal, arms manual map-point placement, or removes the selected route waypoint.
 - **count button** opens the route list.
+- **=** opens the shared Menu.
 
 ## Location notes
 

@@ -165,7 +165,10 @@
       button.title = title;
       button.setAttribute('data-action', action);
       if (disabled) button.disabled = true;
-      button.className = label === 'Del' ? 'portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
+      button.className = label === 'Del' ? 'portal-route-smart-button portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
+      if (label !== 'Del' && action === 'smart-add' && pr.state.addPointMode) {
+        button.className += ' portal-route-add-point-active';
+      }
       links.appendChild(button);
       return button;
     }

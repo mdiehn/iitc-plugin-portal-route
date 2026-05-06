@@ -156,7 +156,12 @@
         pr.handleAction('open-main-menu', target);
       },
       'open-maps-menu': function() {
-        pr.handleAction('open-main-menu', target);
+        if (!target || !target.getBoundingClientRect) {
+          pr.openMapsMenu(20, 20);
+          return;
+        }
+        var rect = target.getBoundingClientRect();
+        pr.openMapsMenu(rect.left, rect.bottom + 4);
       },
       'open-edit': pr.openMainPanel,
       'close-panel': function() {
@@ -295,18 +300,21 @@
     pr.setMiniControlVisible(true);
 
     var selectedInRoute = pr.selectedStopIndex() >= 0;
+    var addPointActive = !!pr.state.addPointMode;
     var addRemoveClass = selectedInRoute ? ' portal-route-mini-remove' : '';
+    if (addPointActive && !selectedInRoute) addRemoveClass += ' portal-route-mini-add-active';
     var addRemoveText = selectedInRoute ? '-' : '+';
-    var addRemoveTitle = selectedInRoute ? 'Remove selected waypoint from route' : 'Add to route';
+    var addRemoveTitle = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or place a map point';
     var addRemoveAction = selectedInRoute ? 'toggle-selected-stop' : 'smart-add';
     var loopClass = pr.state.settings.includeReturnToStart ? ' portal-route-mini-active' : '';
     var loopTitle = pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start';
 
     container.innerHTML = '' +
-      '<a href="#" class="portal-route-smart-button" title="Open Portal Route menu" data-action="open-main-menu" data-main-menu="true">M</a>' +
+      '<a href="#" class="portal-route-mini-maps" title="Open map export choices" data-action="open-maps-menu" data-maps-menu="true">M</a>' +
       '<a href="#" class="portal-route-mini-loop' + loopClass + '" title="' + loopTitle + '" data-action="toggle-loop-back">L</a>' +
       '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" title="' + addRemoveTitle + '" data-action="' + addRemoveAction + '">' + addRemoveText + '</a>' +
-      '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>';
+      '<a href="#" title="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
+      '<a href="#" class="portal-route-smart-button" title="Open Portal Route menu" data-action="open-main-menu" data-main-menu="true">=</a>';
   };
 
   pr.panelForEvent = function(ev) {
@@ -374,9 +382,22 @@
     pr.positionContextMenu(menu, x, y);
   };
 
+  pr.openMapsMenu = function(x, y) {
+    pr.closeAddMenu();
+
+    var hasRoute = pr.getRouteStops && pr.getRouteStops().length >= 2;
+    var menu = document.createElement('div');
+    menu.className = 'portal-route-context-menu portal-route-maps-menu';
+    menu.innerHTML = '' +
+      '<button type="button" data-action="open-google-maps"' + (hasRoute ? '' : ' disabled') + '>Google Maps</button>' +
+      '<button type="button" data-action="open-apple-maps"' + (hasRoute ? '' : ' disabled') + '>Apple Maps</button>';
+
+    document.body.appendChild(menu);
+    pr.positionContextMenu(menu, x, y);
+  };
+
   pr.openAddMenu = pr.openMainMenu;
   pr.openRouteMenu = pr.openMainMenu;
-  pr.openMapsMenu = pr.openMainMenu;
 
   pr.positionContextMenu = function(menu, x, y) {
     var rect = menu.getBoundingClientRect();
@@ -753,6 +774,7 @@
       if (pr.isLayerEnabled && !pr.isLayerEnabled()) return;
 
       pr.state.addPointMode = false;
+      if (pr.syncAddPointModeUi) pr.syncAddPointModeUi();
       pr.addMapPointAtLatLng(e.latlng);
       pr.showMessage('Map point added.');
     });

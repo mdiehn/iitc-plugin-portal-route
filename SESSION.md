@@ -15,7 +15,10 @@ Current version: `1.2.0`, after the `1.1.0` release.
 - Keep loop endpoint markers numbered while changing loop styling to loop-blue.
 - Show compact route stats in the portal info panel.
 - Add Undo for recent route edits, following the Walk/Bike/Run pattern.
-- Collapse Actions, Maps, and route navigation into one shared Menu smart button.
+- Collapse panel Actions, Maps, and route navigation into one shared Menu smart button.
+- Keep the mini-control exception layout as M, L, +/-, count, =.
+- Keep mini-control M as the dedicated maps button and mini-control = as the shared Menu button.
+- Make Add with nothing selected arm manual map-point placement instead of adding current location.
 
 ## Project rules
 

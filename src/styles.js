@@ -30,6 +30,17 @@
   text-decoration: underline;
 }
 
+.portal-route-mini-control .portal-route-mini-add-active {
+  border-color: rgba(128, 216, 255, 0.95) !important;
+  background: rgba(128, 216, 255, 0.22) !important;
+  box-shadow: inset 0 0 0 1px rgba(128, 216, 255, 0.35), 0 0 8px rgba(128, 216, 255, 0.35) !important;
+}
+
+.leaflet-container.portal-route-add-point-mode,
+.leaflet-container.portal-route-add-point-mode * {
+  cursor: crosshair !important;
+}
+
 .portal-route-dialog-content * {
   box-sizing: border-box;
 }
@@ -407,7 +418,25 @@ button.portal-route-waypoint-badge-wide {
 .portal-route-control-group-buttons button.portal-route-smart-button,
 .portal-route-smart-button {
   border-color: rgba(128, 216, 255, 0.75) !important;
+  color: #ffd800 !important;
   box-shadow: inset 0 0 0 1px rgba(128, 216, 255, 0.25) !important;
+}
+
+.portal-route-control-group-buttons button.portal-route-smart-button:hover,
+.portal-route-control-group-buttons button.portal-route-smart-button:focus,
+.portal-route-control-group-buttons button.portal-route-smart-button:active,
+.portal-route-smart-button:hover,
+.portal-route-smart-button:focus,
+.portal-route-smart-button:active {
+  border-color: rgba(128, 216, 255, 0.95) !important;
+  color: #ffd800 !important;
+}
+
+.portal-route-control-group-buttons button.portal-route-add-point-active,
+.portal-route-portal-action-links button.portal-route-add-point-active {
+  border-color: rgba(128, 216, 255, 0.95) !important;
+  background: rgba(128, 216, 255, 0.22) !important;
+  box-shadow: inset 0 0 0 1px rgba(128, 216, 255, 0.35), 0 0 8px rgba(128, 216, 255, 0.35) !important;
 }
 
 .portal-route-mini-control a.portal-route-smart-button {
@@ -856,7 +885,8 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-portal-action-links a.portal-route-smart-button,
 .portal-route-portal-action-links button.portal-route-smart-button {
-  border-color: rgba(128, 216, 255, 0.55);
+  border-color: rgba(128, 216, 255, 0.75) !important;
+  color: #ffd800 !important;
   outline: 0;
 }
 
@@ -864,12 +894,29 @@ button.portal-route-waypoint-badge-wide {
   cursor: pointer;
 }
 
-.portal-route-portal-action-links button.portal-route-add-delete-button {
-  border-color: rgba(255, 216, 0, 0.55) !important;
+.portal-route-portal-action-links button.portal-route-add-delete-button,
+.portal-route-control-group-buttons button.portal-route-add-delete-button {
+  border-color: rgba(128, 216, 255, 0.75) !important;
+  color: #ffd800 !important;
+  box-shadow: inset 0 0 0 1px rgba(128, 216, 255, 0.25) !important;
+}
+
+.portal-route-portal-action-links button.portal-route-add-delete-button:hover,
+.portal-route-portal-action-links button.portal-route-add-delete-button:focus,
+.portal-route-portal-action-links button.portal-route-add-delete-button:active,
+.portal-route-control-group-buttons button.portal-route-add-delete-button:hover,
+.portal-route-control-group-buttons button.portal-route-add-delete-button:focus,
+.portal-route-control-group-buttons button.portal-route-add-delete-button:active,
+.portal-route-add-delete-button.portal-route-remove-action:hover,
+.portal-route-add-delete-button.portal-route-remove-action:focus,
+.portal-route-add-delete-button.portal-route-remove-action:active {
+  border-color: rgba(128, 216, 255, 0.95) !important;
+  color: #ffd800 !important;
 }
 
 .portal-route-add-delete-button.portal-route-remove-action {
-  border-color: rgba(255, 130, 130, 0.62) !important;
+  border-color: rgba(128, 216, 255, 0.75) !important;
+  color: #ffd800 !important;
 }
 
 .portal-route-compact-stats {

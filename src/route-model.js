@@ -235,28 +235,6 @@
       return;
     }
 
-    if (!pr.state.stops.length) {
-      pr.showMessage('Getting current location...');
-      pr.getCurrentLocation(
-        function(position) {
-          var stop = pr.currentLocationStopFromPosition(position, { title: 'Current location' });
-          if (!stop) {
-            pr.setAddPointMode(true);
-            pr.showMessage('Could not read current location. Tap the map to add a point.');
-            return;
-          }
-          delete stop.startOnMe;
-          pr.addStop(stop);
-          pr.showMessage('Current location added.');
-        },
-        function(error) {
-          pr.setAddPointMode(true);
-          pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '') + '. Tap the map to add a point.');
-        }
-      );
-      return;
-    }
-
     pr.setAddPointMode(true);
   };
 
@@ -546,12 +524,20 @@
     return true;
   };
 
-  pr.setAddPointMode = function(enabled) {
-    pr.state.addPointMode = !!enabled;
+  pr.syncAddPointModeUi = function() {
+    var mapContainer = window.map && window.map.getContainer ? window.map.getContainer() : null;
+    if (mapContainer && mapContainer.classList) {
+      mapContainer.classList.toggle('portal-route-add-point-mode', !!pr.state.addPointMode);
+    }
     pr.renderPanel();
     pr.renderMiniControl();
     if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
-    pr.showMessage(pr.state.addPointMode ? 'Tap the map to add a point.' : 'Add point canceled.');
+  };
+
+  pr.setAddPointMode = function(enabled) {
+    pr.state.addPointMode = !!enabled;
+    pr.syncAddPointModeUi();
+    pr.showMessage(pr.state.addPointMode ? 'Click or tap the map to add a point.' : 'Add point canceled.');
   };
 
   pr.removeStop = function(index) {

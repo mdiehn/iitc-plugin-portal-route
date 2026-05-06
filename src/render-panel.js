@@ -126,7 +126,8 @@
     var text = labelMode === 'symbol' ? (selectedInRoute ? '-' : '+') : label;
     var title = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or create a waypoint';
     var action = selectedInRoute ? 'toggle-selected-stop' : 'smart-add';
-    var className = selectedInRoute ? 'portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
+    var className = selectedInRoute ? 'portal-route-smart-button portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
+    if (!selectedInRoute && pr.state.addPointMode) className += ' portal-route-add-point-active';
 
     return '<button type="button" data-action="' + action + '" title="' + title + '" class="' + className + '">' + text + '</button>';
   };

@@ -13,15 +13,18 @@ Current release: `1.2.0`
 - Added small route stats to the portal info panel: total time, drive time, wait time, and distance.
 - Added Undo for recent route edits, including adds, deletes, moves, imports, route loads, loop changes, and wait-time changes.
 - Added one shared **Menu** smart button for Add me, Loop, Clear Route, Save, Google Maps, Apple Maps, Route, Library, and Settings.
+- Added an active manual-point placement state for **Add**, including a crosshair cursor on desktop.
 
 ### Changed
 
 - Loop mode now keeps start/end marker letters visible and only changes their styling to loop-blue.
-- Replaced the separate Actions, Maps, and Menus smart buttons with the shared **Menu** button.
+- Replaced the separate panel Actions, Maps, and Menus smart buttons with the shared **Menu** button.
+- Kept the mini control exception layout as **M**, **L**, **+/-**, **count**, **=**, with **M** for map exports and **=** for Menu.
 
 ### Fixed
 
-- Fixed mini-control **+** on an empty route so a selected portal is added before falling back to current location or waypoint add mode.
+- Fixed mini-control **+** on an empty route so a selected portal is added before falling back to manual waypoint add mode.
+- Fixed **Add** with nothing selected so it arms manual map-point placement instead of adding current location.
 
 ## 1.1.0 - Released 2026-05-03
 
