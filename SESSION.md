@@ -2,9 +2,35 @@
 
 Current repo: IITC plugin **Portal Route**.
 
-Current branch: `feat/v1.1.0`.
+Current branch: `feat/v1.3.0`.
 
-Current version: `1.1.0-dev`, after the `1.0.0` release.
+Current version: `1.3.0`, after the `1.2.0` work.
+
+
+## v1.3.0 current work
+
+- Fix smart add so a selected portal wins even when the route is empty.
+- Restore direct Add/Del controls outside the shared Menu.
+- Restore compact Up/Dn/Del row buttons.
+- Keep loop endpoint markers numbered while changing loop styling to loop-blue.
+- Show compact route stats in the portal info panel.
+- Add Undo for recent route edits, following the Walk/Bike/Run pattern.
+- Collapse panel Actions, Maps, and route navigation into one shared Menu smart button.
+- Keep the mini-control exception layout as M, L, +/-, count, =.
+- Keep mini-control M as the dedicated maps button and mini-control = as the shared Menu button.
+- Make Add with nothing selected arm manual map-point placement instead of adding current location.
+- Remove native tooltips from controls and use accessible labels instead.
+- Keep the mini-control = button in the normal black mini-control style.
+
+- Add placement mode can now be canceled by pressing Add again, pressing Esc, or opening Menu/Maps/Route/Library/Settings.
+- Add placement mode shows a small hint in panels/info panel.
+- Stale routes now show a clearer Replot cue, stale compact stats, and a Menu Route/Replot fallback.
+- Route row buttons use mobile-friendly symbols on narrow screens.
+- Successful Route/Replot refreshes the route list, points list, mini control, and info panel controls so stale markers clear everywhere.
+- Phase 1 UI refactor extracted shared Portal Route helpers for smart buttons, mini-control buttons, and context-menu item rendering while preserving behavior/layout.
+- Portal Route now listens for IITC portal unselect events and clears its cached portal selection so Add can enter manual placement mode after unselecting a portal.
+- Undo is available from the shared Menu.
+- Phase 2 UI refactor normalized control class names, Route/Replot button/menu options, mini-control button options, and map export menu items through the shared helper layer.
 
 ## Project rules
 
@@ -169,3 +195,4 @@ Commit message notes:
 - Can Portal Route keep using IITC Sync's public Google client ID safely long term?
 - What is the safest initial conflict behavior for Drive writes from phone and desktop?
 - Should shared current-map handoff use `current-map.json` later? Treat as later than route-library storage.
+- Made the compact info-panel route stats slightly more visible without making them large.

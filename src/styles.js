@@ -30,6 +30,17 @@
   text-decoration: underline;
 }
 
+.portal-route-mini-control .portal-route-mini-add-active {
+  border-color: rgba(128, 216, 255, 0.95) !important;
+  background: rgba(128, 216, 255, 0.22) !important;
+  box-shadow: inset 0 0 0 1px rgba(128, 216, 255, 0.35), 0 0 8px rgba(128, 216, 255, 0.35) !important;
+}
+
+.leaflet-container.portal-route-add-point-mode,
+.leaflet-container.portal-route-add-point-mode * {
+  cursor: crosshair !important;
+}
+
 .portal-route-dialog-content * {
   box-sizing: border-box;
 }
@@ -100,7 +111,7 @@
 
 .portal-route-waypoint-row {
   display: grid;
-  grid-template-columns: max-content minmax(0, 1fr) max-content 42px;
+  grid-template-columns: max-content minmax(0, 1fr) max-content 42px max-content;
   gap: 2px;
   align-items: center;
   width: 100%;
@@ -147,7 +158,8 @@
 .portal-route-waypoint-num,
 .portal-route-waypoint-name-cell,
 .portal-route-leg-cell,
-.portal-route-wait-cell {
+.portal-route-wait-cell,
+.portal-route-row-actions {
   min-width: 0;
   border: 0 !important;
   outline: 0 !important;
@@ -210,6 +222,71 @@
 .portal-route-wait-input {
   width: 42px;
   padding: 1px 2px;
+}
+
+.portal-route-row-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 2px;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.portal-route-row-actions button {
+  padding: 1px 3px !important;
+  border: 1px solid rgba(255, 216, 0, 0.35) !important;
+  border-radius: 3px !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: inherit !important;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1.15;
+  cursor: pointer;
+}
+
+.portal-route-row-actions button:disabled {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  color: rgba(255, 255, 255, 0.35) !important;
+  cursor: default;
+}
+
+.portal-route-row-action-short {
+  display: none;
+}
+
+.portal-route-add-point-hint,
+.portal-route-stale-hint {
+  margin: 4px 0 0;
+  padding: 3px 6px;
+  border-radius: 5px;
+  font-size: 11px;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.portal-route-add-point-hint {
+  border: 1px solid rgba(255, 216, 0, 0.38);
+  background: rgba(255, 216, 0, 0.12);
+  color: #ffd800;
+}
+
+.portal-route-stale-hint {
+  border: 1px solid rgba(128, 216, 255, 0.34);
+  background: rgba(128, 216, 255, 0.12);
+  color: #80d8ff;
+}
+
+.portal-route-replot-needed,
+.portal-route-context-stale {
+  border-color: rgba(255, 216, 0, 0.72) !important;
+  box-shadow: 0 0 7px rgba(255, 216, 0, 0.28) !important;
+}
+
+.portal-route-compact-stats-flag {
+  color: #80d8ff;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .portal-route-stop-num,
@@ -380,7 +457,25 @@ button.portal-route-waypoint-badge-wide {
 .portal-route-control-group-buttons button.portal-route-smart-button,
 .portal-route-smart-button {
   border-color: rgba(128, 216, 255, 0.75) !important;
+  color: #ffd800 !important;
   box-shadow: inset 0 0 0 1px rgba(128, 216, 255, 0.25) !important;
+}
+
+.portal-route-control-group-buttons button.portal-route-smart-button:hover,
+.portal-route-control-group-buttons button.portal-route-smart-button:focus,
+.portal-route-control-group-buttons button.portal-route-smart-button:active,
+.portal-route-smart-button:hover,
+.portal-route-smart-button:focus,
+.portal-route-smart-button:active {
+  border-color: rgba(128, 216, 255, 0.95) !important;
+  color: #ffd800 !important;
+}
+
+.portal-route-control-group-buttons button.portal-route-add-point-active,
+.portal-route-portal-action-links button.portal-route-add-point-active {
+  border-color: rgba(128, 216, 255, 0.95) !important;
+  background: rgba(128, 216, 255, 0.22) !important;
+  box-shadow: inset 0 0 0 1px rgba(128, 216, 255, 0.35), 0 0 8px rgba(128, 216, 255, 0.35) !important;
 }
 
 .portal-route-mini-control a.portal-route-smart-button {
@@ -585,6 +680,10 @@ button.portal-route-waypoint-badge-wide {
   justify-content: center;
 }
 
+.portal-route-library-menu-button {
+  margin-left: auto !important;
+}
+
 .portal-route-library-tip {
   margin-top: 6px;
   font-size: 11px;
@@ -683,7 +782,7 @@ button.portal-route-waypoint-badge-wide {
 
 .portal-route-stop-label-loop-endpoint span {
   box-shadow:
-    0 0 0 2px rgba(190, 145, 255, 0.95),
+    0 0 0 2px rgba(128, 216, 255, 0.95),
     0 1px 3px rgba(0, 0, 0, 0.65);
 }
 
@@ -718,8 +817,7 @@ button.portal-route-waypoint-badge-wide {
 }
 
 .portal-route-stop-label-loop-endpoint span::after {
-  content: "L";
-  background: #c9a6ff;
+  background: #80d8ff;
 }
 
 .portal-route-stop-label-draggable span {
@@ -809,7 +907,8 @@ button.portal-route-waypoint-badge-wide {
   text-overflow: ellipsis;
 }
 
-.portal-route-portal-action-links a {
+.portal-route-portal-action-links a,
+.portal-route-portal-action-links button {
   flex: 0 0 auto;
   display: inline-block;
   margin: 0 4px 2px;
@@ -823,9 +922,66 @@ button.portal-route-waypoint-badge-wide {
   text-overflow: ellipsis;
 }
 
-.portal-route-portal-action-links a.portal-route-smart-button {
-  border-color: rgba(128, 216, 255, 0.55);
+.portal-route-portal-action-links a.portal-route-smart-button,
+.portal-route-portal-action-links button.portal-route-smart-button {
+  border-color: rgba(128, 216, 255, 0.75) !important;
+  color: #ffd800 !important;
   outline: 0;
+}
+
+.portal-route-portal-action-links button {
+  cursor: pointer;
+}
+
+.portal-route-portal-action-links button.portal-route-add-delete-button,
+.portal-route-control-group-buttons button.portal-route-add-delete-button {
+  border-color: rgba(128, 216, 255, 0.75) !important;
+  color: #ffd800 !important;
+  box-shadow: inset 0 0 0 1px rgba(128, 216, 255, 0.25) !important;
+}
+
+.portal-route-portal-action-links button.portal-route-add-delete-button:hover,
+.portal-route-portal-action-links button.portal-route-add-delete-button:focus,
+.portal-route-portal-action-links button.portal-route-add-delete-button:active,
+.portal-route-control-group-buttons button.portal-route-add-delete-button:hover,
+.portal-route-control-group-buttons button.portal-route-add-delete-button:focus,
+.portal-route-control-group-buttons button.portal-route-add-delete-button:active,
+.portal-route-add-delete-button.portal-route-remove-action:hover,
+.portal-route-add-delete-button.portal-route-remove-action:focus,
+.portal-route-add-delete-button.portal-route-remove-action:active {
+  border-color: rgba(128, 216, 255, 0.95) !important;
+  color: #ffd800 !important;
+}
+
+.portal-route-add-delete-button.portal-route-remove-action {
+  border-color: rgba(128, 216, 255, 0.75) !important;
+  color: #ffd800 !important;
+}
+
+.portal-route-compact-stats {
+  flex: 0 0 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 10px;
+  margin-top: 6px;
+  padding: 4px 6px;
+  border: 1px solid rgba(128, 216, 255, 0.32);
+  border-radius: 6px;
+  background: rgba(0, 32, 48, 0.28);
+  font-size: 11px;
+  line-height: 1.25;
+  opacity: 0.96;
+}
+
+.portal-route-compact-stats-stale {
+  border-color: rgba(255, 216, 0, 0.34);
+  background: rgba(48, 40, 0, 0.24);
+  opacity: 0.82;
+}
+
+.portal-route-compact-stats span {
+  white-space: nowrap;
 }
 
 .portal-route-context-menu {
@@ -932,8 +1088,31 @@ button.portal-route-waypoint-name,
   }
 
   .portal-route-waypoint-row {
-    grid-template-columns: 18px minmax(0, 1fr) max-content 38px;
-    gap: 1px;
+    grid-template-columns: 18px minmax(0, 1fr) 38px max-content;
+    grid-template-areas:
+      "num name wait actions"
+      ". leg leg actions";
+    gap: 1px 3px;
+  }
+
+  .portal-route-waypoint-num {
+    grid-area: num;
+  }
+
+  .portal-route-waypoint-name-cell {
+    grid-area: name;
+  }
+
+  .portal-route-leg-cell {
+    grid-area: leg;
+  }
+
+  .portal-route-wait-cell {
+    grid-area: wait;
+  }
+
+  .portal-route-row-actions {
+    grid-area: actions;
   }
 
   .portal-route-waypoint-num {
@@ -950,6 +1129,26 @@ button.portal-route-waypoint-name,
 
   .portal-route-wait-input {
     width: 38px;
+  }
+
+  .portal-route-row-actions {
+    align-self: stretch;
+    align-items: center;
+  }
+
+  .portal-route-row-actions button {
+    min-width: 20px;
+    padding: 2px 3px !important;
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .portal-route-row-action-full {
+    display: none;
+  }
+
+  .portal-route-row-action-short {
+    display: inline;
   }
 
   .portal-route-control-groups {

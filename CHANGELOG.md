@@ -2,7 +2,54 @@
 
 This project is in active development.
 
-Current release: `1.1.0`
+Current release: `1.3.0`
+
+## 1.3.0 - Unreleased
+
+### Added
+
+- Added clearer manual-point placement feedback, including a small panel/info-panel hint while Add placement mode is armed.
+- Added a stronger stale-route cue with a highlighted Replot button, stale compact stats, and a Menu Route/Replot fallback.
+- Added Undo to the shared Menu.
+
+### Changed
+
+- Continued the button/menu helper refactor by normalizing Route/Replot, map export menu items, mini-control button options, and shared control class names through the helper layer.
+- Started the button/menu helper refactor by extracting shared Portal Route helpers for smart buttons, mini-control buttons, and context menus without intended behavior changes.
+- Add now toggles manual point placement when nothing is selected, so pressing Add again cancels placement mode.
+- Escape now cancels manual point placement on desktop.
+- Opening Menu, Maps, Route, Library, or Settings cancels manual point placement.
+- Route row buttons use compact symbols on mobile while keeping full Up/Dn/Del labels on wider screens.
+- The shared Menu now has a direct Route/Replot action, with the route list split out as Route List.
+
+### Fixed
+
+- Clear Portal Route's cached selected portal when IITC unselects a portal, so Add can enter manual point placement mode again.
+
+## 1.2.0 - Released 2026-05-06
+
+### Added
+
+- Added a direct **Add** / **Del** control in the route list and portal info panel.
+- Restored compact **Up**, **Dn**, and **Del** controls on each editable route row.
+- Added small route stats to the portal info panel: total time, drive time, wait time, and distance.
+- Added Undo for recent route edits, including adds, deletes, moves, imports, route loads, loop changes, and wait-time changes.
+- Added one shared **Menu** smart button for Add me, Loop, Clear Route, Save, Google Maps, Apple Maps, Route, Library, and Settings.
+- Added an active manual-point placement state for **Add**, including a crosshair cursor on desktop.
+
+### Changed
+
+- Loop mode now keeps start/end marker letters visible and only changes their styling to loop-blue.
+- Replaced the separate panel Actions, Maps, and Menus smart buttons with the shared **Menu** button.
+- Kept the mini control exception layout as **M**, **L**, **+/-**, **count**, **=**, with **M** for map exports and **=** for Menu.
+- Make compact route stats in the info panel slightly more visible while keeping them small.
+- Removed native browser/mobile tooltips from controls; controls now use accessible labels instead.
+- Restored the mini-control **=** button to the normal black mini-control styling.
+
+### Fixed
+
+- Fixed mini-control **+** on an empty route so a selected portal is added before falling back to manual waypoint add mode.
+- Fixed **Add** with nothing selected so it arms manual map-point placement instead of adding current location.
 
 ## 1.1.0 - Released 2026-05-03
 

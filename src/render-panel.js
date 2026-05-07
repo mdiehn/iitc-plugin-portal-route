@@ -8,7 +8,7 @@
   };
 
   pr.renderEmptyHelp = function() {
-    return '<p class="portal-route-empty">There are no waypoints defined.<br>Use Actions to start a route.</p>';
+    return '<p class="portal-route-empty">There are no waypoints defined.<br>Use Add or Menu to start a route.</p>';
   };
 
   pr.renderRouteSegment = function(leg) {
@@ -47,19 +47,32 @@
       var dragAttr = canDragRow ? ' draggable="true"' : '';
       var dragHandleAttr = canDragRow ? ' draggable="true"' : '';
       var selectTitle = isLoop ? 'Loop back to start' : 'Select and center stop';
-      var badgeTitle = canDragRow ? 'Drag to reorder; click to select and center' : selectTitle;
+      var badgeLabel = canDragRow ? 'Drag to reorder; click to select and center' : selectTitle;
 
       html += '<div class="portal-route-waypoint-row portal-route-stop' + rowClass + dragClass + '" data-index="' + index + '"' + dragAttr + '>';
-      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge portal-route-waypoint-drag-handle' + badgeClass + (isLoop ? ' portal-route-loop-badge' : '') + '" title="' + badgeTitle + '" data-action="select-stop-center" data-index="' + index + '"' + dragHandleAttr + '>' + badge + '</button></div>';
+      html += '<div class="portal-route-waypoint-num"><button type="button" class="portal-route-stop-num portal-route-waypoint-badge portal-route-waypoint-drag-handle' + badgeClass + (isLoop ? ' portal-route-loop-badge' : '') + '" aria-label="' + pr.escapeHtml(badgeLabel) + '" data-action="select-stop-center" data-index="' + index + '"' + dragHandleAttr + '>' + badge + '</button></div>';
 
       if (isLoop) {
-        html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Loop back to first waypoint" data-action="select-stop-center" data-index="' + index + '">Loop back to ' + pr.escapeHtml(stop.title) + '</button></div>';
+        html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" aria-label="Loop back to first waypoint" data-action="select-stop-center" data-index="' + index + '">Loop back to ' + pr.escapeHtml(stop.title) + '</button></div>';
       } else {
-        html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" title="Select stop" data-action="select-stop" data-index="' + index + '">' + pr.escapeHtml(stop.title) + '</button></div>';
+        html += '<div class="portal-route-waypoint-name-cell"><button type="button" class="portal-route-waypoint-name" aria-label="Select stop" data-action="select-stop" data-index="' + index + '">' + pr.escapeHtml(stop.title) + '</button></div>';
       }
 
       html += '<div class="portal-route-leg-cell">' + (index < stops.length - 1 ? pr.renderRouteSegment(legsByToIndex[index + 1]) : '') + '</div>';
-      html += '<div class="portal-route-wait-cell"><input class="portal-route-wait-input" type="text" inputmode="decimal" value="' + pr.escapeHtml(waitValue) + '" title="Examples: 15m, 1.5h, 2d" data-field="stop-minutes" data-index="' + index + '" ' + (isLoop || isManagedStart ? 'disabled' : '') + '></div>';
+      html += '<div class="portal-route-wait-cell"><input class="portal-route-wait-input" type="text" inputmode="decimal" value="' + pr.escapeHtml(waitValue) + '" aria-label="Stop wait time" placeholder="15m" data-field="stop-minutes" data-index="' + index + '" ' + (isLoop || isManagedStart ? 'disabled' : '') + '></div>';
+
+      if (isLoop) {
+        html += '<div class="portal-route-row-actions"></div>';
+      } else {
+        var canMoveUp = !isManagedStart && index > 0 && !(pr.state.settings.startOnCurrentLocation && index <= 1);
+        var canMoveDown = !isManagedStart && index < pr.state.stops.length - 1;
+        var canRemove = !isManagedStart;
+        html += '<div class="portal-route-row-actions">';
+        html += '<button type="button" aria-label="Move waypoint up" data-action="move-stop-up" data-index="' + index + '"' + (canMoveUp ? '' : ' disabled') + '><span class="portal-route-row-action-full">Up</span><span class="portal-route-row-action-short" aria-hidden="true">↑</span></button>';
+        html += '<button type="button" aria-label="Move waypoint down" data-action="move-stop-down" data-index="' + index + '"' + (canMoveDown ? '' : ' disabled') + '><span class="portal-route-row-action-full">Dn</span><span class="portal-route-row-action-short" aria-hidden="true">↓</span></button>';
+        html += '<button type="button" aria-label="Delete waypoint" data-action="remove-stop" data-index="' + index + '"' + (canRemove ? '' : ' disabled') + '><span class="portal-route-row-action-full">Del</span><span class="portal-route-row-action-short" aria-hidden="true">×</span></button>';
+        html += '</div>';
+      }
       html += '</div>';
     });
 
@@ -93,12 +106,38 @@
     return html;
   };
 
+  pr.renderAddPointModeHint = function() {
+    if (!pr.state.addPointMode) return '';
+    return '<div class="portal-route-add-point-hint">Tap map to add point · Add/Esc cancels</div>';
+  };
+
+  pr.renderRouteStaleHint = function() {
+    if (!pr.state.routeDirty) return '';
+    return '<div class="portal-route-stale portal-route-stale-hint">Route changed. Replot to update stats and map line.</div>';
+  };
+
+  pr.renderCompactRouteStats = function(route) {
+    if (!route || !route.totals) return '';
+
+    var staleClass = pr.state.routeDirty ? ' portal-route-compact-stats-stale' : '';
+    var staleText = pr.state.routeDirty ? '<span class="portal-route-compact-stats-flag">stale</span>' : '';
+    var html = '';
+    html += '<div class="portal-route-compact-stats' + staleClass + '">' + staleText;
+    html += '<span><b>Tot</b> ' + pr.escapeHtml(pr.formatDuration(route.totals.tripSeconds)) + '</span>';
+    html += '<span><b>Drv</b> ' + pr.escapeHtml(pr.formatDuration(route.totals.driveSeconds)) + '</span>';
+    html += '<span><b>Wait</b> ' + pr.escapeHtml(pr.formatDuration(route.totals.stopSeconds)) + '</span>';
+    html += '<span><b>Dist</b> ' + pr.escapeHtml(pr.formatDistance(route.totals.distanceMeters)) + '</span>';
+    html += '</div>';
+    return html;
+  };
+
+
   pr.renderMainPanel = function(legsByToIndex) {
     var html = '';
 
     html += '<div class="portal-route-body">';
     html += '<div class="portal-route-list-options">';
-    html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" title="Examples: 15m, 1.5h, 2d" data-field="default-stop-minutes"> per portal</label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" aria-label="Default stop time" placeholder="15m" data-field="default-stop-minutes"> per portal</label>';
     html += '</div>';
 
     html += '<div class="portal-route-settings-row">';
@@ -112,10 +151,14 @@
     html += '</div>';
 
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
-    html += '<button type="button" data-action="calculate-route">Recalc Route</button>';
-    html += '<button type="button" data-action="reverse-route"' + (pr.state.stops.length > 1 ? '' : ' disabled') + '>Reverse route</button>';
-    html += '<button type="button" class="portal-route-smart-button" data-action="open-route-menu" data-route-menu="true">Menus</button>';
+    html += pr.selectedAddDeleteButton();
+    html += pr.undoRouteEditButton();
+    html += pr.routeButtonHtml(pr.routeReplotButtonOptions());
+    html += pr.routeButtonHtml(pr.reverseRouteButtonOptions());
+    html += pr.mainMenuButton();
     html += '</div>';
+    html += pr.renderAddPointModeHint();
+    html += pr.renderRouteStaleHint();
 
     html += '<div class="portal-route-message" id="portal-route-message"></div>';
     html += '</div>';
@@ -387,23 +430,22 @@
 
     var contentHtml = '';
     contentHtml += pr.renderPointsSummary(route);
-    if (pr.state.routeDirty) {
-      contentHtml += '<div class="portal-route-stale">Route is updating.</div>';
-    }
+    contentHtml += pr.renderRouteStaleHint();
     contentHtml += '<div class="portal-route-bottom-summary"><b>Waypoints:</b> ' + pr.state.stops.length + (pr.makeLoopStop() && pr.state.stops.length > 1 ? ' + loop' : '') + '</div>';
     contentHtml += '<div class="portal-route-points-list-body">';
     contentHtml += '<div class="portal-route-body">' + pr.renderStopsList(legsByToIndex) + '</div>';
     contentHtml += '</div>';
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-panel-actions">';
-    contentHtml += '<button type="button" data-action="open-add-menu" data-add-menu="true" class="portal-route-smart-button' + (pr.state.addPointMode ? ' portal-route-active-action' : '') + '">Actions</button>';
-    contentHtml += '<button type="button" data-action="fit-route">Fit</button>';
-    contentHtml += '<button type="button" class="portal-route-smart-button" data-action="open-maps-menu" data-maps-menu="true">Maps</button>';
+    contentHtml += pr.selectedAddDeleteButton();
+    contentHtml += pr.undoRouteEditButton();
+    contentHtml += pr.routeButtonHtml(pr.fitRouteButtonOptions());
+    contentHtml += pr.mainMenuButton();
     contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';
     contentHtml += '<button type="button" data-action="save-route">Save</button>';
     contentHtml += '<button type="button" data-action="load-route">Load</button>';
-    contentHtml += '<button type="button" class="portal-route-smart-button" data-action="open-route-menu" data-route-menu="true">Menus</button>';
     contentHtml += '</div>';
+    contentHtml += pr.renderAddPointModeHint();
     var existingContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);
 
     if (pr.isDialogOpen(existingContent)) {
