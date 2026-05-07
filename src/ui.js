@@ -303,22 +303,7 @@
 
     pr.setMiniControlVisible(true);
 
-    var selectedInRoute = pr.selectedStopIndex() >= 0;
-    var addPointActive = !!pr.state.addPointMode;
-    var addRemoveClass = selectedInRoute ? ' portal-route-mini-remove' : '';
-    if (addPointActive && !selectedInRoute) addRemoveClass += ' portal-route-mini-add-active';
-    var addRemoveText = selectedInRoute ? '-' : '+';
-    var addRemoveLabel = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or place a map point';
-    var addRemoveAction = selectedInRoute ? 'toggle-selected-stop' : 'smart-add';
-    var loopClass = pr.state.settings.includeReturnToStart ? ' portal-route-mini-active' : '';
-    var loopLabel = pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start';
-
-    container.innerHTML = '' +
-      '<a href="#" class="portal-route-mini-maps" aria-label="Open map export choices" data-action="open-maps-menu" data-maps-menu="true">M</a>' +
-      '<a href="#" class="portal-route-mini-loop' + loopClass + '" aria-label="' + loopLabel + '" data-action="toggle-loop-back">L</a>' +
-      '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" aria-label="' + addRemoveLabel + '" data-action="' + addRemoveAction + '">' + addRemoveText + '</a>' +
-      '<a href="#" aria-label="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
-      '<a href="#" aria-label="Open Portal Route menu" data-action="open-main-menu" data-main-menu="true">=</a>';
+    container.innerHTML = pr.renderMiniControlButtons();
   };
 
   pr.panelForEvent = function(ev) {
@@ -363,44 +348,11 @@
   };
 
   pr.openMainMenu = function(x, y) {
-    pr.closeAddMenu();
-
-    var hasStops = pr.state.stops.length > 0;
-    var hasRoute = pr.getRouteStops && pr.getRouteStops().length >= 2;
-    var routeActionLabel = pr.state.routeDirty ? 'Replot' : (pr.state.route ? 'Replot' : 'Route');
-    var routeActionClass = pr.state.routeDirty ? ' class="portal-route-context-stale"' : '';
-    var menu = document.createElement('div');
-    menu.className = 'portal-route-context-menu portal-route-main-menu';
-    menu.innerHTML = '' +
-      '<button type="button" data-action="add-current-location">Add me</button>' +
-      '<button type="button" data-action="toggle-loop-back">' + (pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop') + '</button>' +
-      '<button type="button" data-action="clear-route"' + (hasStops ? '' : ' disabled') + '>Clear Route</button>' +
-      '<button type="button" data-action="save-route"' + (hasStops ? '' : ' disabled') + '>Save</button>' +
-      '<div class="portal-route-context-divider"></div>' +
-      '<button type="button" data-action="open-google-maps"' + (hasRoute ? '' : ' disabled') + '>Google Maps</button>' +
-      '<button type="button" data-action="open-apple-maps"' + (hasRoute ? '' : ' disabled') + '>Apple Maps</button>' +
-      '<div class="portal-route-context-divider"></div>' +
-      '<button type="button" data-action="calculate-route"' + routeActionClass + (hasRoute ? '' : ' disabled') + '>' + routeActionLabel + '</button>' +
-      '<button type="button" data-action="open-points-list"' + (hasStops ? '' : ' disabled') + '>Route List</button>' +
-      '<button type="button" data-action="load-route">Library</button>' +
-      '<button type="button" data-action="open-main">Settings</button>';
-
-    document.body.appendChild(menu);
-    pr.positionContextMenu(menu, x, y);
+    pr.openRouteContextMenu(pr.mainMenuItems(), 'portal-route-main-menu', x, y);
   };
 
   pr.openMapsMenu = function(x, y) {
-    pr.closeAddMenu();
-
-    var hasRoute = pr.getRouteStops && pr.getRouteStops().length >= 2;
-    var menu = document.createElement('div');
-    menu.className = 'portal-route-context-menu portal-route-maps-menu';
-    menu.innerHTML = '' +
-      '<button type="button" data-action="open-google-maps"' + (hasRoute ? '' : ' disabled') + '>Google Maps</button>' +
-      '<button type="button" data-action="open-apple-maps"' + (hasRoute ? '' : ' disabled') + '>Apple Maps</button>';
-
-    document.body.appendChild(menu);
-    pr.positionContextMenu(menu, x, y);
+    pr.openRouteContextMenu(pr.mapsMenuItems(), 'portal-route-maps-menu', x, y);
   };
 
   pr.openAddMenu = pr.openMainMenu;
@@ -415,23 +367,7 @@
   };
 
   pr.openStopMenu = function(index, x, y) {
-    pr.closeAddMenu();
-
-    var stop = pr.getRouteStop(index);
-    if (!stop || stop.generatedLoop) return;
-    var isManagedStart = pr.isManagedStartStop(stop);
-
-    var menu = document.createElement('div');
-    menu.className = 'portal-route-context-menu';
-    menu.innerHTML = '' +
-      '<button type="button" data-action="remove-stop" data-index="' + index + '"' + (isManagedStart ? ' disabled' : '') + '>Delete</button>' +
-      '<button type="button" data-action="rename-stop" data-index="' + index + '"' + (isManagedStart ? ' disabled' : '') + '>Rename</button>' +
-      '<div class="portal-route-context-divider"></div>' +
-      '<button type="button" data-action="set-stop-start" data-index="' + index + '"' + (isManagedStart ? ' disabled' : '') + '>Set as start</button>' +
-      '<button type="button" data-action="set-stop-end" data-index="' + index + '"' + (isManagedStart ? ' disabled' : '') + '>Set as end</button>';
-
-    document.body.appendChild(menu);
-    pr.positionContextMenu(menu, x, y);
+    pr.openRouteContextMenu(pr.stopMenuItems(index), '', x, y);
   };
 
   pr.handleStopMenuContext = function(ev) {
@@ -827,6 +763,23 @@
           pr.clearSelectedMapPoint();
           pr.injectPortalDetailsAction();
           pr.renderMiniControl();
+        });
+
+        window.addHook('portalSelected', function(data) {
+          data = data || {};
+          if (data.selectedPortalGuid === data.unselectedPortalGuid) return;
+
+          if (data.selectedPortalGuid) {
+            window.selectedPortal = data.selectedPortalGuid;
+            pr.clearSelectedMapPoint();
+          } else {
+            window.selectedPortal = null;
+          }
+
+          pr.redrawLabels();
+          pr.renderPanel();
+          pr.renderMiniControl();
+          if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
         });
         pr.portalHookRegistered = true;
       }

@@ -18,6 +18,7 @@ const sources = [
   "src/storage.js",
   "src/undo.js",
   "src/format.js",
+  "src/ui-controls.js",
   "src/portal-actions.js",
   "src/route-model.js",
   "src/route-google.js",

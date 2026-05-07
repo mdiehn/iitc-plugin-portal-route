@@ -131,28 +131,6 @@
     return html;
   };
 
-  pr.selectedAddDeleteButton = function(labelMode) {
-    var selectedInRoute = pr.selectedStopIndex && pr.selectedStopIndex() >= 0;
-    var label = selectedInRoute ? 'Del' : 'Add';
-    var text = labelMode === 'symbol' ? (selectedInRoute ? '-' : '+') : label;
-    var title = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or create a waypoint';
-    var action = selectedInRoute ? 'toggle-selected-stop' : 'smart-add';
-    var className = selectedInRoute ? 'portal-route-smart-button portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
-    if (!selectedInRoute && pr.state.addPointMode) className += ' portal-route-add-point-active';
-
-    return '<button type="button" data-action="' + action + '" aria-label="' + title + '" class="' + className + '">' + text + '</button>';
-  };
-
-  pr.undoRouteEditButton = function() {
-    var disabled = pr.canUndoRouteEdit && pr.canUndoRouteEdit() ? '' : ' disabled';
-    return '<button type="button" data-action="undo-route-edit" aria-label="Undo last route edit" class="portal-route-smart-button"' + disabled + '>Undo</button>';
-  };
-
-  pr.mainMenuButton = function(label, extraClass) {
-    label = label || 'Menu';
-    var className = 'portal-route-smart-button' + (extraClass ? ' ' + extraClass : '');
-    return '<button type="button" class="' + className + '" data-action="open-main-menu" data-main-menu="true">' + pr.escapeHtml(label) + '</button>';
-  };
 
   pr.renderMainPanel = function(legsByToIndex) {
     var html = '';
@@ -175,8 +153,8 @@
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
     html += pr.selectedAddDeleteButton();
     html += pr.undoRouteEditButton();
-    html += '<button type="button" data-action="calculate-route" class="portal-route-replot-button' + (pr.state.routeDirty ? ' portal-route-replot-needed' : '') + '">' + (pr.state.routeDirty ? 'Replot' : 'Route') + '</button>'; 
-    html += '<button type="button" data-action="reverse-route"' + (pr.state.stops.length > 1 ? '' : ' disabled') + '>Reverse route</button>';
+    html += pr.routeButtonHtml(pr.routeReplotButtonOptions());
+    html += pr.routeButtonHtml(pr.reverseRouteButtonOptions());
     html += pr.mainMenuButton();
     html += '</div>';
     html += pr.renderAddPointModeHint();
@@ -460,7 +438,7 @@
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-panel-actions">';
     contentHtml += pr.selectedAddDeleteButton();
     contentHtml += pr.undoRouteEditButton();
-    contentHtml += '<button type="button" data-action="fit-route">Fit</button>';
+    contentHtml += pr.routeButtonHtml(pr.fitRouteButtonOptions());
     contentHtml += pr.mainMenuButton();
     contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';
