@@ -217,6 +217,7 @@
       { label: pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop', action: 'toggle-loop-back' },
       { label: 'Clear Route', action: 'clear-route', disabled: !hasStops },
       { label: 'Save', action: 'save-route', disabled: !hasStops },
+      { label: 'Undo', action: 'undo-route-edit', disabled: !(pr.canUndoRouteEdit && pr.canUndoRouteEdit()) },
       { divider: true },
       { label: 'Google Maps', action: 'open-google-maps', disabled: !hasRoute },
       { label: 'Apple Maps', action: 'open-apple-maps', disabled: !hasRoute },

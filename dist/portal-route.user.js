@@ -1762,6 +1762,7 @@ button.portal-route-waypoint-name,
       { label: pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop', action: 'toggle-loop-back' },
       { label: 'Clear Route', action: 'clear-route', disabled: !hasStops },
       { label: 'Save', action: 'save-route', disabled: !hasStops },
+      { label: 'Undo', action: 'undo-route-edit', disabled: !(pr.canUndoRouteEdit && pr.canUndoRouteEdit()) },
       { divider: true },
       { label: 'Google Maps', action: 'open-google-maps', disabled: !hasRoute },
       { label: 'Apple Maps', action: 'open-apple-maps', disabled: !hasRoute },
@@ -1844,9 +1845,7 @@ button.portal-route-waypoint-name,
       }
     }
 
-    if (!cleared) {
-      window.selectedPortal = null;
-    }
+    window.selectedPortal = null;
 
     var details = document.getElementById('portaldetails');
     if (details) details.innerHTML = '';
@@ -6208,6 +6207,23 @@ button.portal-route-waypoint-name,
           pr.clearSelectedMapPoint();
           pr.injectPortalDetailsAction();
           pr.renderMiniControl();
+        });
+
+        window.addHook('portalSelected', function(data) {
+          data = data || {};
+          if (data.selectedPortalGuid === data.unselectedPortalGuid) return;
+
+          if (data.selectedPortalGuid) {
+            window.selectedPortal = data.selectedPortalGuid;
+            pr.clearSelectedMapPoint();
+          } else {
+            window.selectedPortal = null;
+          }
+
+          pr.redrawLabels();
+          pr.renderPanel();
+          pr.renderMiniControl();
+          if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
         });
         pr.portalHookRegistered = true;
       }

@@ -28,6 +28,8 @@ Current version: `1.3.0`, after the `1.2.0` work.
 - Route row buttons use mobile-friendly symbols on narrow screens.
 - Successful Route/Replot refreshes the route list, points list, mini control, and info panel controls so stale markers clear everywhere.
 - Phase 1 UI refactor extracted shared Portal Route helpers for smart buttons, mini-control buttons, and context-menu item rendering while preserving behavior/layout.
+- Portal Route now listens for IITC portal unselect events and clears its cached portal selection so Add can enter manual placement mode after unselecting a portal.
+- Undo is available from the shared Menu.
 
 ## Project rules
 

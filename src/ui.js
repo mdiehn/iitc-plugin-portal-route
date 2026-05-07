@@ -764,6 +764,23 @@
           pr.injectPortalDetailsAction();
           pr.renderMiniControl();
         });
+
+        window.addHook('portalSelected', function(data) {
+          data = data || {};
+          if (data.selectedPortalGuid === data.unselectedPortalGuid) return;
+
+          if (data.selectedPortalGuid) {
+            window.selectedPortal = data.selectedPortalGuid;
+            pr.clearSelectedMapPoint();
+          } else {
+            window.selectedPortal = null;
+          }
+
+          pr.redrawLabels();
+          pr.renderPanel();
+          pr.renderMiniControl();
+          if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
+        });
         pr.portalHookRegistered = true;
       }
 

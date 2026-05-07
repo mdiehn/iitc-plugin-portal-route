@@ -10,6 +10,7 @@ Current release: `1.3.0`
 
 - Added clearer manual-point placement feedback, including a small panel/info-panel hint while Add placement mode is armed.
 - Added a stronger stale-route cue with a highlighted Replot button, stale compact stats, and a Menu Route/Replot fallback.
+- Added Undo to the shared Menu.
 
 ### Changed
 
@@ -19,6 +20,10 @@ Current release: `1.3.0`
 - Opening Menu, Maps, Route, Library, or Settings cancels manual point placement.
 - Route row buttons use compact symbols on mobile while keeping full Up/Dn/Del labels on wider screens.
 - The shared Menu now has a direct Route/Replot action, with the route list split out as Route List.
+
+### Fixed
+
+- Clear Portal Route's cached selected portal when IITC unselects a portal, so Add can enter manual point placement mode again.
 
 ## 1.2.0 - Released 2026-05-06
 

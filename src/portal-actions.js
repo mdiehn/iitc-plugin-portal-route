@@ -34,9 +34,7 @@
       }
     }
 
-    if (!cleared) {
-      window.selectedPortal = null;
-    }
+    window.selectedPortal = null;
 
     var details = document.getElementById('portaldetails');
     if (details) details.innerHTML = '';
