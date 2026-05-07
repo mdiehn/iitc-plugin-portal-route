@@ -27,6 +27,7 @@ Current version: `1.3.0`, after the `1.2.0` work.
 - Stale routes now show a clearer Replot cue, stale compact stats, and a Menu Route/Replot fallback.
 - Route row buttons use mobile-friendly symbols on narrow screens.
 - Successful Route/Replot refreshes the route list, points list, mini control, and info panel controls so stale markers clear everywhere.
+- Phase 1 UI refactor extracted shared Portal Route helpers for smart buttons, mini-control buttons, and context-menu item rendering while preserving behavior/layout.
 
 ## Project rules
 

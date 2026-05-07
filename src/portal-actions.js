@@ -143,53 +143,25 @@
     var links = document.createElement('div');
     links.className = 'portal-route-portal-action-links';
 
-    function addActionLink(label, action, className, attrs) {
-      var link = document.createElement('a');
-      link.href = '#';
-      link.textContent = label;
-      link.setAttribute('data-action', action);
-      if (className) link.className = className;
-      if (attrs) {
-        Object.keys(attrs).forEach(function(name) {
-          link.setAttribute(name, attrs[name]);
-        });
-      }
-      links.appendChild(link);
-      return link;
+    function addActionLink(label, action, options) {
+      options = options || {};
+      options.label = label;
+      options.action = action;
+      return pr.appendRouteLink(links, options);
     }
 
-    function addActionButton(label, action, title, disabled) {
-      var button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = label;
-      button.setAttribute('aria-label', title);
-      button.setAttribute('data-action', action);
-      if (disabled) button.disabled = true;
-      button.className = label === 'Del' ? 'portal-route-smart-button portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
-      if (label !== 'Del' && action === 'smart-add' && pr.state.addPointMode) {
-        button.className += ' portal-route-add-point-active';
-      }
-      links.appendChild(button);
-      return button;
+    function addActionButton(options) {
+      return pr.appendRouteButton(links, options);
     }
 
     if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) {
-      addActionButton(
-        isInRoute ? 'Del' : 'Add',
-        isInRoute ? 'toggle-selected-stop' : 'smart-add',
-        isInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or create a waypoint'
-      );
+      addActionButton(pr.selectedAddDeleteButtonOptions());
     }
 
-    addActionButton(
-      'Undo',
-      'undo-route-edit',
-      'Undo last route edit',
-      !(pr.canUndoRouteEdit && pr.canUndoRouteEdit())
-    );
+    addActionButton(pr.undoRouteEditButtonOptions());
 
     addActionLink('Fit', 'fit-route');
-    addActionLink('Menu', 'open-main-menu', 'portal-route-smart-button', { 'data-main-menu': 'true' });
+    addActionLink('Menu', 'open-main-menu', { smart: true, attrs: { 'data-main-menu': 'true' } });
 
     wrapper.appendChild(links);
 

@@ -1543,6 +1543,271 @@ button.portal-route-waypoint-name,
     return km.toFixed(1) + ' km';
   };
 
+  pr.escapeHtml = pr.escapeHtml || function(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
+  pr.routeAttrHtml = function(attrs) {
+    if (!attrs) return '';
+
+    var html = '';
+    Object.keys(attrs).forEach(function(name) {
+      var value = attrs[name];
+      if (value === false || value === null || value === undefined) return;
+      if (value === true) {
+        html += ' ' + name;
+      } else {
+        html += ' ' + name + '="' + pr.escapeHtml(value) + '"';
+      }
+    });
+    return html;
+  };
+
+  pr.routeButtonClassName = function(options) {
+    options = options || {};
+
+    var classes = [];
+    if (options.smart) classes.push('portal-route-smart-button');
+    if (options.addDelete) classes.push('portal-route-add-delete-button');
+    if (options.remove) classes.push('portal-route-remove-action');
+    if (options.active) classes.push('portal-route-add-point-active');
+    if (options.extraClass) classes.push(options.extraClass);
+
+    return classes.join(' ');
+  };
+
+  pr.routeButtonHtml = function(options) {
+    options = options || {};
+
+    var attrs = options.attrs || {};
+    attrs.type = attrs.type || 'button';
+    if (options.action) attrs['data-action'] = options.action;
+    if (options.index !== undefined && options.index !== null) attrs['data-index'] = options.index;
+    if (options.ariaLabel) attrs['aria-label'] = options.ariaLabel;
+    if (options.disabled) attrs.disabled = true;
+
+    var className = pr.routeButtonClassName(options);
+    if (className) attrs.class = className;
+
+    return '<button' + pr.routeAttrHtml(attrs) + '>' + pr.escapeHtml(options.label || '') + '</button>';
+  };
+
+  pr.createRouteButtonElement = function(options) {
+    options = options || {};
+
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = options.label || '';
+    if (options.action) button.setAttribute('data-action', options.action);
+    if (options.index !== undefined && options.index !== null) button.setAttribute('data-index', options.index);
+    if (options.ariaLabel) button.setAttribute('aria-label', options.ariaLabel);
+    if (options.disabled) button.disabled = true;
+
+    var className = pr.routeButtonClassName(options);
+    if (className) button.className = className;
+
+    if (options.attrs) {
+      Object.keys(options.attrs).forEach(function(name) {
+        var value = options.attrs[name];
+        if (value === false || value === null || value === undefined) return;
+        button.setAttribute(name, value === true ? '' : value);
+      });
+    }
+
+    return button;
+  };
+
+  pr.createRouteActionLink = function(options) {
+    options = options || {};
+
+    var link = document.createElement('a');
+    link.href = '#';
+    link.textContent = options.label || '';
+    if (options.action) link.setAttribute('data-action', options.action);
+    if (options.ariaLabel) link.setAttribute('aria-label', options.ariaLabel);
+
+    var className = pr.routeButtonClassName(options);
+    if (className) link.className = className;
+
+    if (options.attrs) {
+      Object.keys(options.attrs).forEach(function(name) {
+        var value = options.attrs[name];
+        if (value === false || value === null || value === undefined) return;
+        link.setAttribute(name, value === true ? '' : value);
+      });
+    }
+
+    return link;
+  };
+
+  pr.appendRouteButton = function(parent, options) {
+    var button = pr.createRouteButtonElement(options);
+    parent.appendChild(button);
+    return button;
+  };
+
+  pr.appendRouteLink = function(parent, options) {
+    var link = pr.createRouteActionLink(options);
+    parent.appendChild(link);
+    return link;
+  };
+
+  pr.selectedAddDeleteButtonOptions = function(labelMode) {
+    var selectedInRoute = pr.selectedStopIndex && pr.selectedStopIndex() >= 0;
+    var label = selectedInRoute ? 'Del' : 'Add';
+
+    return {
+      label: labelMode === 'symbol' ? (selectedInRoute ? '-' : '+') : label,
+      action: selectedInRoute ? 'toggle-selected-stop' : 'smart-add',
+      ariaLabel: selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or create a waypoint',
+      smart: true,
+      addDelete: selectedInRoute,
+      remove: selectedInRoute,
+      active: !selectedInRoute && !!(pr.state && pr.state.addPointMode)
+    };
+  };
+
+  pr.selectedAddDeleteButton = function(labelMode) {
+    return pr.routeButtonHtml(pr.selectedAddDeleteButtonOptions(labelMode));
+  };
+
+  pr.undoRouteEditButtonOptions = function() {
+    return {
+      label: 'Undo',
+      action: 'undo-route-edit',
+      ariaLabel: 'Undo last route edit',
+      smart: true,
+      disabled: !(pr.canUndoRouteEdit && pr.canUndoRouteEdit())
+    };
+  };
+
+  pr.undoRouteEditButton = function() {
+    return pr.routeButtonHtml(pr.undoRouteEditButtonOptions());
+  };
+
+  pr.mainMenuButton = function(label, extraClass) {
+    return pr.routeButtonHtml({
+      label: label || 'Menu',
+      action: 'open-main-menu',
+      smart: true,
+      extraClass: extraClass,
+      attrs: { 'data-main-menu': 'true' }
+    });
+  };
+
+  pr.createMiniControlButton = function(options) {
+    options = options || {};
+
+    var className = options.className ? ' class="' + pr.escapeHtml(options.className) + '"' : '';
+    var attrs = {
+      href: '#',
+      'aria-label': options.ariaLabel || options.label || '',
+      'data-action': options.action || ''
+    };
+    if (options.mainMenu) attrs['data-main-menu'] = 'true';
+    if (options.mapsMenu) attrs['data-maps-menu'] = 'true';
+
+    return '<a' + className + pr.routeAttrHtml(attrs) + '>' + pr.escapeHtml(options.label || '') + '</a>';
+  };
+
+  pr.renderMiniControlButtons = function() {
+    var selectedInRoute = pr.selectedStopIndex && pr.selectedStopIndex() >= 0;
+    var addPointActive = !!(pr.state && pr.state.addPointMode);
+    var addRemoveClass = selectedInRoute ? 'portal-route-mini-add portal-route-mini-remove' : 'portal-route-mini-add';
+    if (addPointActive && !selectedInRoute) addRemoveClass += ' portal-route-mini-add-active';
+    var loopClass = pr.state.settings.includeReturnToStart ? 'portal-route-mini-loop portal-route-mini-active' : 'portal-route-mini-loop';
+
+    return '' +
+      pr.createMiniControlButton({ label: 'M', action: 'open-maps-menu', ariaLabel: 'Open map export choices', className: 'portal-route-mini-maps', mapsMenu: true }) +
+      pr.createMiniControlButton({ label: 'L', action: 'toggle-loop-back', ariaLabel: pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start', className: loopClass }) +
+      pr.createMiniControlButton({ label: selectedInRoute ? '-' : '+', action: selectedInRoute ? 'toggle-selected-stop' : 'smart-add', ariaLabel: selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or place a map point', className: addRemoveClass }) +
+      pr.createMiniControlButton({ label: String(pr.state.stops.length), action: 'open-points-list', ariaLabel: 'Open points list' }) +
+      pr.createMiniControlButton({ label: '=', action: 'open-main-menu', ariaLabel: 'Open Portal Route menu', mainMenu: true });
+  };
+
+  pr.routeContextMenuButtonHtml = function(item) {
+    if (!item) return '';
+    if (item.divider) return '<div class="portal-route-context-divider"></div>';
+
+    return pr.routeButtonHtml({
+      label: item.label,
+      action: item.action,
+      index: item.index,
+      disabled: item.disabled,
+      extraClass: item.className,
+      attrs: item.attrs
+    });
+  };
+
+  pr.routeContextMenuHtml = function(items) {
+    var html = '';
+    (items || []).forEach(function(item) {
+      html += pr.routeContextMenuButtonHtml(item);
+    });
+    return html;
+  };
+
+  pr.mainMenuItems = function() {
+    var hasStops = pr.state.stops.length > 0;
+    var hasRoute = pr.getRouteStops && pr.getRouteStops().length >= 2;
+    var routeActionLabel = pr.state.routeDirty ? 'Replot' : (pr.state.route ? 'Replot' : 'Route');
+
+    return [
+      { label: 'Add me', action: 'add-current-location' },
+      { label: pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop', action: 'toggle-loop-back' },
+      { label: 'Clear Route', action: 'clear-route', disabled: !hasStops },
+      { label: 'Save', action: 'save-route', disabled: !hasStops },
+      { divider: true },
+      { label: 'Google Maps', action: 'open-google-maps', disabled: !hasRoute },
+      { label: 'Apple Maps', action: 'open-apple-maps', disabled: !hasRoute },
+      { divider: true },
+      { label: routeActionLabel, action: 'calculate-route', disabled: !hasRoute, className: pr.state.routeDirty ? 'portal-route-context-stale' : '' },
+      { label: 'Route List', action: 'open-points-list', disabled: !hasStops },
+      { label: 'Library', action: 'load-route' },
+      { label: 'Settings', action: 'open-main' }
+    ];
+  };
+
+  pr.mapsMenuItems = function() {
+    var hasRoute = pr.getRouteStops && pr.getRouteStops().length >= 2;
+
+    return [
+      { label: 'Google Maps', action: 'open-google-maps', disabled: !hasRoute },
+      { label: 'Apple Maps', action: 'open-apple-maps', disabled: !hasRoute }
+    ];
+  };
+
+  pr.stopMenuItems = function(index) {
+    var stop = pr.getRouteStop(index);
+    if (!stop || stop.generatedLoop) return null;
+    var isManagedStart = pr.isManagedStartStop(stop);
+
+    return [
+      { label: 'Delete', action: 'remove-stop', index: index, disabled: isManagedStart },
+      { label: 'Rename', action: 'rename-stop', index: index, disabled: isManagedStart },
+      { divider: true },
+      { label: 'Set as start', action: 'set-stop-start', index: index, disabled: isManagedStart },
+      { label: 'Set as end', action: 'set-stop-end', index: index, disabled: isManagedStart }
+    ];
+  };
+
+  pr.openRouteContextMenu = function(items, className, x, y) {
+    pr.closeAddMenu();
+
+    if (!items) return;
+    var menu = document.createElement('div');
+    menu.className = 'portal-route-context-menu' + (className ? ' ' + className : '');
+    menu.innerHTML = pr.routeContextMenuHtml(items);
+
+    document.body.appendChild(menu);
+    pr.positionContextMenu(menu, x, y);
+  };
+
   pr.portalToStop = function(guid) {
     var portal = guid && window.portals && window.portals[guid];
     if (!portal || !portal.getLatLng) return null;
@@ -1688,53 +1953,25 @@ button.portal-route-waypoint-name,
     var links = document.createElement('div');
     links.className = 'portal-route-portal-action-links';
 
-    function addActionLink(label, action, className, attrs) {
-      var link = document.createElement('a');
-      link.href = '#';
-      link.textContent = label;
-      link.setAttribute('data-action', action);
-      if (className) link.className = className;
-      if (attrs) {
-        Object.keys(attrs).forEach(function(name) {
-          link.setAttribute(name, attrs[name]);
-        });
-      }
-      links.appendChild(link);
-      return link;
+    function addActionLink(label, action, options) {
+      options = options || {};
+      options.label = label;
+      options.action = action;
+      return pr.appendRouteLink(links, options);
     }
 
-    function addActionButton(label, action, title, disabled) {
-      var button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = label;
-      button.setAttribute('aria-label', title);
-      button.setAttribute('data-action', action);
-      if (disabled) button.disabled = true;
-      button.className = label === 'Del' ? 'portal-route-smart-button portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
-      if (label !== 'Del' && action === 'smart-add' && pr.state.addPointMode) {
-        button.className += ' portal-route-add-point-active';
-      }
-      links.appendChild(button);
-      return button;
+    function addActionButton(options) {
+      return pr.appendRouteButton(links, options);
     }
 
     if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) {
-      addActionButton(
-        isInRoute ? 'Del' : 'Add',
-        isInRoute ? 'toggle-selected-stop' : 'smart-add',
-        isInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or create a waypoint'
-      );
+      addActionButton(pr.selectedAddDeleteButtonOptions());
     }
 
-    addActionButton(
-      'Undo',
-      'undo-route-edit',
-      'Undo last route edit',
-      !(pr.canUndoRouteEdit && pr.canUndoRouteEdit())
-    );
+    addActionButton(pr.undoRouteEditButtonOptions());
 
     addActionLink('Fit', 'fit-route');
-    addActionLink('Menu', 'open-main-menu', 'portal-route-smart-button', { 'data-main-menu': 'true' });
+    addActionLink('Menu', 'open-main-menu', { smart: true, attrs: { 'data-main-menu': 'true' } });
 
     wrapper.appendChild(links);
 
@@ -3288,28 +3525,6 @@ button.portal-route-waypoint-name,
     return html;
   };
 
-  pr.selectedAddDeleteButton = function(labelMode) {
-    var selectedInRoute = pr.selectedStopIndex && pr.selectedStopIndex() >= 0;
-    var label = selectedInRoute ? 'Del' : 'Add';
-    var text = labelMode === 'symbol' ? (selectedInRoute ? '-' : '+') : label;
-    var title = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or create a waypoint';
-    var action = selectedInRoute ? 'toggle-selected-stop' : 'smart-add';
-    var className = selectedInRoute ? 'portal-route-smart-button portal-route-add-delete-button portal-route-remove-action' : 'portal-route-smart-button';
-    if (!selectedInRoute && pr.state.addPointMode) className += ' portal-route-add-point-active';
-
-    return '<button type="button" data-action="' + action + '" aria-label="' + title + '" class="' + className + '">' + text + '</button>';
-  };
-
-  pr.undoRouteEditButton = function() {
-    var disabled = pr.canUndoRouteEdit && pr.canUndoRouteEdit() ? '' : ' disabled';
-    return '<button type="button" data-action="undo-route-edit" aria-label="Undo last route edit" class="portal-route-smart-button"' + disabled + '>Undo</button>';
-  };
-
-  pr.mainMenuButton = function(label, extraClass) {
-    label = label || 'Menu';
-    var className = 'portal-route-smart-button' + (extraClass ? ' ' + extraClass : '');
-    return '<button type="button" class="' + className + '" data-action="open-main-menu" data-main-menu="true">' + pr.escapeHtml(label) + '</button>';
-  };
 
   pr.renderMainPanel = function(legsByToIndex) {
     var html = '';
@@ -5533,22 +5748,7 @@ button.portal-route-waypoint-name,
 
     pr.setMiniControlVisible(true);
 
-    var selectedInRoute = pr.selectedStopIndex() >= 0;
-    var addPointActive = !!pr.state.addPointMode;
-    var addRemoveClass = selectedInRoute ? ' portal-route-mini-remove' : '';
-    if (addPointActive && !selectedInRoute) addRemoveClass += ' portal-route-mini-add-active';
-    var addRemoveText = selectedInRoute ? '-' : '+';
-    var addRemoveLabel = selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or place a map point';
-    var addRemoveAction = selectedInRoute ? 'toggle-selected-stop' : 'smart-add';
-    var loopClass = pr.state.settings.includeReturnToStart ? ' portal-route-mini-active' : '';
-    var loopLabel = pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start';
-
-    container.innerHTML = '' +
-      '<a href="#" class="portal-route-mini-maps" aria-label="Open map export choices" data-action="open-maps-menu" data-maps-menu="true">M</a>' +
-      '<a href="#" class="portal-route-mini-loop' + loopClass + '" aria-label="' + loopLabel + '" data-action="toggle-loop-back">L</a>' +
-      '<a href="#" class="portal-route-mini-add' + addRemoveClass + '" aria-label="' + addRemoveLabel + '" data-action="' + addRemoveAction + '">' + addRemoveText + '</a>' +
-      '<a href="#" aria-label="Open points list" data-action="open-points-list">' + pr.state.stops.length + '</a>' +
-      '<a href="#" aria-label="Open Portal Route menu" data-action="open-main-menu" data-main-menu="true">=</a>';
+    container.innerHTML = pr.renderMiniControlButtons();
   };
 
   pr.panelForEvent = function(ev) {
@@ -5593,44 +5793,11 @@ button.portal-route-waypoint-name,
   };
 
   pr.openMainMenu = function(x, y) {
-    pr.closeAddMenu();
-
-    var hasStops = pr.state.stops.length > 0;
-    var hasRoute = pr.getRouteStops && pr.getRouteStops().length >= 2;
-    var routeActionLabel = pr.state.routeDirty ? 'Replot' : (pr.state.route ? 'Replot' : 'Route');
-    var routeActionClass = pr.state.routeDirty ? ' class="portal-route-context-stale"' : '';
-    var menu = document.createElement('div');
-    menu.className = 'portal-route-context-menu portal-route-main-menu';
-    menu.innerHTML = '' +
-      '<button type="button" data-action="add-current-location">Add me</button>' +
-      '<button type="button" data-action="toggle-loop-back">' + (pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop') + '</button>' +
-      '<button type="button" data-action="clear-route"' + (hasStops ? '' : ' disabled') + '>Clear Route</button>' +
-      '<button type="button" data-action="save-route"' + (hasStops ? '' : ' disabled') + '>Save</button>' +
-      '<div class="portal-route-context-divider"></div>' +
-      '<button type="button" data-action="open-google-maps"' + (hasRoute ? '' : ' disabled') + '>Google Maps</button>' +
-      '<button type="button" data-action="open-apple-maps"' + (hasRoute ? '' : ' disabled') + '>Apple Maps</button>' +
-      '<div class="portal-route-context-divider"></div>' +
-      '<button type="button" data-action="calculate-route"' + routeActionClass + (hasRoute ? '' : ' disabled') + '>' + routeActionLabel + '</button>' +
-      '<button type="button" data-action="open-points-list"' + (hasStops ? '' : ' disabled') + '>Route List</button>' +
-      '<button type="button" data-action="load-route">Library</button>' +
-      '<button type="button" data-action="open-main">Settings</button>';
-
-    document.body.appendChild(menu);
-    pr.positionContextMenu(menu, x, y);
+    pr.openRouteContextMenu(pr.mainMenuItems(), 'portal-route-main-menu', x, y);
   };
 
   pr.openMapsMenu = function(x, y) {
-    pr.closeAddMenu();
-
-    var hasRoute = pr.getRouteStops && pr.getRouteStops().length >= 2;
-    var menu = document.createElement('div');
-    menu.className = 'portal-route-context-menu portal-route-maps-menu';
-    menu.innerHTML = '' +
-      '<button type="button" data-action="open-google-maps"' + (hasRoute ? '' : ' disabled') + '>Google Maps</button>' +
-      '<button type="button" data-action="open-apple-maps"' + (hasRoute ? '' : ' disabled') + '>Apple Maps</button>';
-
-    document.body.appendChild(menu);
-    pr.positionContextMenu(menu, x, y);
+    pr.openRouteContextMenu(pr.mapsMenuItems(), 'portal-route-maps-menu', x, y);
   };
 
   pr.openAddMenu = pr.openMainMenu;
@@ -5645,23 +5812,7 @@ button.portal-route-waypoint-name,
   };
 
   pr.openStopMenu = function(index, x, y) {
-    pr.closeAddMenu();
-
-    var stop = pr.getRouteStop(index);
-    if (!stop || stop.generatedLoop) return;
-    var isManagedStart = pr.isManagedStartStop(stop);
-
-    var menu = document.createElement('div');
-    menu.className = 'portal-route-context-menu';
-    menu.innerHTML = '' +
-      '<button type="button" data-action="remove-stop" data-index="' + index + '"' + (isManagedStart ? ' disabled' : '') + '>Delete</button>' +
-      '<button type="button" data-action="rename-stop" data-index="' + index + '"' + (isManagedStart ? ' disabled' : '') + '>Rename</button>' +
-      '<div class="portal-route-context-divider"></div>' +
-      '<button type="button" data-action="set-stop-start" data-index="' + index + '"' + (isManagedStart ? ' disabled' : '') + '>Set as start</button>' +
-      '<button type="button" data-action="set-stop-end" data-index="' + index + '"' + (isManagedStart ? ' disabled' : '') + '>Set as end</button>';
-
-    document.body.appendChild(menu);
-    pr.positionContextMenu(menu, x, y);
+    pr.openRouteContextMenu(pr.stopMenuItems(index), '', x, y);
   };
 
   pr.handleStopMenuContext = function(ev) {

@@ -13,6 +13,7 @@ Current release: `1.3.0`
 
 ### Changed
 
+- Started the button/menu helper refactor by extracting shared Portal Route helpers for smart buttons, mini-control buttons, and context menus without intended behavior changes.
 - Add now toggles manual point placement when nothing is selected, so pressing Add again cancels placement mode.
 - Escape now cancels manual point placement on desktop.
 - Opening Menu, Maps, Route, Library, or Settings cancels manual point placement.
