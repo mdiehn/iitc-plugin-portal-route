@@ -34,9 +34,7 @@
       }
     }
 
-    if (!cleared) {
-      window.selectedPortal = null;
-    }
+    window.selectedPortal = null;
 
     var details = document.getElementById('portaldetails');
     if (details) details.innerHTML = '';
@@ -143,30 +141,33 @@
     var links = document.createElement('div');
     links.className = 'portal-route-portal-action-links';
 
-    function addActionLink(label, action) {
-      var link = document.createElement('a');
-      link.href = '#';
-      link.textContent = label;
-      link.setAttribute('data-action', action);
-      if (label === 'Actions') {
-        link.className = 'portal-route-smart-button';
-        link.setAttribute('data-add-menu', 'true');
-      } else if (label === 'Maps') {
-        link.className = 'portal-route-smart-button';
-        link.setAttribute('data-maps-menu', 'true');
-      }
-      links.appendChild(link);
-      return link;
+    function addActionLink(label, action, options) {
+      options = options || {};
+      options.label = label;
+      options.action = action;
+      return pr.appendRouteLink(links, options);
     }
 
-    if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) addActionLink('Actions', 'open-add-menu');
+    function addActionButton(options) {
+      return pr.appendRouteButton(links, options);
+    }
+
+    if (isInRoute || window.selectedPortal || !hasSelectedMapPoint) {
+      addActionButton(pr.selectedAddDeleteButtonOptions());
+    }
+
+    addActionButton(pr.undoRouteEditButtonOptions());
 
     addActionLink('Fit', 'fit-route');
-    addActionLink('Maps', 'open-maps-menu');
-
-    var menuLink = addActionLink('Menus', 'open-route-menu');
-    menuLink.className = 'portal-route-smart-button';
-    menuLink.setAttribute('data-route-menu', 'true');
+    addActionLink('Menu', 'open-main-menu', pr.mainMenuLinkOptions());
 
     wrapper.appendChild(links);
+
+    if (pr.renderAddPointModeHint) {
+      wrapper.insertAdjacentHTML('beforeend', pr.renderAddPointModeHint());
+    }
+
+    if (pr.renderCompactRouteStats) {
+      wrapper.insertAdjacentHTML('beforeend', pr.renderCompactRouteStats(pr.state.route));
+    }
   };

@@ -59,10 +59,11 @@ Done:
 
 ### Phase 3: mobile-first UI simplification
 
-Mostly done in `1.1.0-dev`:
+Mostly done in `1.2.0`:
 
-- Actions as the smart route-building control
-- shared Actions context menu
+- Add/Del for direct selected-point changes, with Menu as the wider route-building/export/navigation menu
+- Undo for recent route edits
+- shared Menu context menu
 - compact mini control
 - route list as the day-to-day work panel
 - settings panel as a small settings/navigation panel
@@ -71,7 +72,7 @@ Mostly done in `1.1.0-dev`:
 
 ### Phase 4: local route library
 
-Mostly done in `1.1.0-dev`:
+Mostly done in `1.2.0`:
 
 - schema version 1 saved route records
 - local saved-route library

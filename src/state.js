@@ -39,7 +39,10 @@
     activeRouteId: null,
     routeLibraryBackendId: 'local',
     selectedLibraryRouteIds: [],
-    miniControl: null
+    miniControl: null,
+    undoStack: [],
+    redoStack: [],
+    restoringRouteEdit: false
   };
 
   pr.getEffectiveStopMinutes = function(stop) {

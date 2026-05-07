@@ -90,5 +90,8 @@
 
       pr.drawRoutePath(path);
       pr.renderPanel();
+      pr.renderMiniControl();
+      if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
+      if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
     });
   };
