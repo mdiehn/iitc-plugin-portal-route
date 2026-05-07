@@ -14,6 +14,7 @@ Current release: `1.3.0`
 
 ### Changed
 
+- Continued the button/menu helper refactor by normalizing Route/Replot, map export menu items, mini-control button options, and shared control class names through the helper layer.
 - Started the button/menu helper refactor by extracting shared Portal Route helpers for smart buttons, mini-control buttons, and context menus without intended behavior changes.
 - Add now toggles manual point placement when nothing is selected, so pressing Add again cancels placement mode.
 - Escape now cancels manual point placement on desktop.

@@ -30,6 +30,7 @@ Current version: `1.3.0`, after the `1.2.0` work.
 - Phase 1 UI refactor extracted shared Portal Route helpers for smart buttons, mini-control buttons, and context-menu item rendering while preserving behavior/layout.
 - Portal Route now listens for IITC portal unselect events and clears its cached portal selection so Add can enter manual placement mode after unselecting a portal.
 - Undo is available from the shared Menu.
+- Phase 2 UI refactor normalized control class names, Route/Replot button/menu options, mini-control button options, and map export menu items through the shared helper layer.
 
 ## Project rules
 

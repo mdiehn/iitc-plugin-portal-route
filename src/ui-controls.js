@@ -23,14 +23,24 @@
     return html;
   };
 
+  pr.ROUTE_CONTROL_CLASSES = pr.ROUTE_CONTROL_CLASSES || {
+    smartButton: 'portal-route-smart-button',
+    addDeleteButton: 'portal-route-add-delete-button',
+    removeAction: 'portal-route-remove-action',
+    addPointActive: 'portal-route-add-point-active',
+    replotButton: 'portal-route-replot-button',
+    replotNeeded: 'portal-route-replot-needed',
+    contextStale: 'portal-route-context-stale'
+  };
+
   pr.routeButtonClassName = function(options) {
     options = options || {};
 
     var classes = [];
-    if (options.smart) classes.push('portal-route-smart-button');
-    if (options.addDelete) classes.push('portal-route-add-delete-button');
-    if (options.remove) classes.push('portal-route-remove-action');
-    if (options.active) classes.push('portal-route-add-point-active');
+    if (options.smart) classes.push(pr.ROUTE_CONTROL_CLASSES.smartButton);
+    if (options.addDelete) classes.push(pr.ROUTE_CONTROL_CLASSES.addDeleteButton);
+    if (options.remove) classes.push(pr.ROUTE_CONTROL_CLASSES.removeAction);
+    if (options.active) classes.push(pr.ROUTE_CONTROL_CLASSES.addPointActive);
     if (options.extraClass) classes.push(options.extraClass);
 
     return classes.join(' ');
@@ -145,14 +155,67 @@
     return pr.routeButtonHtml(pr.undoRouteEditButtonOptions());
   };
 
-  pr.mainMenuButton = function(label, extraClass) {
-    return pr.routeButtonHtml({
+  pr.mainMenuButtonOptions = function(label, extraClass) {
+    return {
       label: label || 'Menu',
       action: 'open-main-menu',
       smart: true,
       extraClass: extraClass,
       attrs: { 'data-main-menu': 'true' }
-    });
+    };
+  };
+
+  pr.mainMenuButton = function(label, extraClass) {
+    return pr.routeButtonHtml(pr.mainMenuButtonOptions(label, extraClass));
+  };
+
+  pr.mainMenuLinkOptions = function(label, extraClass) {
+    return pr.mainMenuButtonOptions(label || 'Menu', extraClass);
+  };
+
+  pr.routeReplotLabel = function() {
+    return pr.state.routeDirty || pr.state.route ? 'Replot' : 'Route';
+  };
+
+  pr.canCalculateRoute = function() {
+    return !!(pr.getRouteStops && pr.getRouteStops().length >= 2);
+  };
+
+  pr.routeReplotButtonOptions = function(options) {
+    options = options || {};
+    var classes = pr.ROUTE_CONTROL_CLASSES.replotButton;
+    if (pr.state.routeDirty) classes += ' ' + pr.ROUTE_CONTROL_CLASSES.replotNeeded;
+
+    return {
+      label: pr.routeReplotLabel(),
+      action: 'calculate-route',
+      disabled: !!options.disableWhenUnavailable && !pr.canCalculateRoute(),
+      extraClass: classes
+    };
+  };
+
+  pr.routeReplotMenuItem = function() {
+    return {
+      label: pr.routeReplotLabel(),
+      action: 'calculate-route',
+      disabled: !pr.canCalculateRoute(),
+      className: pr.state.routeDirty ? pr.ROUTE_CONTROL_CLASSES.contextStale : ''
+    };
+  };
+
+  pr.reverseRouteButtonOptions = function() {
+    return {
+      label: 'Reverse route',
+      action: 'reverse-route',
+      disabled: pr.state.stops.length <= 1
+    };
+  };
+
+  pr.fitRouteButtonOptions = function() {
+    return {
+      label: 'Fit',
+      action: 'fit-route'
+    };
   };
 
   pr.createMiniControlButton = function(options) {
@@ -170,19 +233,26 @@
     return '<a' + className + pr.routeAttrHtml(attrs) + '>' + pr.escapeHtml(options.label || '') + '</a>';
   };
 
-  pr.renderMiniControlButtons = function() {
+  pr.miniControlButtonOptions = function() {
     var selectedInRoute = pr.selectedStopIndex && pr.selectedStopIndex() >= 0;
     var addPointActive = !!(pr.state && pr.state.addPointMode);
     var addRemoveClass = selectedInRoute ? 'portal-route-mini-add portal-route-mini-remove' : 'portal-route-mini-add';
     if (addPointActive && !selectedInRoute) addRemoveClass += ' portal-route-mini-add-active';
     var loopClass = pr.state.settings.includeReturnToStart ? 'portal-route-mini-loop portal-route-mini-active' : 'portal-route-mini-loop';
 
-    return '' +
-      pr.createMiniControlButton({ label: 'M', action: 'open-maps-menu', ariaLabel: 'Open map export choices', className: 'portal-route-mini-maps', mapsMenu: true }) +
-      pr.createMiniControlButton({ label: 'L', action: 'toggle-loop-back', ariaLabel: pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start', className: loopClass }) +
-      pr.createMiniControlButton({ label: selectedInRoute ? '-' : '+', action: selectedInRoute ? 'toggle-selected-stop' : 'smart-add', ariaLabel: selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or place a map point', className: addRemoveClass }) +
-      pr.createMiniControlButton({ label: String(pr.state.stops.length), action: 'open-points-list', ariaLabel: 'Open points list' }) +
-      pr.createMiniControlButton({ label: '=', action: 'open-main-menu', ariaLabel: 'Open Portal Route menu', mainMenu: true });
+    return [
+      { label: 'M', action: 'open-maps-menu', ariaLabel: 'Open map export choices', className: 'portal-route-mini-maps', mapsMenu: true },
+      { label: 'L', action: 'toggle-loop-back', ariaLabel: pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start', className: loopClass },
+      { label: selectedInRoute ? '-' : '+', action: selectedInRoute ? 'toggle-selected-stop' : 'smart-add', ariaLabel: selectedInRoute ? 'Remove selected waypoint from route' : 'Add selected portal or place a map point', className: addRemoveClass },
+      { label: String(pr.state.stops.length), action: 'open-points-list', ariaLabel: 'Open points list' },
+      { label: '=', action: 'open-main-menu', ariaLabel: 'Open Portal Route menu', mainMenu: true }
+    ];
+  };
+
+  pr.renderMiniControlButtons = function() {
+    return pr.miniControlButtonOptions().map(function(options) {
+      return pr.createMiniControlButton(options);
+    }).join('');
   };
 
   pr.routeContextMenuButtonHtml = function(item) {
@@ -207,10 +277,17 @@
     return html;
   };
 
+  pr.mapExportMenuItems = function() {
+    var hasRoute = pr.canCalculateRoute();
+
+    return [
+      { label: 'Google Maps', action: 'open-google-maps', disabled: !hasRoute },
+      { label: 'Apple Maps', action: 'open-apple-maps', disabled: !hasRoute }
+    ];
+  };
+
   pr.mainMenuItems = function() {
     var hasStops = pr.state.stops.length > 0;
-    var hasRoute = pr.getRouteStops && pr.getRouteStops().length >= 2;
-    var routeActionLabel = pr.state.routeDirty ? 'Replot' : (pr.state.route ? 'Replot' : 'Route');
 
     return [
       { label: 'Add me', action: 'add-current-location' },
@@ -218,24 +295,18 @@
       { label: 'Clear Route', action: 'clear-route', disabled: !hasStops },
       { label: 'Save', action: 'save-route', disabled: !hasStops },
       { label: 'Undo', action: 'undo-route-edit', disabled: !(pr.canUndoRouteEdit && pr.canUndoRouteEdit()) },
+      { divider: true }
+    ].concat(pr.mapExportMenuItems(), [
       { divider: true },
-      { label: 'Google Maps', action: 'open-google-maps', disabled: !hasRoute },
-      { label: 'Apple Maps', action: 'open-apple-maps', disabled: !hasRoute },
-      { divider: true },
-      { label: routeActionLabel, action: 'calculate-route', disabled: !hasRoute, className: pr.state.routeDirty ? 'portal-route-context-stale' : '' },
+      pr.routeReplotMenuItem(),
       { label: 'Route List', action: 'open-points-list', disabled: !hasStops },
       { label: 'Library', action: 'load-route' },
       { label: 'Settings', action: 'open-main' }
-    ];
+    ]);
   };
 
   pr.mapsMenuItems = function() {
-    var hasRoute = pr.getRouteStops && pr.getRouteStops().length >= 2;
-
-    return [
-      { label: 'Google Maps', action: 'open-google-maps', disabled: !hasRoute },
-      { label: 'Apple Maps', action: 'open-apple-maps', disabled: !hasRoute }
-    ];
+    return pr.mapExportMenuItems();
   };
 
   pr.stopMenuItems = function(index) {

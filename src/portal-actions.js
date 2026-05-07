@@ -159,7 +159,7 @@
     addActionButton(pr.undoRouteEditButtonOptions());
 
     addActionLink('Fit', 'fit-route');
-    addActionLink('Menu', 'open-main-menu', { smart: true, attrs: { 'data-main-menu': 'true' } });
+    addActionLink('Menu', 'open-main-menu', pr.mainMenuLinkOptions());
 
     wrapper.appendChild(links);
 
