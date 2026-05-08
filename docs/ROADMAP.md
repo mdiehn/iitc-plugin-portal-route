@@ -2,11 +2,11 @@
 
 #WARNING - needs update since 1.1.0 release
 
-Current release: `1.3.0`
+Current release: `1.3.1`
 
 Portal Route has reached its first stable release. The main route-building loop is usable now: add portals, add manual points, add current location, loop back to start, drag/edit points, calculate routes, export to staged Google Maps links, import/export JSON, print, and keep state across reloads.
 
-## Current state: 1.3.0
+## Current state: 1.3.1
 
 Done and released:
 
@@ -55,13 +55,17 @@ Known rough edges:
 - Google Maps export works, but the staging/export flow could be clearer.
 - Waypoint dragging and portal snapping need more field testing.
 
-## Current focus: v1.3.0
+## Current focus: v1.3.1
 
-Theme: placement-mode and stale-route polish after the v1.2.0 route-control cleanup.
+Theme: small bug-fix release after the v1.3.0 UI polish.
+
+This release fixes a layer-toggle cleanup bug so controls injected into the IITC portal info panel are removed when the Portal Route layer is turned off.
+
+The v1.3.0 work focused on placement-mode and stale-route polish after the v1.2.0 route-control cleanup.
 
 This release keeps the route-library work intact and tightens the day-to-day route controls: manual point placement can be canceled, stale routes are easier to notice, and route-row buttons fit better on mobile.
 
-Current v1.3.0 UI state:
+Current v1.3.x UI state:
 
 - Add/Del handles the common selected-point action, with Menu as the wider route-building/export/navigation menu. Add toggles manual point placement when nothing is selected.
 - Undo is available for recent route edits.

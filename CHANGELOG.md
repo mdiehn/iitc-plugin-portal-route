@@ -2,9 +2,15 @@
 
 This project is in active development.
 
-Current release: `1.3.0`
+Current release: `1.3.1`
 
-## 1.3.0 - Unreleased
+## 1.3.1 - Unreleased
+
+### Fixed
+
+- Hide Portal Route controls injected into the IITC portal info panel when the Portal Route layer is turned off.
+
+## 1.3.0 - Released 2026-05-08
 
 ### Added
 
