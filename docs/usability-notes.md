@@ -2,7 +2,7 @@
 
 Practical UI/UX notes for `iitc-plugin-portal-route`.
 
-This file is current as of `1.3.0`. Older Plot/Replot notes have been folded into the automatic routing model.
+This file is current as of `1.3.1`. Older Plot/Replot notes have been folded into the automatic routing model.
 
 ## Fixed issues
 
@@ -119,6 +119,10 @@ The next major usability improvement is Google Drive shared storage:
 - Manual shared map/view handoff with `current-map.json`.
 - Turn-by-turn directions inside IITC.
 
+
+## v1.3.1 notes
+
+- Turning off the Portal Route layer should hide all Portal Route UI, including controls injected into the IITC portal info panel.
 
 ## v1.3.0 notes
 

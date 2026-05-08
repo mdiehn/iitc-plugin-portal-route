@@ -1,0 +1,4 @@
+Update docs for v1.3.1
+
+Document the v1.3.1 bug-fix release for the Portal Route layer toggle cleanup.
+The notes now call out that info-panel controls are removed when the Portal Route layer is turned off, and the version metadata has been bumped for the release.

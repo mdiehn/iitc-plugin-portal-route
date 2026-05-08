@@ -2,12 +2,17 @@
 
 Current repo: IITC plugin **Portal Route**.
 
-Current branch: `feat/v1.3.0`.
+Current branch: `fix/v1.3.1`.
 
-Current version: `1.3.0`, after the `1.2.0` work.
+Current version: `1.3.1`, after the `1.3.0` UI polish release.
 
 
-## v1.3.0 current work
+## v1.3.1 current work
+
+- Fix the layer-toggle cleanup bug where Portal Route controls injected into the IITC portal info panel stayed visible after the Portal Route layer was turned off.
+- Keep this as a small bug-fix release.
+
+## v1.3.0 completed work
 
 - Fix smart add so a selected portal wins even when the route is empty.
 - Restore direct Add/Del controls outside the shared Menu.

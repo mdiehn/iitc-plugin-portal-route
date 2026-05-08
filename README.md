@@ -6,11 +6,13 @@ It is built for mobile-first use, but works on desktop IITC too. Build a stop li
 
 ## Status
 
-Current release: `1.3.0`
+Current release: `1.3.1`
 
-This release adds placement-mode cancel polish, clearer stale-route cues, mobile row-control polish, and the v1.2.0 route-control cleanup.
+This release fixes a layer-toggle cleanup bug so Portal Route controls disappear from the IITC portal info panel when the Portal Route layer is turned off.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/main/dist/portal-route.user.js)
+The 1.3 series also adds placement-mode cancel polish, clearer stale-route cues, mobile row-control polish, and the v1.2.0 route-control cleanup.
+
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/fix/v1.3.1/dist/portal-route.user.js)
 
 ## Quick start
 

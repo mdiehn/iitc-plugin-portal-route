@@ -28,6 +28,7 @@ const sources = [
   "src/route-library.js",
   "src/drive-storage.js",
   "src/ui.js",
+  "src/layer-ui-cleanup.js",
   "src/wrapper-end.js",
 ];
 
@@ -39,7 +40,6 @@ let output = sources
     if (!fs.existsSync(fullPath)) {
       throw new Error(`Missing source file: ${file}`);
     }
-
     return fs.readFileSync(fullPath, "utf8").trimEnd() + "\n";
   })
   .join("\n");
@@ -70,39 +70,22 @@ function stampDevVersion(source) {
   const branch = getCurrentBranch();
   const metaUrl = `https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/${branch}/dist/portal-route.meta.js`;
   const userUrl = `https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/${branch}/dist/portal-route.user.js`;
+
   return source
-    .replace(
-      /^\/\/ @version\s+.+$/m,
-      `// @version        ${stampedVersion}`
-    )
-    .replace(
-      /^\/\/ @updateURL\s+.+$/m,
-      `// @updateURL      ${metaUrl}`
-    )
-    .replace(
-      /^\/\/ @downloadURL\s+.+$/m,
-      `// @downloadURL    ${userUrl}`
-    )
-    .replace(
-      /pr\.VERSION = ['"][^'"]+['"];/,
-      `pr.VERSION = '${stampedVersion}';`
-    );
+    .replace(/^\/\/ @version\s+.+$/m, `// @version ${stampedVersion}`)
+    .replace(/^\/\/ @updateURL\s+.+$/m, `// @updateURL ${metaUrl}`)
+    .replace(/^\/\/ @downloadURL\s+.+$/m, `// @downloadURL ${userUrl}`)
+    .replace(/pr\.VERSION = ['"][^'"]+['"];/, `pr.VERSION = '${stampedVersion}';`);
 }
 
 output = stampDevVersion(output);
-
 fs.writeFileSync(outFile, output, "utf8");
 
 const metaFile = path.join(distDir, "portal-route.meta.js");
-
-const metaMatch = output.match(
-  /\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/
-);
-
+const metaMatch = output.match(/\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/);
 if (!metaMatch) {
   throw new Error("Could not find userscript metadata block");
 }
-
 fs.writeFileSync(metaFile, metaMatch[0] + "\n", "utf8");
 
 function getCurrentBranch() {
@@ -112,7 +95,6 @@ function getCurrentBranch() {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
     }).trim();
-
     return branch && branch !== "HEAD" ? branch : "main";
   } catch (e) {
     return "main";
@@ -137,6 +119,5 @@ function updateReadmeInstallLink() {
 }
 
 updateReadmeInstallLink();
-
 console.log(`Wrote ${path.relative(root, outFile)}`);
 console.log(`Wrote ${path.relative(root, metaFile)}`);
