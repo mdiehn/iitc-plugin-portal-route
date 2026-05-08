@@ -267,7 +267,12 @@
     var html = '';
     html += '<div id="' + pr.DOM_IDS.bulkSelectDialogContent + '" class="portal-route-dialog-content portal-route-bulk-select-preview" tabindex="-1">';
     html += '<p><b>Found ' + replaceCount + ' loaded portal' + (replaceCount === 1 ? '' : 's') + '.</b></p>';
-    html += '<p>Only loaded portals are included. Zoom/pan first to load more.</p>';
+    if (replaceCount >= 50) {
+      html += '<p>That is a chunky route. Portal Route can add them, but routing services may object.</p>';
+    } else if (replaceCount >= 25) {
+      html += '<p>That is a pretty healthy route. Portal Route can add them, but plotting may get slow.</p>';
+    }
+    html += '<p>Only loaded portals are included. Zoom or pan first if you expected more.</p>';
     if (replaceCount !== addableCount) {
       html += '<p>' + (replaceCount - addableCount) + ' already in this route.</p>';
     }
@@ -339,6 +344,55 @@
     pr.openBulkPortalPreview(stops);
   };
 
+  pr.bulkSelectStyle = function() {
+    return {
+      color: '#00e5ff',
+      haloColor: '#111111',
+      fillColor: '#00e5ff'
+    };
+  };
+
+  pr.drawBulkVertex = function(layer, point) {
+    var style = pr.bulkSelectStyle();
+
+    L.circleMarker(point, {
+      radius: 8,
+      weight: 4,
+      color: style.haloColor,
+      fillColor: style.fillColor,
+      fillOpacity: 0.95,
+      opacity: 0.85
+    }).addTo(layer);
+
+    L.circleMarker(point, {
+      radius: 5,
+      weight: 2,
+      color: '#ffffff',
+      fillColor: style.fillColor,
+      fillOpacity: 1
+    }).addTo(layer);
+  };
+
+  pr.drawBulkPath = function(layer, points, closePath) {
+    if (!points || points.length < 2) return;
+
+    var style = pr.bulkSelectStyle();
+    var pathPoints = points.slice();
+    if (closePath && points.length > 2) pathPoints.push(points[0]);
+
+    L.polyline(pathPoints, {
+      color: style.haloColor,
+      weight: 6,
+      opacity: 0.55
+    }).addTo(layer);
+
+    L.polyline(pathPoints, {
+      color: style.color,
+      weight: 3,
+      opacity: 1
+    }).addTo(layer);
+  };
+
   pr.redrawBulkPolygon = function() {
     var layer = pr.ensureBulkSelectLayer();
     if (!layer || !window.L) return;
@@ -347,31 +401,22 @@
     var points = pr.bulkSelect.points;
     if (!points.length) return;
 
-    points.forEach(function(point) {
-      L.circleMarker(point, {
-        radius: 4,
-        weight: 2,
-        color: '#ffd800',
-        fillColor: '#ffd800',
-        fillOpacity: 0.5
-      }).addTo(layer);
-    });
-
-    if (points.length > 1) {
-      L.polyline(points, {
-        color: '#ffd800',
-        weight: 2,
-        dashArray: '5,5'
-      }).addTo(layer);
-    }
-
     if (points.length > 2) {
+      var style = pr.bulkSelectStyle();
       L.polygon(points, {
-        color: '#ffd800',
-        weight: 2,
-        fillOpacity: 0.08
+        color: style.color,
+        weight: 0,
+        fillColor: style.fillColor,
+        fillOpacity: 0.18
       }).addTo(layer);
+      pr.drawBulkPath(layer, points, true);
+    } else {
+      pr.drawBulkPath(layer, points, false);
     }
+
+    points.forEach(function(point) {
+      pr.drawBulkVertex(layer, point);
+    });
   };
 
   pr.drawBulkCircle = function() {
@@ -379,19 +424,22 @@
     if (!layer || !window.L || !pr.bulkSelect.center || !isFinite(pr.bulkSelect.radiusMeters)) return;
 
     layer.clearLayers();
+    var style = pr.bulkSelectStyle();
     L.circle(pr.bulkSelect.center, {
       radius: pr.bulkSelect.radiusMeters,
-      color: '#ffd800',
-      weight: 2,
-      fillOpacity: 0.08
+      color: style.haloColor,
+      weight: 6,
+      opacity: 0.55,
+      fillOpacity: 0
     }).addTo(layer);
-    L.circleMarker(pr.bulkSelect.center, {
-      radius: 4,
-      weight: 2,
-      color: '#ffd800',
-      fillColor: '#ffd800',
-      fillOpacity: 0.5
+    L.circle(pr.bulkSelect.center, {
+      radius: pr.bulkSelect.radiusMeters,
+      color: style.color,
+      weight: 3,
+      fillColor: style.fillColor,
+      fillOpacity: 0.18
     }).addTo(layer);
+    pr.drawBulkVertex(layer, pr.bulkSelect.center);
   };
 
   pr.handleBulkSelectMapClick = function(e) {

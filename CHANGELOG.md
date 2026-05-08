@@ -9,6 +9,8 @@ Current release: `1.3.1`
 ### Added
 
 - Added first-pass shape selection for loaded IITC portals, with circle/polygon drawing, preview counts, add-to-route, and replace-route actions.
+- Added graduated preview notes for larger shape selections so users get a heads-up before building chunky routes.
+- Made shape-selection drawing easier to see with higher-contrast vertices, live connecting lines, and translucent polygon/circle fills.
 
 ## 1.3.1 - Unreleased
 
