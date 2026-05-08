@@ -1160,4 +1160,47 @@ button.portal-route-waypoint-name,
   }
 
 }
+
+.leaflet-container.portal-route-bulk-select-mode,
+.leaflet-container.portal-route-bulk-select-mode * {
+  cursor: crosshair !important;
+}
+
+.portal-route-bulk-select-control {
+  width: 160px;
+  padding: 6px;
+  background: rgba(8, 24, 32, 0.94);
+  color: #fff;
+  border: 1px solid rgba(255, 216, 0, 0.55) !important;
+  border-radius: 4px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.45);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.portal-route-bulk-select-control-title {
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+
+.portal-route-bulk-select-control-help {
+  margin-bottom: 6px;
+}
+
+.portal-route-bulk-select-control-buttons,
+.portal-route-bulk-select-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.portal-route-bulk-select-control button,
+.portal-route-bulk-select-preview button {
+  padding: 2px 6px;
+  font: inherit;
+}
+
+.portal-route-bulk-select-preview p {
+  margin: 0 0 7px;
+}
 `;

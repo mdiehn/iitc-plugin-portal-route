@@ -4,6 +4,12 @@ This project is in active development.
 
 Current release: `1.3.1`
 
+## 1.4.0 - Unreleased
+
+### Added
+
+- Added first-pass shape selection for loaded IITC portals, with circle/polygon drawing, preview counts, add-to-route, and replace-route actions.
+
 ## 1.3.1 - Unreleased
 
 ### Fixed

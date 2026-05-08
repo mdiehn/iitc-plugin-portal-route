@@ -166,6 +166,15 @@
         var rect = target.getBoundingClientRect();
         pr.openMapsMenu(rect.left, rect.bottom + 4);
       },
+      'open-bulk-select-menu': function() {
+        if (pr.cancelAddPointMode) pr.cancelAddPointMode({ silent: true });
+        if (!target || !target.getBoundingClientRect) {
+          pr.openBulkSelectMenu(20, 20);
+          return;
+        }
+        var rect = target.getBoundingClientRect();
+        pr.openBulkSelectMenu(rect.left, rect.bottom + 4);
+      },
       'open-edit': pr.openMainPanel,
       'close-panel': function() {
         pr.state.panelOpen = false;
@@ -179,6 +188,9 @@
       'add-selected-stop': pr.addSelectedPortal,
       'add-map-point': function() { pr.setAddPointMode(!pr.state.addPointMode); },
       'add-current-location': pr.addCurrentLocation,
+      'select-portals-circle': function() { pr.startBulkPortalSelection('circle'); },
+      'select-portals-polygon': function() { pr.startBulkPortalSelection('polygon'); },
+      'cancel-bulk-select': pr.cancelBulkPortalSelection,
       'toggle-loop-back': pr.toggleLoopBackToStart,
       'reverse-route': pr.reverseRoute,
       'remove-stop': function() { pr.removeStop(index); },
@@ -583,6 +595,12 @@
       return;
     }
 
+    if (key === 'Escape' && pr.bulkSelect && pr.bulkSelect.mode) {
+      ev.preventDefault();
+      if (pr.cancelBulkPortalSelection) pr.cancelBulkPortalSelection();
+      return;
+    }
+
     if (!(ev.ctrlKey || ev.metaKey) || key.toLowerCase() !== 'z') return;
 
     ev.preventDefault();
@@ -676,6 +694,7 @@
     pr.closeDialog();
     pr.state.pointsPanelOpen = false;
     pr.closePointsDialog();
+    if (pr.cancelBulkPortalSelection) pr.cancelBulkPortalSelection();
     pr.setMiniControlVisible(false);
     pr.removeToolboxLink();
   };
@@ -694,6 +713,7 @@
     pr.closeDialog();
     pr.state.pointsPanelOpen = false;
     pr.closePointsDialog();
+    if (pr.cancelBulkPortalSelection) pr.cancelBulkPortalSelection();
     pr.setMiniControlVisible(false);
     pr.removeToolboxLink();
   };

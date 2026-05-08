@@ -21,6 +21,7 @@ const sources = [
   "src/ui-controls.js",
   "src/portal-actions.js",
   "src/route-model.js",
+  "src/shape-select.js",
   "src/route-google.js",
   "src/render-map.js",
   "src/render-panel.js",
