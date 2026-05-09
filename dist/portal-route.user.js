@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version        1.4.1
+// @version        1.5.0
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
 // @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/main/dist/portal-route.meta.js
 // @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/main/dist/portal-route.user.js
@@ -94,8 +94,48 @@ function wrapper(plugin_info) {
   width: 4.5em;
 }
 
+.portal-route-setting select {
+  max-width: 100%;
+}
+
 .portal-route-default-stop-setting {
   flex: 1 1 auto;
+}
+
+.portal-route-travel-controls {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.portal-route-travel-controls .portal-route-setting {
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+
+.portal-route-travel-controls .portal-route-setting input {
+  width: 3.4em;
+}
+
+.portal-route-travel-controls .portal-route-setting select {
+  width: 5.8em;
+}
+
+.portal-route-long-setting-row {
+  align-items: stretch;
+}
+
+.portal-route-long-setting {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.portal-route-long-setting input {
+  width: 100%;
+  min-width: 18em;
 }
 
 .portal-route-clear-list-button {
@@ -1192,6 +1232,11 @@ button.portal-route-waypoint-name,
     align-items: flex-start;
   }
 
+  .portal-route-travel-controls {
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
 }
 
 .leaflet-container.portal-route-bulk-select-mode,
@@ -1304,7 +1349,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.2.0';
+  pr.VERSION = '1.5.0';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -1337,10 +1382,28 @@ button.portal-route-waypoint-name,
     routeLibraryDriveFileId: 'iitc-portal-route-drive-file-id'
   };
 
+  pr.TRAVEL_MODES = {
+    drive: 'drive',
+    bike: 'bike',
+    walk: 'walk'
+  };
+
+  pr.ROUTING_PROVIDERS = {
+    google: 'google',
+    ors: 'ors'
+  };
+
   pr.DEFAULT_SETTINGS = {
     defaultStopMinutes: 5,
     includeReturnToStart: false,
     startOnCurrentLocation: false,
+    routingProvider: pr.ROUTING_PROVIDERS.google,
+    defaultTravelMode: pr.TRAVEL_MODES.drive,
+    driveSpeedMph: 30,
+    bikeSpeedMph: 10,
+    walkSpeedMph: 3,
+    orsApiKey: '',
+    orsBaseUrl: 'https://api.openrouteservice.org',
     googleDriveOAuthClientId: '',
     showSegmentTimesOnMap: false,
     showMiniControl: true,
@@ -1362,12 +1425,35 @@ button.portal-route-waypoint-name,
 
       if (typeof defaultValue === 'number') {
         value = Number(value);
-        if (isFinite(value) && value >= 0) normalized[key] = Math.round(value);
+        if (!isFinite(value) || value < 0) return;
+        if (/SpeedMph$/.test(key)) {
+          if (value > 0) normalized[key] = value;
+          return;
+        }
+        normalized[key] = Math.round(value);
         return;
       }
 
       if (typeof defaultValue === 'string') {
-        if (typeof value === 'string') normalized[key] = value.trim();
+        if (typeof value !== 'string') return;
+        value = value.trim();
+        if (key === 'defaultTravelMode') {
+          if (value === pr.TRAVEL_MODES.drive || value === pr.TRAVEL_MODES.bike || value === pr.TRAVEL_MODES.walk) {
+            normalized[key] = value;
+          }
+          return;
+        }
+        if (key === 'routingProvider') {
+          if (value === pr.ROUTING_PROVIDERS.google || value === pr.ROUTING_PROVIDERS.ors) {
+            normalized[key] = value;
+          }
+          return;
+        }
+        if (key === 'orsBaseUrl') {
+          normalized[key] = value.replace(/\/+$/, '') || pr.DEFAULT_SETTINGS.orsBaseUrl;
+          return;
+        }
+        normalized[key] = value;
       }
     });
 
@@ -1453,7 +1539,10 @@ button.portal-route-waypoint-name,
       var rawRoute = localStorage.getItem(pr.STORAGE_KEYS.route);
       if (rawRoute) {
         var route = JSON.parse(rawRoute);
-        if (route && Array.isArray(route.legs)) pr.state.route = route;
+        if (route && Array.isArray(route.legs)) {
+          pr.state.route = route;
+          if (pr.refreshRouteTravelEstimates) pr.refreshRouteTravelEstimates(pr.state.route);
+        }
       }
 
       var rawRouteDirty = localStorage.getItem(pr.STORAGE_KEYS.routeDirty);
@@ -1518,7 +1607,12 @@ button.portal-route-waypoint-name,
     return {
       defaultStopMinutes: settings.defaultStopMinutes,
       includeReturnToStart: !!settings.includeReturnToStart,
-      startOnCurrentLocation: !!settings.startOnCurrentLocation
+      startOnCurrentLocation: !!settings.startOnCurrentLocation,
+      routingProvider: settings.routingProvider || pr.ROUTING_PROVIDERS.google,
+      defaultTravelMode: settings.defaultTravelMode || pr.TRAVEL_MODES.drive,
+      driveSpeedMph: settings.driveSpeedMph,
+      bikeSpeedMph: settings.bikeSpeedMph,
+      walkSpeedMph: settings.walkSpeedMph
     };
   };
 
@@ -1667,6 +1761,12 @@ button.portal-route-waypoint-name,
     var km = meters / 1000;
     if (km >= 10) return km.toFixed(0) + ' km';
     return km.toFixed(1) + ' km';
+  };
+
+  pr.formatSpeedInput = function(mph) {
+    mph = Number(mph || 0);
+    if (!isFinite(mph) || mph <= 0) return '';
+    return String(Math.round(mph * 10) / 10).replace(/\.0$/, '');
   };
 
   pr.escapeHtml = pr.escapeHtml || function(value) {
@@ -2193,7 +2293,7 @@ button.portal-route-waypoint-name,
       pr.state.route = null;
       pr.clearRouteLine();
     } else if (pr.state.route && pr.state.route.legs) {
-      pr.state.route.totals = pr.calculateTotals(pr.state.route.legs);
+      pr.refreshRouteTravelEstimates(pr.state.route);
     }
 
     if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
@@ -2442,6 +2542,66 @@ button.portal-route-waypoint-name,
     if (!details) return null;
     var data = details.details || details.portalDetails || details.portalData || details;
     return data.title || data.name || null;
+  };
+
+  pr.normalizeRoutingProvider = function(provider) {
+    if (provider === pr.ROUTING_PROVIDERS.ors) return provider;
+    return pr.ROUTING_PROVIDERS.google;
+  };
+
+  pr.getRoutingProvider = function() {
+    return pr.normalizeRoutingProvider(pr.state.settings.routingProvider);
+  };
+
+  pr.getRoutingProviderLabel = function(provider) {
+    provider = pr.normalizeRoutingProvider(provider);
+    if (provider === pr.ROUTING_PROVIDERS.ors) return 'OpenRouteService beta';
+    return 'Google';
+  };
+
+  pr.normalizeTravelMode = function(mode) {
+    if (mode === pr.TRAVEL_MODES.bike || mode === pr.TRAVEL_MODES.walk) return mode;
+    return pr.TRAVEL_MODES.drive;
+  };
+
+  pr.getTravelMode = function() {
+    return pr.normalizeTravelMode(pr.state.settings.defaultTravelMode);
+  };
+
+  pr.getTravelModeLabel = function(mode) {
+    mode = pr.normalizeTravelMode(mode);
+    if (mode === pr.TRAVEL_MODES.bike) return 'Bike';
+    if (mode === pr.TRAVEL_MODES.walk) return 'Walk';
+    return 'Drive';
+  };
+
+  pr.getTravelSpeedMph = function(mode) {
+    mode = pr.normalizeTravelMode(mode);
+    if (mode === pr.TRAVEL_MODES.bike) return Number(pr.state.settings.bikeSpeedMph) || pr.DEFAULT_SETTINGS.bikeSpeedMph;
+    if (mode === pr.TRAVEL_MODES.walk) return Number(pr.state.settings.walkSpeedMph) || pr.DEFAULT_SETTINGS.walkSpeedMph;
+    return Number(pr.state.settings.driveSpeedMph) || pr.DEFAULT_SETTINGS.driveSpeedMph;
+  };
+
+  pr.travelSecondsForDistance = function(distanceMeters, mode) {
+    var miles = Math.max(0, Number(distanceMeters || 0)) / 1609.344;
+    var mph = Math.max(0.1, pr.getTravelSpeedMph(mode));
+    return miles / mph * 3600;
+  };
+
+  pr.refreshRouteTravelEstimates = function(route) {
+    route = route || pr.state.route;
+    if (!route || !Array.isArray(route.legs)) return route;
+
+    var mode = pr.getTravelMode();
+    route.legs.forEach(function(leg) {
+      leg.travelMode = mode;
+      leg.durationSeconds = pr.travelSecondsForDistance(leg.distanceMeters, mode);
+      leg.durationText = pr.formatDuration(leg.durationSeconds);
+      leg.durationSource = 'speed';
+    });
+
+    route.totals = pr.calculateTotals(route.legs);
+    return route;
   };
 
   pr.applyPortalTitleFromDetails = function(guid, details) {
@@ -3047,7 +3207,9 @@ button.portal-route-waypoint-name,
       driveSeconds: driveSeconds,
       stopSeconds: stopSeconds,
       tripSeconds: driveSeconds + stopSeconds,
-      distanceMeters: distanceMeters
+      distanceMeters: distanceMeters,
+      travelMode: pr.getTravelMode(),
+      routingProvider: pr.getRoutingProvider()
     };
   };
 
@@ -3055,7 +3217,15 @@ button.portal-route-waypoint-name,
     return new google.maps.LatLng(stop.lat, stop.lng);
   };
 
-  pr.calculateRoute = function() {
+  pr.googleDirectionsTravelMode = function() {
+    var mode = pr.getTravelMode();
+    if (!window.google || !google.maps || !google.maps.TravelMode) return null;
+    if (mode === pr.TRAVEL_MODES.bike && google.maps.TravelMode.BICYCLING) return google.maps.TravelMode.BICYCLING;
+    if (mode === pr.TRAVEL_MODES.walk && google.maps.TravelMode.WALKING) return google.maps.TravelMode.WALKING;
+    return google.maps.TravelMode.DRIVING;
+  };
+
+  pr.calculateGoogleRoute = function() {
     var stops = pr.getRouteStops();
     if (stops.length < 2) {
       pr.showMessage('Add at least two waypoints to calculate a route.');
@@ -3079,7 +3249,7 @@ button.portal-route-waypoint-name,
       destination: pr.getGoogleLatLng(destination),
       waypoints: waypoints,
       optimizeWaypoints: false,
-      travelMode: google.maps.TravelMode.DRIVING
+      travelMode: pr.googleDirectionsTravelMode()
     };
 
     pr.setBusy(true);
@@ -3121,6 +3291,8 @@ button.portal-route-waypoint-name,
           durationSeconds: leg.duration ? leg.duration.value : 0,
           distanceText: leg.distance ? leg.distance.text : '',
           durationText: leg.duration ? leg.duration.text : '',
+          googleDurationSeconds: leg.duration ? leg.duration.value : 0,
+          googleDurationText: leg.duration ? leg.duration.text : '',
           path: legPath
         };
       });
@@ -3133,12 +3305,16 @@ button.portal-route-waypoint-name,
       }
 
       pr.state.route = {
+        providerId: pr.ROUTING_PROVIDERS.google,
+        providerLabel: pr.getRoutingProviderLabel(pr.ROUTING_PROVIDERS.google),
+        travelMode: pr.getTravelMode(),
         legs: legs,
         totals: pr.calculateTotals(legs),
         path: path.map(function(point) {
           return { lat: point.lat, lng: point.lng };
         })
       };
+      pr.refreshRouteTravelEstimates(pr.state.route);
       pr.markRouteCurrent();
 
       pr.drawRoutePath(path);
@@ -3147,6 +3323,222 @@ button.portal-route-waypoint-name,
       if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
       if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
     });
+  };
+
+  pr.ORS_PROFILES = {
+    drive: 'driving-car',
+    bike: 'cycling-regular',
+    walk: 'foot-walking'
+  };
+
+  pr.orsProfileForTravelMode = function(mode) {
+    mode = pr.normalizeTravelMode(mode);
+    return pr.ORS_PROFILES[mode] || pr.ORS_PROFILES.drive;
+  };
+
+  pr.getOrsBaseUrl = function() {
+    return String(pr.state.settings.orsBaseUrl || pr.DEFAULT_SETTINGS.orsBaseUrl || '').trim().replace(/\/+$/, '');
+  };
+
+  pr.getOrsApiKey = function() {
+    return String(pr.state.settings.orsApiKey || '').trim();
+  };
+
+  pr.orsRouteUrl = function(profile) {
+    return pr.getOrsBaseUrl() + '/v2/directions/' + encodeURIComponent(profile) + '/geojson';
+  };
+
+  pr.orsErrorMessage = function(data, status) {
+    if (data && data.error && data.error.message) return data.error.message;
+    if (data && data.error && data.error.code) return 'OpenRouteService error ' + data.error.code;
+    if (data && data.message) return data.message;
+    if (status) return 'OpenRouteService request failed: HTTP ' + status;
+    return 'OpenRouteService request failed.';
+  };
+
+  pr.orsPathDistanceMeters = function(points) {
+    if (!points || points.length < 2 || !window.L) return 0;
+
+    var distance = 0;
+    for (var i = 1; i < points.length; i++) {
+      distance += L.latLng(points[i - 1].lat, points[i - 1].lng).distanceTo(L.latLng(points[i].lat, points[i].lng));
+    }
+    return distance;
+  };
+
+  pr.orsLegPath = function(path, steps) {
+    if (!path || !path.length || !steps || !steps.length) return [];
+
+    var start = null;
+    var end = null;
+    steps.forEach(function(step) {
+      var wayPoints = step && step.way_points;
+      if (!Array.isArray(wayPoints) || wayPoints.length < 2) return;
+      if (start === null || wayPoints[0] < start) start = wayPoints[0];
+      if (end === null || wayPoints[1] > end) end = wayPoints[1];
+    });
+
+    if (start === null || end === null || start < 0 || end < start) return [];
+    return path.slice(start, end + 1);
+  };
+
+  pr.orsFallbackLegDistance = function(stops, index) {
+    var fromStop = stops[index];
+    var toStop = stops[index + 1];
+    if (!fromStop || !toStop || !window.L) return 0;
+    return L.latLng(fromStop.lat, fromStop.lng).distanceTo(L.latLng(toStop.lat, toStop.lng));
+  };
+
+  pr.routeFromOrsGeoJson = function(data, stops, profile) {
+    var feature = data && data.features && data.features[0];
+    var properties = feature && feature.properties ? feature.properties : {};
+    var geometry = feature && feature.geometry ? feature.geometry : {};
+    var coordinates = Array.isArray(geometry.coordinates) ? geometry.coordinates : [];
+    var path = coordinates.map(function(coord) {
+      return { lat: Number(coord[1]), lng: Number(coord[0]) };
+    }).filter(function(point) {
+      return isFinite(point.lat) && isFinite(point.lng);
+    });
+
+    var segments = Array.isArray(properties.segments) ? properties.segments : [];
+    var legs = [];
+
+    for (var i = 0; i < stops.length - 1; i++) {
+      var fromStop = stops[i];
+      var toStop = stops[i + 1];
+      var segment = segments[i] || {};
+      var segmentDistance = Number(segment.distance);
+      var segmentDuration = Number(segment.duration);
+      var legPath = pr.orsLegPath(path, segment.steps);
+
+      if (!isFinite(segmentDistance) || segmentDistance <= 0) {
+        segmentDistance = legPath.length > 1 ? pr.orsPathDistanceMeters(legPath) : pr.orsFallbackLegDistance(stops, i);
+      }
+
+      legs.push({
+        fromIndex: i,
+        toIndex: i + 1,
+        fromLabel: fromStop ? fromStop.title : 'Stop ' + (i + 1),
+        toLabel: toStop ? toStop.title : 'Stop ' + (i + 2),
+        distanceMeters: segmentDistance,
+        durationSeconds: isFinite(segmentDuration) && segmentDuration > 0 ? segmentDuration : 0,
+        distanceText: pr.formatDistance(segmentDistance),
+        durationText: isFinite(segmentDuration) && segmentDuration > 0 ? pr.formatDuration(segmentDuration) : '',
+        providerDurationSeconds: isFinite(segmentDuration) && segmentDuration > 0 ? segmentDuration : 0,
+        providerDurationText: isFinite(segmentDuration) && segmentDuration > 0 ? pr.formatDuration(segmentDuration) : '',
+        providerProfile: profile,
+        path: legPath
+      });
+    }
+
+    return {
+      providerId: pr.ROUTING_PROVIDERS.ors,
+      providerLabel: pr.getRoutingProviderLabel(pr.ROUTING_PROVIDERS.ors),
+      providerProfile: profile,
+      travelMode: pr.getTravelMode(),
+      legs: legs,
+      totals: pr.calculateTotals(legs),
+      path: path
+    };
+  };
+
+  pr.calculateOrsRoute = function() {
+    var stops = pr.getRouteStops();
+    if (stops.length < 2) {
+      pr.showMessage('Add at least two waypoints to calculate a route.');
+      return;
+    }
+
+    if (!window.fetch) {
+      pr.showMessage('OpenRouteService routing needs browser fetch support.');
+      return;
+    }
+
+    var apiKey = pr.getOrsApiKey();
+    var baseUrl = pr.getOrsBaseUrl();
+    if (!baseUrl) {
+      pr.showMessage('Set an OpenRouteService URL first.');
+      return;
+    }
+    if (!apiKey && baseUrl.indexOf('api.openrouteservice.org') !== -1) {
+      pr.showMessage('Set an OpenRouteService API key first.');
+      return;
+    }
+
+    var profile = pr.orsProfileForTravelMode(pr.getTravelMode());
+    var body = {
+      coordinates: stops.map(function(stop) {
+        return [Number(stop.lng), Number(stop.lat)];
+      }),
+      instructions: true,
+      geometry: true,
+      units: 'm'
+    };
+
+    var headers = {
+      'Accept': 'application/geo+json, application/json',
+      'Content-Type': 'application/json'
+    };
+    if (apiKey) headers.Authorization = apiKey;
+
+    pr.setBusy(true);
+    fetch(pr.orsRouteUrl(profile), {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(body)
+    }).then(function(response) {
+      return response.text().then(function(text) {
+        var data = null;
+        if (text) {
+          try {
+            data = JSON.parse(text);
+          } catch (e) {
+            data = { message: text };
+          }
+        }
+        if (!response.ok) throw new Error(pr.orsErrorMessage(data, response.status));
+        return data;
+      });
+    }).then(function(data) {
+      var route = pr.routeFromOrsGeoJson(data, stops, profile);
+      if (!route.path || route.path.length < 2 || !route.legs.length) {
+        pr.showMessage('OpenRouteService returned no usable route.');
+        return;
+      }
+
+      pr.state.route = route;
+      pr.refreshRouteTravelEstimates(pr.state.route);
+      pr.markRouteCurrent();
+
+      var path = pr.state.route.path.map(function(point) {
+        return L.latLng(point.lat, point.lng);
+      });
+      pr.drawRoutePath(path);
+      pr.renderPanel();
+      pr.renderMiniControl();
+      if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
+      if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
+    }, function(error) {
+      pr.showMessage(error && error.message ? error.message : 'OpenRouteService route calculation failed.');
+    }).then(function() {
+      pr.setBusy(false);
+    });
+  };
+
+  pr.calculateRoute = function() {
+    var provider = pr.getRoutingProvider();
+
+    if (provider === pr.ROUTING_PROVIDERS.ors) {
+      if (pr.calculateOrsRoute) {
+        pr.calculateOrsRoute();
+        return;
+      }
+
+      pr.showMessage('OpenRouteService routing is not available in this build.');
+      return;
+    }
+
+    pr.calculateGoogleRoute();
   };
 
   pr.routeOverlayTarget = function() {
@@ -3675,9 +4067,10 @@ button.portal-route-waypoint-name,
   pr.renderTotals = function(route) {
     if (!route || !route.totals) return '';
 
+    var travelLabel = pr.getTravelModeLabel(route.totals.travelMode);
     var html = '';
     html += '<div class="portal-route-totals">';
-    html += '<div><span>Driving</span><strong>' + pr.formatDuration(route.totals.driveSeconds) + '</strong></div>';
+    html += '<div><span>' + pr.escapeHtml(travelLabel) + '</span><strong>' + pr.formatDuration(route.totals.driveSeconds) + '</strong></div>';
     html += '<div><span>Stops</span><strong>' + pr.formatDuration(route.totals.stopSeconds) + '</strong></div>';
     html += '<div><span>Trip</span><strong>' + pr.formatDuration(route.totals.tripSeconds) + '</strong></div>';
     html += '<div><span>Distance</span><strong>' + pr.formatDistance(route.totals.distanceMeters) + '</strong></div>';
@@ -3688,10 +4081,11 @@ button.portal-route-waypoint-name,
   pr.renderPointsSummary = function(route) {
     if (!route || !route.totals) return '';
 
+    var travelLabel = pr.getTravelModeLabel(route.totals.travelMode);
     var html = '';
     html += '<div class="portal-route-totals portal-route-points-summary">';
     html += '<div><span>Trip</span><strong>' + pr.formatDuration(route.totals.tripSeconds) + '</strong></div>';
-    html += '<div><span>Driving</span><strong>' + pr.formatDuration(route.totals.driveSeconds) + '</strong></div>';
+    html += '<div><span>' + pr.escapeHtml(travelLabel) + '</span><strong>' + pr.formatDuration(route.totals.driveSeconds) + '</strong></div>';
     html += '<div><span>Stops</span><strong>' + pr.formatDuration(route.totals.stopSeconds) + '</strong></div>';
     html += '<div><span>Distance</span><strong>' + pr.formatDistance(route.totals.distanceMeters) + ' / ' + pr.formatDistanceKm(route.totals.distanceMeters) + '</strong></div>';
     html += '</div>';
@@ -3716,9 +4110,24 @@ button.portal-route-waypoint-name,
     var html = '';
     html += '<div class="portal-route-compact-stats' + staleClass + '">' + staleText;
     html += '<span><b>Tot</b> ' + pr.escapeHtml(pr.formatDuration(route.totals.tripSeconds)) + '</span>';
-    html += '<span><b>Drv</b> ' + pr.escapeHtml(pr.formatDuration(route.totals.driveSeconds)) + '</span>';
+    html += '<span><b>' + pr.escapeHtml(pr.getTravelModeLabel(route.totals.travelMode).slice(0, 1)) + '</b> ' + pr.escapeHtml(pr.formatDuration(route.totals.driveSeconds)) + '</span>';
     html += '<span><b>Wait</b> ' + pr.escapeHtml(pr.formatDuration(route.totals.stopSeconds)) + '</span>';
     html += '<span><b>Dist</b> ' + pr.escapeHtml(pr.formatDistance(route.totals.distanceMeters)) + '</span>';
+    html += '</div>';
+    return html;
+  };
+
+  pr.renderTravelModeControls = function() {
+    var html = '';
+    html += '<div class="portal-route-list-options portal-route-travel-controls">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Mode <select aria-label="Default travel mode" data-field="default-travel-mode">' +
+      '<option value="' + pr.TRAVEL_MODES.drive + '"' + (pr.getTravelMode() === pr.TRAVEL_MODES.drive ? ' selected' : '') + '>Drive</option>' +
+      '<option value="' + pr.TRAVEL_MODES.bike + '"' + (pr.getTravelMode() === pr.TRAVEL_MODES.bike ? ' selected' : '') + '>Bike</option>' +
+      '<option value="' + pr.TRAVEL_MODES.walk + '"' + (pr.getTravelMode() === pr.TRAVEL_MODES.walk ? ' selected' : '') + '>Walk</option>' +
+      '</select></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Drive <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatSpeedInput(pr.state.settings.driveSpeedMph)) + '" aria-label="Drive speed in miles per hour" placeholder="30" data-field="drive-speed-mph"></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Bike <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatSpeedInput(pr.state.settings.bikeSpeedMph)) + '" aria-label="Bike speed in miles per hour" placeholder="10" data-field="bike-speed-mph"></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Walk <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatSpeedInput(pr.state.settings.walkSpeedMph)) + '" aria-label="Walk speed in miles per hour" placeholder="3" data-field="walk-speed-mph"></label>';
     html += '</div>';
     return html;
   };
@@ -3726,10 +4135,24 @@ button.portal-route-waypoint-name,
 
   pr.renderMainPanel = function(legsByToIndex) {
     var html = '';
+    var provider = pr.getRoutingProvider();
 
     html += '<div class="portal-route-body">';
     html += '<div class="portal-route-list-options">';
     html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" aria-label="Default stop time" placeholder="15m" data-field="default-stop-minutes"> per portal</label>';
+    html += '</div>';
+
+    html += '<div class="portal-route-list-options">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Routing <select aria-label="Routing provider" data-field="routing-provider">' +
+      '<option value="' + pr.ROUTING_PROVIDERS.google + '"' + (provider === pr.ROUTING_PROVIDERS.google ? ' selected' : '') + '>Google</option>' +
+      '<option value="' + pr.ROUTING_PROVIDERS.ors + '"' + (provider === pr.ROUTING_PROVIDERS.ors ? ' selected' : '') + '>ORS beta</option>' +
+      '</select></label>';
+    html += '</div>';
+    html += '<div class="portal-route-list-options portal-route-long-setting-row portal-route-ors-settings">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-long-setting">ORS API key <input type="password" autocomplete="off" value="' + pr.escapeHtml(pr.state.settings.orsApiKey || '') + '" aria-label="OpenRouteService API key" placeholder="Required for public ORS" data-field="ors-api-key"></label>';
+    html += '</div>';
+    html += '<div class="portal-route-list-options portal-route-long-setting-row portal-route-ors-settings">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-long-setting">ORS URL <input type="text" value="' + pr.escapeHtml(pr.state.settings.orsBaseUrl || pr.DEFAULT_SETTINGS.orsBaseUrl) + '" aria-label="OpenRouteService base URL" placeholder="https://api.openrouteservice.org" data-field="ors-base-url"></label>';
     html += '</div>';
 
     html += '<div class="portal-route-settings-row">';
@@ -3741,8 +4164,8 @@ button.portal-route-waypoint-name,
       html += '<span class="portal-route-version">Portal Route ' + pr.escapeHtml(pr.VERSION) + '</span>';
     }
     html += '</div>';
-    html += '<div class="portal-route-list-options">';
-    html += '<label class="portal-route-setting portal-route-default-stop-setting">Google Drive OAuth Client ID <input type="text" value="' + pr.escapeHtml(pr.state.settings.googleDriveOAuthClientId || '') + '" aria-label="Google Drive OAuth Client ID" placeholder="Used when Sync auth is unavailable" data-field="google-drive-oauth-client-id"></label>';
+    html += '<div class="portal-route-list-options portal-route-long-setting-row">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-long-setting">Google Drive OAuth Client ID <input type="text" value="' + pr.escapeHtml(pr.state.settings.googleDriveOAuthClientId || '') + '" aria-label="Google Drive OAuth Client ID" placeholder="Used when Sync auth is unavailable" data-field="google-drive-oauth-client-id"></label>';
     html += '</div>';
 
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
@@ -3774,11 +4197,11 @@ button.portal-route-waypoint-name,
   };
 
   pr.getDialogWidth = function() {
-    return pr.getDialogSize(430, 210, 320, 210).width;
+    return pr.getDialogSize(540, 280, 360, 260).width;
   };
 
   pr.getDialogHeight = function() {
-    return pr.getDialogSize(430, 210, 320, 210).height;
+    return pr.getDialogSize(540, 280, 360, 260).height;
   };
 
   pr.getPointsDialogWidth = function() {
@@ -4027,6 +4450,7 @@ button.portal-route-waypoint-name,
     contentHtml += pr.renderPointsSummary(route);
     contentHtml += pr.renderRouteStaleHint();
     contentHtml += '<div class="portal-route-bottom-summary"><b>Waypoints:</b> ' + pr.state.stops.length + (pr.makeLoopStop() && pr.state.stops.length > 1 ? ' + loop' : '') + '</div>';
+    contentHtml += pr.renderTravelModeControls();
     contentHtml += '<div class="portal-route-points-list-body">';
     contentHtml += '<div class="portal-route-body">' + pr.renderStopsList(legsByToIndex) + '</div>';
     contentHtml += '</div>';
@@ -4083,6 +4507,15 @@ button.portal-route-waypoint-name,
   pr.GOOGLE_MAPS_INTERMEDIATE_STOP_LIMIT = 9;
   pr.APPLE_MAPS_TOTAL_POINT_LIMIT = 15;
   pr.ROUTE_EXPORT_FORMAT = 'portal-route.v1';
+  pr.GOOGLE_MAPS_TRAVEL_MODES = {
+    drive: 'driving',
+    bike: 'bicycling',
+    walk: 'walking'
+  };
+
+  pr.googleMapsTravelMode = function() {
+    return pr.GOOGLE_MAPS_TRAVEL_MODES[pr.getTravelMode()] || 'driving';
+  };
 
   pr.googleMapsUrlForStops = function(stops) {
     if (!stops || stops.length < 2) return null;
@@ -4092,7 +4525,7 @@ button.portal-route-waypoint-name,
 
     var params = new URLSearchParams();
     params.set('api', '1');
-    params.set('travelmode', 'driving');
+    params.set('travelmode', pr.googleMapsTravelMode());
     params.set('origin', origin.lat + ',' + origin.lng);
     params.set('destination', destination.lat + ',' + destination.lng);
 
@@ -4108,6 +4541,20 @@ button.portal-route-waypoint-name,
   pr.googleMapsUrl = function() {
     var stops = pr.getRouteStops();
     return pr.googleMapsUrlForStops(stops);
+  };
+
+  pr.routeExportProviders = {
+    google: {
+      id: 'google',
+      label: 'Google Maps',
+      pointLimit: pr.GOOGLE_MAPS_TOTAL_POINT_LIMIT,
+      urlForStops: function(stops) {
+        return pr.googleMapsUrlForStops(stops);
+      },
+      openStagesDialog: function(stages) {
+        pr.openGoogleMapsStagesDialog(stages);
+      }
+    }
   };
 
   pr.appleMapsUrlForStops = function(stops) {
@@ -4164,7 +4611,7 @@ button.portal-route-waypoint-name,
   };
 
   pr.googleMapsStages = function() {
-    return pr.mapsStages(pr.GOOGLE_MAPS_TOTAL_POINT_LIMIT, pr.googleMapsUrlForStops);
+    return pr.mapsStages(pr.routeExportProviders.google.pointLimit, pr.routeExportProviders.google.urlForStops);
   };
 
   pr.appleMapsStages = function() {
@@ -4229,6 +4676,7 @@ button.portal-route-waypoint-name,
   };
 
   pr.openGoogleMaps = function() {
+    var provider = pr.routeExportProviders.google;
     var stages = pr.googleMapsStages();
     if (!stages.length) {
       pr.showMessage('Add at least two waypoints first.');
@@ -4236,7 +4684,7 @@ button.portal-route-waypoint-name,
     }
 
     if (stages.length > 1) {
-      pr.openGoogleMapsStagesDialog(stages);
+      provider.openStagesDialog(stages);
       return;
     }
 
@@ -4265,7 +4713,15 @@ button.portal-route-waypoint-name,
       pluginName: pr.NAME,
       pluginVersion: pr.VERSION,
       exportedAt: new Date().toISOString(),
-      settings: Object.assign({}, pr.state.settings),
+      settings: pr.routeLibrarySettings ? pr.routeLibrarySettings() : {
+        defaultStopMinutes: pr.state.settings.defaultStopMinutes,
+        includeReturnToStart: !!pr.state.settings.includeReturnToStart,
+        routingProvider: pr.state.settings.routingProvider || pr.ROUTING_PROVIDERS.google,
+        defaultTravelMode: pr.state.settings.defaultTravelMode || pr.TRAVEL_MODES.drive,
+        driveSpeedMph: pr.state.settings.driveSpeedMph,
+        bikeSpeedMph: pr.state.settings.bikeSpeedMph,
+        walkSpeedMph: pr.state.settings.walkSpeedMph
+      },
       stops: pr.state.stops.map(function(stop) {
         return {
           guid: stop.guid || null,
@@ -4350,8 +4806,9 @@ button.portal-route-waypoint-name,
     if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('import route');
 
     pr.state.stops = stops;
-    pr.state.settings = pr.normalizeSettings(data.settings);
+    pr.state.settings = pr.normalizeSettings(Object.assign({}, pr.state.settings, data.settings || {}));
     pr.state.route = data.route && Array.isArray(data.route.legs) ? data.route : null;
+    if (pr.state.route && pr.refreshRouteTravelEstimates) pr.refreshRouteTravelEstimates(pr.state.route);
     pr.state.routeDirty = !!pr.state.route || !!data.routeDirty;
     pr.state.activeRouteId = null;
 
@@ -4442,7 +4899,7 @@ button.portal-route-waypoint-name,
     }).join('');
 
     var totalsHtml = totals ? '<div class="totals">' +
-      '<span><b>Drive:</b> ' + pr.escapeHtml(pr.formatDuration(totals.driveSeconds)) + '</span>' +
+      '<span><b>Travel:</b> ' + pr.escapeHtml(pr.formatDuration(totals.driveSeconds)) + '</span>' +
       '<span><b>Stops:</b> ' + pr.escapeHtml(pr.formatDuration(totals.stopSeconds)) + '</span>' +
       '<span><b>Trip:</b> ' + pr.escapeHtml(pr.formatDuration(totals.tripSeconds)) + '</span>' +
       '<span><b>Distance:</b> ' + pr.escapeHtml(pr.formatDistance(totals.distanceMeters)) + '</span>' +
@@ -4518,7 +4975,12 @@ button.portal-route-waypoint-name,
   pr.routeLibrarySettings = function() {
     return {
       defaultStopMinutes: pr.state.settings.defaultStopMinutes,
-      includeReturnToStart: !!pr.state.settings.includeReturnToStart
+      includeReturnToStart: !!pr.state.settings.includeReturnToStart,
+      routingProvider: pr.state.settings.routingProvider || pr.ROUTING_PROVIDERS.google,
+      defaultTravelMode: pr.state.settings.defaultTravelMode || pr.TRAVEL_MODES.drive,
+      driveSpeedMph: pr.state.settings.driveSpeedMph,
+      bikeSpeedMph: pr.state.settings.bikeSpeedMph,
+      walkSpeedMph: pr.state.settings.walkSpeedMph
     };
   };
 
@@ -4949,6 +5411,22 @@ button.portal-route-waypoint-name,
     if (typeof settings.includeReturnToStart === 'boolean') {
       pr.state.settings.includeReturnToStart = settings.includeReturnToStart;
     }
+
+    if (settings.routingProvider === pr.ROUTING_PROVIDERS.google ||
+        settings.routingProvider === pr.ROUTING_PROVIDERS.ors) {
+      pr.state.settings.routingProvider = settings.routingProvider;
+    }
+
+    if (settings.defaultTravelMode === pr.TRAVEL_MODES.drive ||
+        settings.defaultTravelMode === pr.TRAVEL_MODES.bike ||
+        settings.defaultTravelMode === pr.TRAVEL_MODES.walk) {
+      pr.state.settings.defaultTravelMode = settings.defaultTravelMode;
+    }
+
+    ['driveSpeedMph', 'bikeSpeedMph', 'walkSpeedMph'].forEach(function(key) {
+      var value = Number(settings[key]);
+      if (isFinite(value) && value > 0) pr.state.settings[key] = value;
+    });
   };
 
   pr.applyRouteRecord = function(record) {
@@ -7179,6 +7657,29 @@ button.portal-route-waypoint-name,
     var field = target && target.getAttribute('data-field');
     if (pr.handleDialogSettingChange(target)) return;
 
+    var applyTravelTimeSettings = function() {
+      if (pr.refreshRouteTravelEstimates && pr.state.route) {
+        pr.refreshRouteTravelEstimates(pr.state.route);
+        pr.saveRoute();
+        pr.redrawSegmentTimeLabels();
+      }
+      pr.renderPanel();
+      if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
+      pr.renderMiniControl();
+      if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
+    };
+
+    var replotForRoutingChange = function() {
+      if (pr.getRouteStops().length >= 2) {
+        pr.markRouteStale({ clearRoute: true });
+      } else {
+        pr.renderPanel();
+        if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
+        pr.renderMiniControl();
+        if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
+      }
+    };
+
     if (field === 'default-stop-minutes') {
       var value = pr.parseDurationMinutes(target.value);
       if (value === null) {
@@ -7194,6 +7695,54 @@ button.portal-route-waypoint-name,
       pr.saveSettings();
       pr.markRouteStale();
       pr.renderPanel();
+    } else if (field === 'routing-provider') {
+      var provider = pr.normalizeRoutingProvider(target.value);
+      if (provider === pr.state.settings.routingProvider) return;
+      if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('change routing provider');
+      pr.state.settings.routingProvider = provider;
+      pr.saveSettings();
+      replotForRoutingChange();
+    } else if (field === 'default-travel-mode') {
+      var mode = pr.normalizeTravelMode(target.value);
+      if (mode === pr.state.settings.defaultTravelMode) return;
+      if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('change travel mode');
+      pr.state.settings.defaultTravelMode = mode;
+      pr.saveSettings();
+      replotForRoutingChange();
+    } else if (field === 'drive-speed-mph' || field === 'bike-speed-mph' || field === 'walk-speed-mph') {
+      var speed = Number(String(target.value || '').trim());
+      if (!isFinite(speed) || speed <= 0) {
+        pr.showMessage('Invalid speed. Use a number greater than 0.');
+        if (field === 'drive-speed-mph') target.value = pr.formatSpeedInput(pr.state.settings.driveSpeedMph);
+        if (field === 'bike-speed-mph') target.value = pr.formatSpeedInput(pr.state.settings.bikeSpeedMph);
+        if (field === 'walk-speed-mph') target.value = pr.formatSpeedInput(pr.state.settings.walkSpeedMph);
+        return;
+      }
+
+      var settingsKey = field === 'drive-speed-mph'
+        ? 'driveSpeedMph'
+        : (field === 'bike-speed-mph' ? 'bikeSpeedMph' : 'walkSpeedMph');
+      if (speed === pr.state.settings[settingsKey]) return;
+      if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('change travel speed');
+      pr.state.settings[settingsKey] = speed;
+      pr.saveSettings();
+      target.value = pr.formatSpeedInput(speed);
+      applyTravelTimeSettings();
+    } else if (field === 'ors-api-key') {
+      var orsApiKey = String(target.value || '').trim();
+      if (orsApiKey === pr.state.settings.orsApiKey) return;
+
+      pr.state.settings.orsApiKey = orsApiKey;
+      pr.saveSettings();
+      if (pr.getRoutingProvider() === pr.ROUTING_PROVIDERS.ors) replotForRoutingChange();
+    } else if (field === 'ors-base-url') {
+      var orsBaseUrl = String(target.value || '').trim().replace(/\/+$/, '') || pr.DEFAULT_SETTINGS.orsBaseUrl;
+      if (orsBaseUrl === pr.state.settings.orsBaseUrl) return;
+
+      pr.state.settings.orsBaseUrl = orsBaseUrl;
+      pr.saveSettings();
+      target.value = orsBaseUrl;
+      if (pr.getRoutingProvider() === pr.ROUTING_PROVIDERS.ors) replotForRoutingChange();
     } else if (field === 'google-drive-oauth-client-id') {
       var clientId = String(target.value || '').trim();
       if (clientId === pr.state.settings.googleDriveOAuthClientId) return;

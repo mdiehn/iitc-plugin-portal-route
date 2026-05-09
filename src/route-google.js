@@ -2,7 +2,15 @@
     return new google.maps.LatLng(stop.lat, stop.lng);
   };
 
-  pr.calculateRoute = function() {
+  pr.googleDirectionsTravelMode = function() {
+    var mode = pr.getTravelMode();
+    if (!window.google || !google.maps || !google.maps.TravelMode) return null;
+    if (mode === pr.TRAVEL_MODES.bike && google.maps.TravelMode.BICYCLING) return google.maps.TravelMode.BICYCLING;
+    if (mode === pr.TRAVEL_MODES.walk && google.maps.TravelMode.WALKING) return google.maps.TravelMode.WALKING;
+    return google.maps.TravelMode.DRIVING;
+  };
+
+  pr.calculateGoogleRoute = function() {
     var stops = pr.getRouteStops();
     if (stops.length < 2) {
       pr.showMessage('Add at least two waypoints to calculate a route.');
@@ -26,7 +34,7 @@
       destination: pr.getGoogleLatLng(destination),
       waypoints: waypoints,
       optimizeWaypoints: false,
-      travelMode: google.maps.TravelMode.DRIVING
+      travelMode: pr.googleDirectionsTravelMode()
     };
 
     pr.setBusy(true);
@@ -68,6 +76,8 @@
           durationSeconds: leg.duration ? leg.duration.value : 0,
           distanceText: leg.distance ? leg.distance.text : '',
           durationText: leg.duration ? leg.duration.text : '',
+          googleDurationSeconds: leg.duration ? leg.duration.value : 0,
+          googleDurationText: leg.duration ? leg.duration.text : '',
           path: legPath
         };
       });
@@ -80,12 +90,16 @@
       }
 
       pr.state.route = {
+        providerId: pr.ROUTING_PROVIDERS.google,
+        providerLabel: pr.getRoutingProviderLabel(pr.ROUTING_PROVIDERS.google),
+        travelMode: pr.getTravelMode(),
         legs: legs,
         totals: pr.calculateTotals(legs),
         path: path.map(function(point) {
           return { lat: point.lat, lng: point.lng };
         })
       };
+      pr.refreshRouteTravelEstimates(pr.state.route);
       pr.markRouteCurrent();
 
       pr.drawRoutePath(path);

@@ -552,6 +552,29 @@
     var field = target && target.getAttribute('data-field');
     if (pr.handleDialogSettingChange(target)) return;
 
+    var applyTravelTimeSettings = function() {
+      if (pr.refreshRouteTravelEstimates && pr.state.route) {
+        pr.refreshRouteTravelEstimates(pr.state.route);
+        pr.saveRoute();
+        pr.redrawSegmentTimeLabels();
+      }
+      pr.renderPanel();
+      if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
+      pr.renderMiniControl();
+      if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
+    };
+
+    var replotForRoutingChange = function() {
+      if (pr.getRouteStops().length >= 2) {
+        pr.markRouteStale({ clearRoute: true });
+      } else {
+        pr.renderPanel();
+        if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
+        pr.renderMiniControl();
+        if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
+      }
+    };
+
     if (field === 'default-stop-minutes') {
       var value = pr.parseDurationMinutes(target.value);
       if (value === null) {
@@ -567,6 +590,54 @@
       pr.saveSettings();
       pr.markRouteStale();
       pr.renderPanel();
+    } else if (field === 'routing-provider') {
+      var provider = pr.normalizeRoutingProvider(target.value);
+      if (provider === pr.state.settings.routingProvider) return;
+      if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('change routing provider');
+      pr.state.settings.routingProvider = provider;
+      pr.saveSettings();
+      replotForRoutingChange();
+    } else if (field === 'default-travel-mode') {
+      var mode = pr.normalizeTravelMode(target.value);
+      if (mode === pr.state.settings.defaultTravelMode) return;
+      if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('change travel mode');
+      pr.state.settings.defaultTravelMode = mode;
+      pr.saveSettings();
+      replotForRoutingChange();
+    } else if (field === 'drive-speed-mph' || field === 'bike-speed-mph' || field === 'walk-speed-mph') {
+      var speed = Number(String(target.value || '').trim());
+      if (!isFinite(speed) || speed <= 0) {
+        pr.showMessage('Invalid speed. Use a number greater than 0.');
+        if (field === 'drive-speed-mph') target.value = pr.formatSpeedInput(pr.state.settings.driveSpeedMph);
+        if (field === 'bike-speed-mph') target.value = pr.formatSpeedInput(pr.state.settings.bikeSpeedMph);
+        if (field === 'walk-speed-mph') target.value = pr.formatSpeedInput(pr.state.settings.walkSpeedMph);
+        return;
+      }
+
+      var settingsKey = field === 'drive-speed-mph'
+        ? 'driveSpeedMph'
+        : (field === 'bike-speed-mph' ? 'bikeSpeedMph' : 'walkSpeedMph');
+      if (speed === pr.state.settings[settingsKey]) return;
+      if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('change travel speed');
+      pr.state.settings[settingsKey] = speed;
+      pr.saveSettings();
+      target.value = pr.formatSpeedInput(speed);
+      applyTravelTimeSettings();
+    } else if (field === 'ors-api-key') {
+      var orsApiKey = String(target.value || '').trim();
+      if (orsApiKey === pr.state.settings.orsApiKey) return;
+
+      pr.state.settings.orsApiKey = orsApiKey;
+      pr.saveSettings();
+      if (pr.getRoutingProvider() === pr.ROUTING_PROVIDERS.ors) replotForRoutingChange();
+    } else if (field === 'ors-base-url') {
+      var orsBaseUrl = String(target.value || '').trim().replace(/\/+$/, '') || pr.DEFAULT_SETTINGS.orsBaseUrl;
+      if (orsBaseUrl === pr.state.settings.orsBaseUrl) return;
+
+      pr.state.settings.orsBaseUrl = orsBaseUrl;
+      pr.saveSettings();
+      target.value = orsBaseUrl;
+      if (pr.getRoutingProvider() === pr.ROUTING_PROVIDERS.ors) replotForRoutingChange();
     } else if (field === 'google-drive-oauth-client-id') {
       var clientId = String(target.value || '').trim();
       if (clientId === pr.state.settings.googleDriveOAuthClientId) return;

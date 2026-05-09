@@ -2,11 +2,11 @@
 
 #WARNING - needs update since 1.1.0 release
 
-Current release: `1.3.1`
+Current release: `1.5.0`
 
-Portal Route has reached its first stable release. The main route-building loop is usable now: add portals, add manual points, add current location, loop back to start, drag/edit points, calculate routes, export to staged Google Maps links, import/export JSON, print, and keep state across reloads.
+Portal Route has reached its first stable release. The main route-building loop is usable now: add portals, add manual points, add current location, loop back to start, drag/edit points, calculate routes, choose a travel mode, export to staged Google Maps links, import/export JSON, print, and keep state across reloads.
 
-## Current state: 1.3.1
+## Current state: 1.5.0
 
 Done and released:
 
@@ -21,6 +21,8 @@ Done and released:
 - waypoint row move/remove controls
 - waypoint row drag-and-drop reordering
 - per-stop wait times and default stop time
+- route-level travel mode selection
+- per-mode average speed settings for travel-time estimates
 - flexible wait-time inputs such as `15m`, `1.5h`, and `2d`
 - stale route tracking after edits
 - automatic route calculation after route edits
@@ -31,10 +33,11 @@ Done and released:
 - compact mini-control
 - optional mini-control and portal info-panel controls
 - portal details controls for Add/Remove, Menu, List, Plot/Replot, and Clear
-- route summary with drive time, stop time, trip time, and distance
+- route summary with travel time, stop time, trip time, and distance
 - per-leg segment time/distance in the stop list
 - optional segment labels on the map
 - Google Maps export
+- Google Maps export mode mapping for driving, bicycling, and walking
 - staged Apple Maps export
 - staged Google Maps links for routes over the practical 11-point limit
 - JSON export/import of the current route
@@ -55,17 +58,17 @@ Known rough edges:
 - Google Maps export works, but the staging/export flow could be clearer.
 - Waypoint dragging and portal snapping need more field testing.
 
-## Current focus: v1.3.1
+## Current focus: v1.5.0
 
-Theme: small bug-fix release after the v1.3.0 UI polish.
+Theme: first-pass travel mode support without breaking current Google route/export behavior.
 
-This release fixes a layer-toggle cleanup bug so controls injected into the IITC portal info panel are removed when the Portal Route layer is turned off.
+This release adds route-level travel mode settings and per-mode average speed estimates. Travel times now use the selected mode and speed, while route geometry, distance, stop timing, and staged Google export behavior stay intact.
 
-The v1.3.0 work focused on placement-mode and stale-route polish after the v1.2.0 route-control cleanup.
+Google Maps export now maps Portal Route travel modes to Google's `driving`, `bicycling`, and `walking` modes through a small provider wrapper.
 
-This release keeps the route-library work intact and tightens the day-to-day route controls: manual point placement can be canceled, stale routes are easier to notice, and route-row buttons fit better on mobile.
+This release also carries travel-mode settings through saved routes, route JSON import/export, restored state, and undo.
 
-Current v1.3.x UI state:
+Current v1.5.0 UI state:
 
 - Add/Del handles the common selected-point action, with Menu as the wider route-building/export/navigation menu. Add toggles manual point placement when nothing is selected.
 - Undo is available for recent route edits.
@@ -74,9 +77,19 @@ Current v1.3.x UI state:
 - The route list is the working console for day-to-day route work.
 - Route-list rows have compact Up/Dn/Del controls, with mobile-friendly symbols on narrow screens and rename/start/end actions still in the context menu.
 - The settings panel is a small settings/navigation panel with Add/Del and Menu; Menu includes Route/Replot.
+- The settings panel now also includes default travel mode and per-mode speed settings.
 - The route library is a separate panel with Save, Load, Import, Export, Delete, and Menu.
 - Local route-library JSON portability works for single routes and whole libraries.
 - Stale route data has a clearer Replot cue, stale compact stats, and a Menu Route/Replot fallback.
+
+## Near-term multi-modal follow-up
+
+Not in `1.5.0` yet:
+
+- per-leg travel modes
+- alternative export/routing providers
+- distinct line styles by mode
+- multi-modal summaries
 
 ### v1.1.0-a: route record and local library
 

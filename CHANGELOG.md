@@ -2,7 +2,25 @@
 
 This project is in active development.
 
-Current release: `1.4.1`
+Current release: `1.5.0`
+
+## 1.5.0 - Released 2026-05-09
+
+### Added
+
+- Added internal `drive`, `bike`, and `walk` travel modes.
+- Added settings for default travel mode and per-mode average speed estimates.
+- Added small export-provider wiring around Google Maps so travel modes can map cleanly to provider-specific export parameters.
+- Added OpenRouteService as an opt-in beta routing provider for route geometry.
+- Added OpenRouteService API key and base URL settings.
+
+### Changed
+
+- Route and leg travel times now use the selected travel mode and configured average speed while keeping distance calculation unchanged.
+- Google Maps route calculation and export now map Portal Route travel modes to Google's `driving`, `bicycling`, and `walking` modes.
+- ORS beta maps Portal Route modes to `driving-car`, `cycling-regular`, and `foot-walking`.
+- Saved routes, route JSON, restored state, and undo snapshots now carry travel-mode and routing-provider settings without exporting ORS API keys.
+- Keep travel mode and speed controls with the route list, while routing-provider and API credential fields stay in global settings with wider text inputs.
 
 ## 1.4.1 - Released 2026-05-09
 

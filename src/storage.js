@@ -45,7 +45,10 @@
       var rawRoute = localStorage.getItem(pr.STORAGE_KEYS.route);
       if (rawRoute) {
         var route = JSON.parse(rawRoute);
-        if (route && Array.isArray(route.legs)) pr.state.route = route;
+        if (route && Array.isArray(route.legs)) {
+          pr.state.route = route;
+          if (pr.refreshRouteTravelEstimates) pr.refreshRouteTravelEstimates(pr.state.route);
+        }
       }
 
       var rawRouteDirty = localStorage.getItem(pr.STORAGE_KEYS.routeDirty);

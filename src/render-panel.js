@@ -83,9 +83,10 @@
   pr.renderTotals = function(route) {
     if (!route || !route.totals) return '';
 
+    var travelLabel = pr.getTravelModeLabel(route.totals.travelMode);
     var html = '';
     html += '<div class="portal-route-totals">';
-    html += '<div><span>Driving</span><strong>' + pr.formatDuration(route.totals.driveSeconds) + '</strong></div>';
+    html += '<div><span>' + pr.escapeHtml(travelLabel) + '</span><strong>' + pr.formatDuration(route.totals.driveSeconds) + '</strong></div>';
     html += '<div><span>Stops</span><strong>' + pr.formatDuration(route.totals.stopSeconds) + '</strong></div>';
     html += '<div><span>Trip</span><strong>' + pr.formatDuration(route.totals.tripSeconds) + '</strong></div>';
     html += '<div><span>Distance</span><strong>' + pr.formatDistance(route.totals.distanceMeters) + '</strong></div>';
@@ -96,10 +97,11 @@
   pr.renderPointsSummary = function(route) {
     if (!route || !route.totals) return '';
 
+    var travelLabel = pr.getTravelModeLabel(route.totals.travelMode);
     var html = '';
     html += '<div class="portal-route-totals portal-route-points-summary">';
     html += '<div><span>Trip</span><strong>' + pr.formatDuration(route.totals.tripSeconds) + '</strong></div>';
-    html += '<div><span>Driving</span><strong>' + pr.formatDuration(route.totals.driveSeconds) + '</strong></div>';
+    html += '<div><span>' + pr.escapeHtml(travelLabel) + '</span><strong>' + pr.formatDuration(route.totals.driveSeconds) + '</strong></div>';
     html += '<div><span>Stops</span><strong>' + pr.formatDuration(route.totals.stopSeconds) + '</strong></div>';
     html += '<div><span>Distance</span><strong>' + pr.formatDistance(route.totals.distanceMeters) + ' / ' + pr.formatDistanceKm(route.totals.distanceMeters) + '</strong></div>';
     html += '</div>';
@@ -124,9 +126,24 @@
     var html = '';
     html += '<div class="portal-route-compact-stats' + staleClass + '">' + staleText;
     html += '<span><b>Tot</b> ' + pr.escapeHtml(pr.formatDuration(route.totals.tripSeconds)) + '</span>';
-    html += '<span><b>Drv</b> ' + pr.escapeHtml(pr.formatDuration(route.totals.driveSeconds)) + '</span>';
+    html += '<span><b>' + pr.escapeHtml(pr.getTravelModeLabel(route.totals.travelMode).slice(0, 1)) + '</b> ' + pr.escapeHtml(pr.formatDuration(route.totals.driveSeconds)) + '</span>';
     html += '<span><b>Wait</b> ' + pr.escapeHtml(pr.formatDuration(route.totals.stopSeconds)) + '</span>';
     html += '<span><b>Dist</b> ' + pr.escapeHtml(pr.formatDistance(route.totals.distanceMeters)) + '</span>';
+    html += '</div>';
+    return html;
+  };
+
+  pr.renderTravelModeControls = function() {
+    var html = '';
+    html += '<div class="portal-route-list-options portal-route-travel-controls">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Mode <select aria-label="Default travel mode" data-field="default-travel-mode">' +
+      '<option value="' + pr.TRAVEL_MODES.drive + '"' + (pr.getTravelMode() === pr.TRAVEL_MODES.drive ? ' selected' : '') + '>Drive</option>' +
+      '<option value="' + pr.TRAVEL_MODES.bike + '"' + (pr.getTravelMode() === pr.TRAVEL_MODES.bike ? ' selected' : '') + '>Bike</option>' +
+      '<option value="' + pr.TRAVEL_MODES.walk + '"' + (pr.getTravelMode() === pr.TRAVEL_MODES.walk ? ' selected' : '') + '>Walk</option>' +
+      '</select></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Drive <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatSpeedInput(pr.state.settings.driveSpeedMph)) + '" aria-label="Drive speed in miles per hour" placeholder="30" data-field="drive-speed-mph"></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Bike <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatSpeedInput(pr.state.settings.bikeSpeedMph)) + '" aria-label="Bike speed in miles per hour" placeholder="10" data-field="bike-speed-mph"></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Walk <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatSpeedInput(pr.state.settings.walkSpeedMph)) + '" aria-label="Walk speed in miles per hour" placeholder="3" data-field="walk-speed-mph"></label>';
     html += '</div>';
     return html;
   };
@@ -134,10 +151,24 @@
 
   pr.renderMainPanel = function(legsByToIndex) {
     var html = '';
+    var provider = pr.getRoutingProvider();
 
     html += '<div class="portal-route-body">';
     html += '<div class="portal-route-list-options">';
     html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" aria-label="Default stop time" placeholder="15m" data-field="default-stop-minutes"> per portal</label>';
+    html += '</div>';
+
+    html += '<div class="portal-route-list-options">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Routing <select aria-label="Routing provider" data-field="routing-provider">' +
+      '<option value="' + pr.ROUTING_PROVIDERS.google + '"' + (provider === pr.ROUTING_PROVIDERS.google ? ' selected' : '') + '>Google</option>' +
+      '<option value="' + pr.ROUTING_PROVIDERS.ors + '"' + (provider === pr.ROUTING_PROVIDERS.ors ? ' selected' : '') + '>ORS beta</option>' +
+      '</select></label>';
+    html += '</div>';
+    html += '<div class="portal-route-list-options portal-route-long-setting-row portal-route-ors-settings">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-long-setting">ORS API key <input type="password" autocomplete="off" value="' + pr.escapeHtml(pr.state.settings.orsApiKey || '') + '" aria-label="OpenRouteService API key" placeholder="Required for public ORS" data-field="ors-api-key"></label>';
+    html += '</div>';
+    html += '<div class="portal-route-list-options portal-route-long-setting-row portal-route-ors-settings">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-long-setting">ORS URL <input type="text" value="' + pr.escapeHtml(pr.state.settings.orsBaseUrl || pr.DEFAULT_SETTINGS.orsBaseUrl) + '" aria-label="OpenRouteService base URL" placeholder="https://api.openrouteservice.org" data-field="ors-base-url"></label>';
     html += '</div>';
 
     html += '<div class="portal-route-settings-row">';
@@ -149,8 +180,8 @@
       html += '<span class="portal-route-version">Portal Route ' + pr.escapeHtml(pr.VERSION) + '</span>';
     }
     html += '</div>';
-    html += '<div class="portal-route-list-options">';
-    html += '<label class="portal-route-setting portal-route-default-stop-setting">Google Drive OAuth Client ID <input type="text" value="' + pr.escapeHtml(pr.state.settings.googleDriveOAuthClientId || '') + '" aria-label="Google Drive OAuth Client ID" placeholder="Used when Sync auth is unavailable" data-field="google-drive-oauth-client-id"></label>';
+    html += '<div class="portal-route-list-options portal-route-long-setting-row">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-long-setting">Google Drive OAuth Client ID <input type="text" value="' + pr.escapeHtml(pr.state.settings.googleDriveOAuthClientId || '') + '" aria-label="Google Drive OAuth Client ID" placeholder="Used when Sync auth is unavailable" data-field="google-drive-oauth-client-id"></label>';
     html += '</div>';
 
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
@@ -182,11 +213,11 @@
   };
 
   pr.getDialogWidth = function() {
-    return pr.getDialogSize(430, 210, 320, 210).width;
+    return pr.getDialogSize(540, 280, 360, 260).width;
   };
 
   pr.getDialogHeight = function() {
-    return pr.getDialogSize(430, 210, 320, 210).height;
+    return pr.getDialogSize(540, 280, 360, 260).height;
   };
 
   pr.getPointsDialogWidth = function() {
@@ -435,6 +466,7 @@
     contentHtml += pr.renderPointsSummary(route);
     contentHtml += pr.renderRouteStaleHint();
     contentHtml += '<div class="portal-route-bottom-summary"><b>Waypoints:</b> ' + pr.state.stops.length + (pr.makeLoopStop() && pr.state.stops.length > 1 ? ' + loop' : '') + '</div>';
+    contentHtml += pr.renderTravelModeControls();
     contentHtml += '<div class="portal-route-points-list-body">';
     contentHtml += '<div class="portal-route-body">' + pr.renderStopsList(legsByToIndex) + '</div>';
     contentHtml += '</div>';

@@ -13,12 +13,35 @@
 
       if (typeof defaultValue === 'number') {
         value = Number(value);
-        if (isFinite(value) && value >= 0) normalized[key] = Math.round(value);
+        if (!isFinite(value) || value < 0) return;
+        if (/SpeedMph$/.test(key)) {
+          if (value > 0) normalized[key] = value;
+          return;
+        }
+        normalized[key] = Math.round(value);
         return;
       }
 
       if (typeof defaultValue === 'string') {
-        if (typeof value === 'string') normalized[key] = value.trim();
+        if (typeof value !== 'string') return;
+        value = value.trim();
+        if (key === 'defaultTravelMode') {
+          if (value === pr.TRAVEL_MODES.drive || value === pr.TRAVEL_MODES.bike || value === pr.TRAVEL_MODES.walk) {
+            normalized[key] = value;
+          }
+          return;
+        }
+        if (key === 'routingProvider') {
+          if (value === pr.ROUTING_PROVIDERS.google || value === pr.ROUTING_PROVIDERS.ors) {
+            normalized[key] = value;
+          }
+          return;
+        }
+        if (key === 'orsBaseUrl') {
+          normalized[key] = value.replace(/\/+$/, '') || pr.DEFAULT_SETTINGS.orsBaseUrl;
+          return;
+        }
+        normalized[key] = value;
       }
     });
 

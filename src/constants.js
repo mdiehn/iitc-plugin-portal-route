@@ -1,6 +1,6 @@
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.2.0';
+  pr.VERSION = '1.5.0';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -33,10 +33,28 @@
     routeLibraryDriveFileId: 'iitc-portal-route-drive-file-id'
   };
 
+  pr.TRAVEL_MODES = {
+    drive: 'drive',
+    bike: 'bike',
+    walk: 'walk'
+  };
+
+  pr.ROUTING_PROVIDERS = {
+    google: 'google',
+    ors: 'ors'
+  };
+
   pr.DEFAULT_SETTINGS = {
     defaultStopMinutes: 5,
     includeReturnToStart: false,
     startOnCurrentLocation: false,
+    routingProvider: pr.ROUTING_PROVIDERS.google,
+    defaultTravelMode: pr.TRAVEL_MODES.drive,
+    driveSpeedMph: 30,
+    bikeSpeedMph: 10,
+    walkSpeedMph: 3,
+    orsApiKey: '',
+    orsBaseUrl: 'https://api.openrouteservice.org',
     googleDriveOAuthClientId: '',
     showSegmentTimesOnMap: false,
     showMiniControl: true,

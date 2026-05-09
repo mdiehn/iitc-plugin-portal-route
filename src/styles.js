@@ -72,8 +72,48 @@
   width: 4.5em;
 }
 
+.portal-route-setting select {
+  max-width: 100%;
+}
+
 .portal-route-default-stop-setting {
   flex: 1 1 auto;
+}
+
+.portal-route-travel-controls {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.portal-route-travel-controls .portal-route-setting {
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+
+.portal-route-travel-controls .portal-route-setting input {
+  width: 3.4em;
+}
+
+.portal-route-travel-controls .portal-route-setting select {
+  width: 5.8em;
+}
+
+.portal-route-long-setting-row {
+  align-items: stretch;
+}
+
+.portal-route-long-setting {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.portal-route-long-setting input {
+  width: 100%;
+  min-width: 18em;
 }
 
 .portal-route-clear-list-button {
@@ -1168,6 +1208,11 @@ button.portal-route-waypoint-name,
 
   .portal-route-list-options {
     align-items: flex-start;
+  }
+
+  .portal-route-travel-controls {
+    overflow-x: auto;
+    padding-bottom: 2px;
   }
 
 }

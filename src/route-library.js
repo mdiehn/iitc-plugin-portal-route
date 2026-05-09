@@ -26,7 +26,12 @@
   pr.routeLibrarySettings = function() {
     return {
       defaultStopMinutes: pr.state.settings.defaultStopMinutes,
-      includeReturnToStart: !!pr.state.settings.includeReturnToStart
+      includeReturnToStart: !!pr.state.settings.includeReturnToStart,
+      routingProvider: pr.state.settings.routingProvider || pr.ROUTING_PROVIDERS.google,
+      defaultTravelMode: pr.state.settings.defaultTravelMode || pr.TRAVEL_MODES.drive,
+      driveSpeedMph: pr.state.settings.driveSpeedMph,
+      bikeSpeedMph: pr.state.settings.bikeSpeedMph,
+      walkSpeedMph: pr.state.settings.walkSpeedMph
     };
   };
 
@@ -457,6 +462,22 @@
     if (typeof settings.includeReturnToStart === 'boolean') {
       pr.state.settings.includeReturnToStart = settings.includeReturnToStart;
     }
+
+    if (settings.routingProvider === pr.ROUTING_PROVIDERS.google ||
+        settings.routingProvider === pr.ROUTING_PROVIDERS.ors) {
+      pr.state.settings.routingProvider = settings.routingProvider;
+    }
+
+    if (settings.defaultTravelMode === pr.TRAVEL_MODES.drive ||
+        settings.defaultTravelMode === pr.TRAVEL_MODES.bike ||
+        settings.defaultTravelMode === pr.TRAVEL_MODES.walk) {
+      pr.state.settings.defaultTravelMode = settings.defaultTravelMode;
+    }
+
+    ['driveSpeedMph', 'bikeSpeedMph', 'walkSpeedMph'].forEach(function(key) {
+      var value = Number(settings[key]);
+      if (isFinite(value) && value > 0) pr.state.settings[key] = value;
+    });
   };
 
   pr.applyRouteRecord = function(record) {

@@ -2,38 +2,46 @@
 
 ## Project
 
-This repo contains an IITC plugin called **Portal Route**.
+This repo contains the IITC plugin **Portal Route**.
 
-Current version: `1.1.0-dev` planning after the `1.0.0` release.
+Current release target: `1.5.0`
+
+Current branch when this note was updated: `feat/multi-modal-routing`
 
 ## Working style
 
 - Keep changes small and focused.
 - Do not do broad refactors unless explicitly asked.
-- Do not update generated `dist/` files unless explicitly asked.
-- Preserve existing plugin style and compatibility patterns.
+- Preserve existing plugin style and IITC compatibility patterns.
 - Prefer simple, readable JavaScript over clever abstractions.
 - Keep UI text short.
 - Docs should be terse, friendly, and non-corporate.
+- Do not update generated `dist/` files unless explicitly asked or preparing/rebuilding a release-related change.
+- Include a suggested commit message unless the user clearly does not want one.
+- Update `CHANGELOG.md` and `README.md` when changes are user-visible or release-relevant, and call out when they were intentionally left unchanged.
+- Keep `AGENTS.md` and `SESSION.md` as short handoff docs for agents. Do not turn them into running history logs.
 
-## Current focus
+## Current state
 
-Plan and implement the **v1.1.0 route library with Google Drive shared storage**.
+- Route library and Google Drive shared storage are already implemented.
+- Drive auth now prefers IITC Sync auth when available, with Portal Route OAuth Client ID fallback.
+- First-pass route-level travel mode support is in progress for `drive`, `bike`, and `walk`.
+- OpenRouteService beta routing is being added as an opt-in provider for v1.5.0.
+- Travel mode and per-mode speed controls belong in the route list / points panel, even though they persist as settings.
 
-Start with:
+## Current priorities
 
-- route record schema
-- local save/load of named routes
-- local storage backend
-- conservative UI wiring for the existing Save and Load buttons
-- JSON import/export for saved routes and route libraries
+- Keep travel-mode changes incremental.
+- Preserve existing Google route calculation geometry and route splitting behavior unless a change is clearly required.
+- Treat OSRM, per-leg travel modes, multi-modal summaries, and mode-specific line styling as later work.
 
-Then add:
+## Key docs
 
-- storage backend shape shared by local and external storage
-- Google Drive backend using a visible user-selected Drive folder
-- `route-library.json` in that folder
-
-Do not start with automatic polling, live sync, or hidden `appDataFolder` storage. Before implementing Drive directly, inspect IITC's existing Google Drive sync code to see whether Portal Route can reuse its auth/session/sync machinery or at least follow its working assumptions.
-
-See `docs/route-library-design.md` for the current design notes and open questions.
+- `AGENTS.md`
+- `SESSION.md`
+- `README.md`
+- `CHANGELOG.md`
+- `docs/design.md`
+- `docs/ROADMAP.md`
+- `docs/route-library-design.md`
+- `docs/ui-refactor-plan.md`
