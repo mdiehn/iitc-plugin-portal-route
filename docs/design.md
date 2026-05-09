@@ -7,9 +7,10 @@ The plugin is meant to help an agent:
 - build an ordered stop list from portals, map points, or current location
 - edit, rename, reorder, reverse, and clear route stops
 - include per-stop and default stop time
+- choose a route travel mode and per-mode average speed for estimated travel time
 - loop back to the first stop when needed
 - calculate routes automatically after route changes
-- see drive time, stop time, trip time, distance, and per-leg details
+- see travel time, stop time, trip time, distance, and per-leg details
 - export long routes to staged Google Maps links
 - export long routes to staged Apple Maps links
 - save and load named routes
@@ -95,6 +96,23 @@ Preferred direction:
 - avoid hidden `appDataFolder` storage for the first Drive backend
 - avoid automatic polling/live sync until conflict handling is clear
 
+## Current release: travel mode start
+
+Done in `1.5.0`:
+
+- route-level `drive`, `bike`, and `walk` travel modes
+- default travel mode setting
+- per-mode average speed settings
+- travel-time estimates derived from selected mode and configured speed
+- Google Maps export mode mapping for `driving`, `bicycling`, and `walking`
+- travel-mode settings carried through saved routes, route JSON, restored state, and undo
+
+Notes:
+
+- Distance calculation still follows the current route geometry.
+- Stop/wait time behavior is unchanged.
+- Per-leg travel modes and alternative routing providers are still later work.
+
 ## Remaining polish
 
 Likely useful polish before or after Drive:
@@ -109,6 +127,8 @@ Later ideas:
 - route optimization
 - Waze links
 - GPX/KML export
+- per-leg travel modes
+- alternative routing providers
 - manual shared map/view handoff with `current-map.json`
 - turn-by-turn directions inside IITC, only if it ever feels worth the complexity
 

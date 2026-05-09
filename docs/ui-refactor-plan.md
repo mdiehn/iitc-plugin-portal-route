@@ -241,7 +241,7 @@ Behavior:
 
 Optional future:
 
-- travel mode selection
+- additional map/export provider choices beyond the current Google and Apple options
 
 ---
 
@@ -273,7 +273,7 @@ Notes:
   - “Optimize order” context menu item
 
 - Export enhancements:
-  - Travel mode selection for Maps
+  - Additional provider-specific travel options if they earn their keep
 
 ---
 
@@ -313,3 +313,4 @@ Implemented notes:
 - Route-list rows use tap to select and right-click/long-press for Delete, Rename, Set as start, and Set as end.
 - Info panel uses text links styled like other portal details plugins.
 - Route calculation is automatic after edits, with Recalc Route as a manual fallback.
+- Settings now include route-level travel mode selection and per-mode speed settings for estimated travel time.

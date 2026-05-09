@@ -6,7 +6,7 @@ This file records planning decisions, design notes, and implementation context f
 
 ## Current target
 
-Version: `1.1.0-dev`
+Version: `1.5.0`
 
 Theme:
 
@@ -86,9 +86,18 @@ Route-relevant settings might include:
 ```json
 {
   "defaultStopMinutes": 5,
-  "includeReturnToStart": true
+  "includeReturnToStart": true,
+  "defaultTravelMode": "drive",
+  "driveSpeedMph": 30,
+  "bikeSpeedMph": 10,
+  "walkSpeedMph": 3
 }
 ```
+
+Current implementation note:
+
+- Travel-mode settings now travel with saved routes because they directly affect displayed route timing and export mode.
+- Route geometry is still recalculated from stops when a saved route is loaded.
 
 Settings that feel more like user preferences should probably stay global:
 

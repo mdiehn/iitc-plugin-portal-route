@@ -1,14 +1,14 @@
 # IITC plugin: Portal Route
 
-Portal Route is an IITC plugin for planning a driving route through selected Ingress portals and manual map points.
+Portal Route is an IITC plugin for planning a route through selected Ingress portals and manual map points.
 
-It is built for mobile-first use, but works on desktop IITC too. Build a stop list, account for stop time, export to a map app, or print a route summary.
+It is built for mobile use as the top priority, but also to work well on desktop IITC. Build a stop list, account for stop time, export to a map app, or print a route summary.
 
 ## Status
 
-Current release: `1.4.1`
+Current release: `1.5.0`
 
-This release fixes Google Drive auth setup. Portal Route no longer ships a hardcoded Drive credential, prefers IITC Sync's Google auth when available, and otherwise uses a user-configured OAuth Client ID from settings.
+This release adds first-pass travel mode support. You can choose `drive`, `bike`, or `walk`, set average speeds for each, and use those settings for estimated travel time and Google Maps export mode.
 
 Large bulk-selected routes can be saved and edited, but Google routing may not plot routes with more than 26 stops in one request yet.
 
@@ -39,6 +39,8 @@ The points list shows the current route order. Drag rows to reorder stops, or us
 
 ### Settings
 
+- **Travel mode** chooses the default route travel mode: drive, bike, or walk.
+- **Drive/Bike/Walk mph** set the average speeds used for estimated travel time.
 - **Show segment times on map** shows per-leg labels on the route line when route data is available.
 
 ### Direct actions and Menu
@@ -66,10 +68,12 @@ Large bulk-selected routes can be saved and edited, but Google routing may not p
 ### Route
 
 - Routes calculate automatically after changes. If stale state remains, use **Menu → Route/Replot** to refresh it.
+- Travel time uses the selected travel mode and configured average speed. Distance stays based on the current route geometry.
 - **Menu** includes Google Maps and Apple Maps export choices. Long routes are split into stage links.
+- Google Maps export maps Portal Route modes to Google's `driving`, `bicycling`, and `walking` modes.
 - **Print** opens a printable route summary.
 
-When route data is available, the panels show drive time, wait time, trip time, and distance. The portal info panel shows a small abbreviated stats row under its route buttons, and stale route data is marked until the route is replotted.
+When route data is available, the panels show travel time, wait time, trip time, and distance. The portal info panel shows a small abbreviated stats row under its route buttons, and stale route data is marked until the route is replotted.
 
 ![Portal Route point list](docs/point_list.png)
 

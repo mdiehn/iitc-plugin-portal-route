@@ -2,7 +2,21 @@
 
 This project is in active development.
 
-Current release: `1.4.1`
+Current release: `1.5.0`
+
+## 1.5.0 - Released 2026-05-09
+
+### Added
+
+- Added internal `drive`, `bike`, and `walk` travel modes.
+- Added settings for default travel mode and per-mode average speed estimates.
+- Added small export-provider wiring around Google Maps so travel modes can map cleanly to provider-specific export parameters.
+
+### Changed
+
+- Route and leg travel times now use the selected travel mode and configured average speed while keeping distance calculation unchanged.
+- Google Maps export now maps Portal Route travel modes to Google's `driving`, `bicycling`, and `walking` modes.
+- Saved routes, route JSON, restored state, and undo snapshots now carry travel-mode settings.
 
 ## 1.4.1 - Released 2026-05-09
 
