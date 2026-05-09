@@ -14,6 +14,11 @@
       if (typeof defaultValue === 'number') {
         value = Number(value);
         if (isFinite(value) && value >= 0) normalized[key] = Math.round(value);
+        return;
+      }
+
+      if (typeof defaultValue === 'string') {
+        if (typeof value === 'string') normalized[key] = value.trim();
       }
     });
 

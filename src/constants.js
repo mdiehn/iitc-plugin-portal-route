@@ -37,6 +37,7 @@
     defaultStopMinutes: 5,
     includeReturnToStart: false,
     startOnCurrentLocation: false,
+    googleDriveOAuthClientId: '',
     showSegmentTimesOnMap: false,
     showMiniControl: true,
     showPortalDetailsControls: true
