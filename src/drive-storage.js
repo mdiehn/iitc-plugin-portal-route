@@ -3,8 +3,6 @@
   pr.DRIVE_API_SCRIPT = 'https://apis.google.com/js/api.js';
   pr.DRIVE_DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'];
   pr.DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-  pr.DRIVE_API_KEY = 'AIzaSyBeVNFEHh35baf5y9miCjaw43L61BTeyhg';
-  pr.DRIVE_CLIENT_ID = '1099227387115-osrmhfh1i6dto7v7npk4dcpog1cnljtb.apps.googleusercontent.com';
 
   pr.driveState = {
     apiLoading: false,
@@ -16,6 +14,10 @@
     fileId: null,
     lastError: null,
     pushTimer: null
+  };
+
+  pr.getSyncPlugin = function() {
+    return window.plugin && window.plugin.sync ? window.plugin.sync : null;
   };
 
   pr.loadDriveState = function() {
@@ -63,9 +65,46 @@
     return library;
   };
 
+  pr.getDriveOAuthClientId = function() {
+    var settings = pr.state && pr.state.settings ? pr.state.settings : null;
+    return settings && typeof settings.googleDriveOAuthClientId === 'string'
+      ? settings.googleDriveOAuthClientId.trim()
+      : '';
+  };
+
+  pr.getGoogleAuthInstance = function() {
+    if (!window.gapi || !window.gapi.auth2 || !window.gapi.auth2.getAuthInstance) return null;
+    try {
+      return window.gapi.auth2.getAuthInstance();
+    } catch (e) {
+      return null;
+    }
+  };
+
+  pr.hasSyncDriveSession = function() {
+    return !!(pr.getSyncPlugin() && pr.getGoogleAuthInstance());
+  };
+
+  pr.getDriveAuthSource = function() {
+    if (pr.hasSyncDriveSession()) return 'sync';
+    if (pr.getDriveOAuthClientId()) return 'settings';
+    return null;
+  };
+
+  pr.driveOAuthClientIdRequiredMessage = function() {
+    return 'Google Drive needs IITC Sync Google auth or a Portal Route OAuth Client ID in settings.';
+  };
+
+  pr.driveActionErrorMessage = function(prefix, error) {
+    var detail = error && error.message ? error.message : prefix;
+    return prefix === detail ? prefix : prefix + ': ' + detail;
+  };
+
   pr.driveStatusText = function() {
     if (pr.driveState.lastError) return 'Drive: ' + pr.driveState.lastError;
     if (pr.isDriveReady()) return 'Drive: ' + (pr.driveState.folderName || pr.DRIVE_DEFAULT_FOLDER_NAME);
+    if (pr.hasSyncDriveSession()) return 'Drive: using IITC Sync auth';
+    if (!pr.getDriveOAuthClientId()) return 'Drive: Sync auth or OAuth Client ID required';
     if (pr.driveState.authorizing || pr.driveState.apiLoading) return 'Drive: connecting';
     if (pr.driveState.folderId) return 'Drive: reconnect needed';
     return 'Drive: not connected';
@@ -112,8 +151,30 @@
     return pr.driveApiPromise;
   };
 
+  pr.loadDriveClientApi = function() {
+    return new Promise(function(resolve, reject) {
+      window.gapi.load('client', {
+        callback: resolve,
+        onerror: function() { reject(new Error('Could not initialize Google API client.')); }
+      });
+    }).then(function() {
+      if (window.gapi.client && window.gapi.client.drive && window.gapi.client.drive.files) return;
+      return window.gapi.client.load('drive', 'v3');
+    });
+  };
+
   pr.authorizeDrive = function() {
     pr.loadDriveState();
+    var authSource = pr.getDriveAuthSource();
+    var clientId = authSource === 'settings' ? pr.getDriveOAuthClientId() : '';
+    if (!authSource) {
+      var configError = new Error(pr.driveOAuthClientIdRequiredMessage());
+      pr.driveState.authorized = false;
+      pr.driveState.lastError = 'Sync auth or OAuth Client ID required';
+      pr.refreshRouteLibraryPanel();
+      return Promise.reject(configError);
+    }
+
     pr.driveState.authorizing = true;
     pr.driveState.authorized = false;
     pr.driveState.lastError = null;
@@ -121,6 +182,7 @@
 
     return pr.loadGoogleDriveApi()
       .then(function() {
+        if (authSource === 'sync') return pr.loadDriveClientApi();
         return new Promise(function(resolve, reject) {
           window.gapi.load('client:auth2', {
             callback: resolve,
@@ -129,15 +191,16 @@
         });
       })
       .then(function() {
+        if (authSource === 'sync') return;
         return window.gapi.client.init({
-          apiKey: pr.DRIVE_API_KEY,
           discoveryDocs: pr.DRIVE_DISCOVERY_DOCS,
-          client_id: pr.DRIVE_CLIENT_ID,
+          client_id: clientId,
           scope: pr.DRIVE_SCOPE
         });
       })
       .then(function() {
-        var auth = window.gapi.auth2.getAuthInstance();
+        var auth = pr.getGoogleAuthInstance();
+        if (!auth) throw new Error('Google auth is not ready. Connect IITC Sync or enter a Portal Route OAuth Client ID.');
         if (auth.isSignedIn.get()) return true;
         return auth.signIn().then(function() { return true; });
       })
@@ -260,7 +323,7 @@
     }).catch(function(error) {
       pr.driveState.lastError = error && error.message ? error.message : 'Drive load failed.';
       pr.refreshRouteLibraryPanel();
-      pr.showMessage('Drive load failed.');
+      pr.showMessage(pr.driveActionErrorMessage('Drive load failed.', error));
     });
   };
 
@@ -289,7 +352,7 @@
     }).catch(function(error) {
       pr.driveState.lastError = error && error.message ? error.message : 'Drive save failed.';
       pr.refreshRouteLibraryPanel();
-      pr.showMessage('Drive save failed.');
+      pr.showMessage(pr.driveActionErrorMessage('Drive save failed.', error));
     });
   };
 
@@ -314,7 +377,9 @@
       pr.showMessage('Drive connected.');
     }).catch(function(error) {
       console.warn('Portal Route: Drive connect failed', error);
-      pr.showMessage('Drive connect failed.');
+      pr.driveState.lastError = error && error.message ? error.message : 'Drive connect failed.';
+      pr.refreshRouteLibraryPanel();
+      pr.showMessage(pr.driveActionErrorMessage('Drive connect failed.', error));
     });
   };
 
@@ -332,7 +397,9 @@
       pr.showMessage('Drive folder ready.');
     }).catch(function(error) {
       console.warn('Portal Route: Drive folder setup failed', error);
-      pr.showMessage('Drive folder setup failed.');
+      pr.driveState.lastError = error && error.message ? error.message : 'Drive folder setup failed.';
+      pr.refreshRouteLibraryPanel();
+      pr.showMessage(pr.driveActionErrorMessage('Drive folder setup failed.', error));
     });
   };
 

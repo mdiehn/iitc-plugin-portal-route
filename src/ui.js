@@ -567,6 +567,17 @@
       pr.saveSettings();
       pr.markRouteStale();
       pr.renderPanel();
+    } else if (field === 'google-drive-oauth-client-id') {
+      var clientId = String(target.value || '').trim();
+      if (clientId === pr.state.settings.googleDriveOAuthClientId) return;
+
+      pr.state.settings.googleDriveOAuthClientId = clientId;
+      pr.saveSettings();
+      pr.driveState.authorized = false;
+      pr.driveState.lastError = null;
+      if (document.getElementById(pr.DOM_IDS.routeLibraryContent) && pr.refreshRouteLibraryPanel) {
+        pr.refreshRouteLibraryPanel();
+      }
     } else if (field === 'stop-minutes') {
       var stopIndex = Number(target.getAttribute('data-index'));
       var stopValue = pr.parseDurationMinutes(target.value);

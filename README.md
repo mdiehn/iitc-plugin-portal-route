@@ -119,6 +119,8 @@ After you add enough stops, Portal Route draws the route line and fills in drive
 
 The settings panel keeps general configuration and utility navigation separate from day-to-day route work.
 
+Google Drive support uses IITC Sync's Google auth when it is already available. Otherwise, enter a Google Drive OAuth Client ID in Portal Route settings. Portal Route does not ship a Google API key or OAuth client secret for Drive.
+
 ![Portal Route settings panel](docs/settings.png)
 
 ## Main features
