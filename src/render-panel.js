@@ -133,6 +133,23 @@
     return html;
   };
 
+  pr.renderTravelModeControls = function() {
+    var html = '';
+    html += '<div class="portal-route-list-options">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Travel mode <select aria-label="Default travel mode" data-field="default-travel-mode">' +
+      '<option value="' + pr.TRAVEL_MODES.drive + '"' + (pr.getTravelMode() === pr.TRAVEL_MODES.drive ? ' selected' : '') + '>Drive</option>' +
+      '<option value="' + pr.TRAVEL_MODES.bike + '"' + (pr.getTravelMode() === pr.TRAVEL_MODES.bike ? ' selected' : '') + '>Bike</option>' +
+      '<option value="' + pr.TRAVEL_MODES.walk + '"' + (pr.getTravelMode() === pr.TRAVEL_MODES.walk ? ' selected' : '') + '>Walk</option>' +
+      '</select></label>';
+    html += '</div>';
+    html += '<div class="portal-route-list-options">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Drive mph <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatSpeedInput(pr.state.settings.driveSpeedMph)) + '" aria-label="Drive speed in miles per hour" placeholder="30" data-field="drive-speed-mph"></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Bike mph <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatSpeedInput(pr.state.settings.bikeSpeedMph)) + '" aria-label="Bike speed in miles per hour" placeholder="10" data-field="bike-speed-mph"></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Walk mph <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatSpeedInput(pr.state.settings.walkSpeedMph)) + '" aria-label="Walk speed in miles per hour" placeholder="3" data-field="walk-speed-mph"></label>';
+    html += '</div>';
+    return html;
+  };
+
 
   pr.renderMainPanel = function(legsByToIndex) {
     var html = '';
@@ -140,11 +157,6 @@
     html += '<div class="portal-route-body">';
     html += '<div class="portal-route-list-options">';
     html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" aria-label="Default stop time" placeholder="15m" data-field="default-stop-minutes"> per portal</label>';
-    html += '<label class="portal-route-setting portal-route-default-stop-setting">Travel mode <select aria-label="Default travel mode" data-field="default-travel-mode">' +
-      '<option value="' + pr.TRAVEL_MODES.drive + '"' + (pr.getTravelMode() === pr.TRAVEL_MODES.drive ? ' selected' : '') + '>Drive</option>' +
-      '<option value="' + pr.TRAVEL_MODES.bike + '"' + (pr.getTravelMode() === pr.TRAVEL_MODES.bike ? ' selected' : '') + '>Bike</option>' +
-      '<option value="' + pr.TRAVEL_MODES.walk + '"' + (pr.getTravelMode() === pr.TRAVEL_MODES.walk ? ' selected' : '') + '>Walk</option>' +
-      '</select></label>';
     html += '</div>';
 
     html += '<div class="portal-route-settings-row">';
@@ -155,11 +167,6 @@
     if (pr.SHOW_VERSION_IN_PANEL) {
       html += '<span class="portal-route-version">Portal Route ' + pr.escapeHtml(pr.VERSION) + '</span>';
     }
-    html += '</div>';
-    html += '<div class="portal-route-list-options">';
-    html += '<label class="portal-route-setting portal-route-default-stop-setting">Drive mph <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatSpeedInput(pr.state.settings.driveSpeedMph)) + '" aria-label="Drive speed in miles per hour" placeholder="30" data-field="drive-speed-mph"></label>';
-    html += '<label class="portal-route-setting portal-route-default-stop-setting">Bike mph <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatSpeedInput(pr.state.settings.bikeSpeedMph)) + '" aria-label="Bike speed in miles per hour" placeholder="10" data-field="bike-speed-mph"></label>';
-    html += '<label class="portal-route-setting portal-route-default-stop-setting">Walk mph <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatSpeedInput(pr.state.settings.walkSpeedMph)) + '" aria-label="Walk speed in miles per hour" placeholder="3" data-field="walk-speed-mph"></label>';
     html += '</div>';
     html += '<div class="portal-route-list-options">';
     html += '<label class="portal-route-setting portal-route-default-stop-setting">Google Drive OAuth Client ID <input type="text" value="' + pr.escapeHtml(pr.state.settings.googleDriveOAuthClientId || '') + '" aria-label="Google Drive OAuth Client ID" placeholder="Used when Sync auth is unavailable" data-field="google-drive-oauth-client-id"></label>';
@@ -447,6 +454,7 @@
     contentHtml += pr.renderPointsSummary(route);
     contentHtml += pr.renderRouteStaleHint();
     contentHtml += '<div class="portal-route-bottom-summary"><b>Waypoints:</b> ' + pr.state.stops.length + (pr.makeLoopStop() && pr.state.stops.length > 1 ? ' + loop' : '') + '</div>';
+    contentHtml += pr.renderTravelModeControls();
     contentHtml += '<div class="portal-route-points-list-body">';
     contentHtml += '<div class="portal-route-body">' + pr.renderStopsList(legsByToIndex) + '</div>';
     contentHtml += '</div>';
