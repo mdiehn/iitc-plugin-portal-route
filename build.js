@@ -27,6 +27,7 @@ const sources = [
   "src/export-links.js",
   "src/route-library.js",
   "src/drive-storage.js",
+  "src/shape-select.js",
   "src/ui.js",
   "src/layer-ui-cleanup.js",
   "src/wrapper-end.js",

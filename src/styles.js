@@ -1036,6 +1036,17 @@ button.portal-route-waypoint-badge-wide {
   overflow-x: visible !important;
 }
 
+
+.ui-dialog.portal-route-anchored-dialog {
+  max-width: calc(100vw - 20px) !important;
+}
+
+.ui-dialog.portal-route-bookmark-picker-dialog .ui-dialog-content,
+.ui-dialog.portal-route-bulk-select-dialog .ui-dialog-content {
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+}
+
 .portal-route-dialog-content:focus,
 .portal-route-dialog-content:focus-visible,
 .ui-dialog.portal-route-dialog .ui-dialog-content:focus,
@@ -1159,5 +1170,112 @@ button.portal-route-waypoint-name,
     align-items: flex-start;
   }
 
+}
+
+.leaflet-container.portal-route-bulk-select-mode,
+.leaflet-container.portal-route-bulk-select-mode * {
+  cursor: crosshair !important;
+}
+
+.portal-route-bulk-select-control {
+  width: 160px;
+  padding: 6px;
+  background: rgba(8, 24, 32, 0.94);
+  color: #fff;
+  border: 1px solid rgba(255, 216, 0, 0.55) !important;
+  border-radius: 4px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.45);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.portal-route-bulk-select-control-title {
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+
+.portal-route-bulk-select-control-help {
+  margin-bottom: 6px;
+}
+
+.portal-route-bulk-select-control-buttons,
+.portal-route-bulk-select-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.portal-route-bulk-select-control button,
+.portal-route-bulk-select-preview button {
+  padding: 2px 6px;
+  font: inherit;
+}
+
+.portal-route-bulk-select-preview p {
+  margin: 0 0 7px;
+}
+
+.portal-route-bulk-endpoints {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+
+.portal-route-bulk-endpoints label {
+  display: grid;
+  gap: 2px;
+  font-size: 11px;
+}
+
+.portal-route-bulk-endpoints select {
+  width: 100%;
+  max-width: 100%;
+}
+
+
+.portal-route-bookmark-picker p {
+  margin: 0 0 7px;
+}
+
+.portal-route-bookmark-picker label {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.portal-route-bookmark-picker select {
+  width: 100%;
+  max-width: 100%;
+}
+
+.portal-route-bookmark-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.portal-route-bookmark-actions button {
+  padding: 2px 6px;
+  font: inherit;
+}
+
+@media (max-width: 640px) {
+  .ui-dialog.portal-route-anchored-dialog {
+    left: 8px !important;
+    right: auto !important;
+    top: 8px !important;
+    bottom: auto !important;
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100dvh - 24px) !important;
+    transform: none !important;
+  }
+
+  .ui-dialog.portal-route-anchored-dialog .ui-dialog-content {
+    max-height: calc(100dvh - 90px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
 }
 `;

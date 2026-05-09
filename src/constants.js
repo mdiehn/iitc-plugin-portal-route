@@ -11,6 +11,8 @@
     pointsDialogContent: 'iitc-plugin-portal-route-points-dialog-content',
     routeLibrary: 'iitc-plugin-portal-route-library-dialog',
     routeLibraryContent: 'iitc-plugin-portal-route-library-dialog-content',
+    bulkSelectDialog: 'iitc-plugin-portal-route-bulk-select-dialog',
+    bulkSelectDialogContent: 'iitc-plugin-portal-route-bulk-select-dialog-content',
     miniControl: 'iitc-plugin-portal-route-mini-control',
     toolboxLink: 'iitc-plugin-portal-route-toolbox-link'
   };

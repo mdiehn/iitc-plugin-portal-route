@@ -6,11 +6,11 @@ It is built for mobile-first use, but works on desktop IITC too. Build a stop li
 
 ## Status
 
-Current release: `1.3.1`
+Current release: `1.4.0`
 
-This release fixes a layer-toggle cleanup bug so Portal Route controls disappear from the IITC portal info panel when the Portal Route layer is turned off.
+This release adds **Bulk select** for building routes from drawn shapes or IITC Bookmarks folders. Shape selection works with currently loaded portals; Bookmarks selection can use saved bookmark positions.
 
-The 1.3 series also adds placement-mode cancel polish, clearer stale-route cues, mobile row-control polish, and the v1.2.0 route-control cleanup.
+Large bulk-selected routes can be saved and edited, but Google routing may not plot routes with more than 26 stops in one request yet.
 
 **Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/main/dist/portal-route.user.js)
 
@@ -19,8 +19,9 @@ The 1.3 series also adds placement-mode cancel polish, clearer stale-route cues,
 1. Select a portal in IITC.
 2. Click **Add** or the mini-control **+**.
 3. Add more portals, manual points, or your current location.
-4. Adjust stop times if needed.
-5. Use **Menu**, **Print**, **Save**, or **Load** as needed.
+4. Use **Menu → Bulk select** to add portals from a circle, polygon, or Bookmarks folder.
+5. Adjust stop times if needed.
+6. Use **Menu**, **Print**, **Save**, or **Load** as needed.
 
 ## Route controls
 
@@ -48,6 +49,19 @@ The points list shows the current route order. Drag rows to reorder stops, or us
 - **Menu** opens Add me, Loop/Unloop, Clear Route, Save, Google Maps, Apple Maps, Route/Replot, Route List, Library, and Settings.
 
 ![Portal Route menu](docs/screen_02_add_menu.png)
+
+### Bulk select
+
+**Menu → Bulk select** can add many portals at once.
+
+- **Circle** and **Polygon** select portals currently loaded by IITC. Zoom or pan first if you expected more portals to be included.
+- **Bookmarks** selects portals from IITC Bookmarks folders and uses the saved bookmark positions, so those portals do not need to be loaded on the map.
+- Bulk-selected portals can be added to the current route or used to replace it.
+- The preview lets you choose route start and end portals before adding/replacing the route.
+
+Portal Route uses a simple nearest-neighbor ordering with one-step lookahead. This is not full route optimization.
+
+Large bulk-selected routes can be saved and edited, but Google routing may not plot routes with more than 26 stops in one request yet.
 
 ### Route
 

@@ -291,6 +291,7 @@
 
     return [
       { label: 'Add me', action: 'add-current-location' },
+      { label: 'Bulk select', action: 'open-bulk-select-menu' },
       { label: pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop', action: 'toggle-loop-back' },
       { label: 'Clear Route', action: 'clear-route', disabled: !hasStops },
       { label: 'Save', action: 'save-route', disabled: !hasStops },
@@ -323,8 +324,9 @@
     ];
   };
 
-  pr.openRouteContextMenu = function(items, className, x, y) {
-    pr.closeAddMenu();
+  pr.openRouteContextMenu = function(items, className, x, y, options) {
+    options = options || {};
+    if (!options.keepExisting) pr.closeAddMenu();
 
     if (!items) return;
     var menu = document.createElement('div');
