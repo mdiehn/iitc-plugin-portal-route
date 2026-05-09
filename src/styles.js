@@ -1036,6 +1036,17 @@ button.portal-route-waypoint-badge-wide {
   overflow-x: visible !important;
 }
 
+
+.ui-dialog.portal-route-anchored-dialog {
+  max-width: calc(100vw - 20px) !important;
+}
+
+.ui-dialog.portal-route-bookmark-picker-dialog .ui-dialog-content,
+.ui-dialog.portal-route-bulk-select-dialog .ui-dialog-content {
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+}
+
 .portal-route-dialog-content:focus,
 .portal-route-dialog-content:focus-visible,
 .ui-dialog.portal-route-dialog .ui-dialog-content:focus,
@@ -1247,5 +1258,24 @@ button.portal-route-waypoint-name,
 .portal-route-bookmark-actions button {
   padding: 2px 6px;
   font: inherit;
+}
+
+@media (max-width: 640px) {
+  .ui-dialog.portal-route-anchored-dialog {
+    left: 8px !important;
+    right: auto !important;
+    top: 8px !important;
+    bottom: auto !important;
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: calc(100dvh - 24px) !important;
+    transform: none !important;
+  }
+
+  .ui-dialog.portal-route-anchored-dialog .ui-dialog-content {
+    max-height: calc(100dvh - 90px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
 }
 `;

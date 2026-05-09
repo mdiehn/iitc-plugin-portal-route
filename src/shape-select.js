@@ -232,6 +232,68 @@
       pr.escapeHtml(label) + '</option>';
   };
 
+  pr.bulkDialogSize = function(defaultWidth, defaultHeight, minWidth, minHeight) {
+    var size = pr.getDialogSize(defaultWidth, defaultHeight, minWidth, minHeight);
+    return {
+      width: size.width,
+      height: size.height
+    };
+  };
+
+  pr.clampBulkDialogPosition = function(left, top, width, height) {
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || 320;
+    var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 480;
+    var dialogWidth = width || 420;
+    var dialogHeight = height || 260;
+
+    return {
+      left: Math.max(6, Math.min(left, viewportWidth - dialogWidth - 6)),
+      top: Math.max(6, Math.min(top, viewportHeight - dialogHeight - 6))
+    };
+  };
+
+  pr.bulkDialogPositionForTarget = function(target, width, height) {
+    if (!target || !target.getBoundingClientRect) return null;
+    var rect = target.getBoundingClientRect();
+    return pr.clampBulkDialogPosition(rect.left, rect.top, width, height);
+  };
+
+  pr.currentBulkDialogPosition = function(contentId) {
+    var content = document.getElementById(contentId);
+    if (!content || !window.jQuery) return null;
+
+    try {
+      var wrapper = window.jQuery(content).closest('.ui-dialog');
+      if (!wrapper || !wrapper.length) return null;
+      var offset = wrapper.offset();
+      if (!offset) return null;
+      return { left: offset.left, top: offset.top };
+    } catch (e) {
+      return null;
+    }
+  };
+
+  pr.positionBulkDialog = function(contentId, position, width, height) {
+    if (!position || !window.jQuery) return;
+    var content = document.getElementById(contentId);
+    if (!content) return;
+
+    try {
+      var wrapper = window.jQuery(content).closest('.ui-dialog');
+      if (!wrapper || !wrapper.length) return;
+      var clamped = pr.clampBulkDialogPosition(position.left, position.top, width, height);
+      wrapper.css({
+        left: clamped.left + 'px',
+        top: clamped.top + 'px',
+        right: 'auto',
+        bottom: 'auto',
+        transform: 'none'
+      });
+    } catch (e) {
+      // Dialog positioning is best-effort; the normal IITC dialog still works.
+    }
+  };
+
   pr.renderBookmarkFolderPicker = function(folders) {
     var total = folders.reduce(function(sum, folder) { return sum + folder.count; }, 0);
     var html = '';
@@ -269,7 +331,7 @@
     if (content) content.style.display = 'none';
   };
 
-  pr.openBookmarkFolderPicker = function() {
+  pr.openBookmarkFolderPicker = function(target) {
     if (!pr.ensureBookmarksLoaded()) {
       pr.showMessage('Bookmarks plugin is not enabled.');
       return;
@@ -286,14 +348,22 @@
       return;
     }
 
+    pr.closeAddMenu();
+
+    var size = pr.bulkDialogSize(430, 260, 330, 230);
+    var position = pr.bulkDialogPositionForTarget(target, size.width, size.height) || pr.bulkSelect.lastDialogPosition;
+    pr.bulkSelect.lastDialogPosition = position;
+
     window.dialog({
       id: 'iitc-plugin-portal-route-bookmark-picker-dialog',
       title: 'Bulk select bookmarks',
       html: pr.renderBookmarkFolderPicker(folders),
-      dialogClass: 'portal-route-dialog portal-route-bookmark-picker-dialog',
-      width: pr.getDialogSize(360, 190, 300, 170).width,
-      height: pr.getDialogSize(360, 190, 300, 170).height
+      dialogClass: 'portal-route-dialog portal-route-anchored-dialog portal-route-bookmark-picker-dialog',
+      width: size.width,
+      height: size.height
     });
+
+    pr.positionBulkDialog('portal-route-bookmark-picker-content', position, size.width, size.height);
 
     var content = document.getElementById('portal-route-bookmark-picker-content');
     if (!content) return;
@@ -313,8 +383,10 @@
       var select = content.querySelector('[data-portal-route-bookmark-folder]');
       var folderId = select ? select.value : '';
       var stops = pr.bookmarkFolderStops(folderId);
+      var dialogPosition = pr.currentBulkDialogPosition('portal-route-bookmark-picker-content') || pr.bulkSelect.lastDialogPosition;
+      pr.bulkSelect.lastDialogPosition = dialogPosition;
       pr.closeBookmarkFolderPicker();
-      pr.openBulkPortalPreview(stops, { source: 'bookmarks' });
+      pr.openBulkPortalPreview(stops, { source: 'bookmarks', dialogPosition: dialogPosition });
     });
   };
 
@@ -589,14 +661,18 @@
       return;
     }
 
+    var previewSize = pr.bulkDialogSize(430, 280, 330, 240);
+
     window.dialog({
       id: pr.DOM_IDS.bulkSelectDialog,
-      title: 'Select loaded portals',
+      title: options.source === 'bookmarks' ? 'Bulk select bookmarks' : 'Select loaded portals',
       html: pr.renderBulkPortalPreview(pr.bulkSelect.previewStops, options),
-      dialogClass: 'portal-route-dialog portal-route-bulk-select-dialog',
-      width: pr.getDialogSize(360, 210, 300, 190).width,
-      height: pr.getDialogSize(360, 210, 300, 190).height
+      dialogClass: 'portal-route-dialog portal-route-anchored-dialog portal-route-bulk-select-dialog',
+      width: previewSize.width,
+      height: previewSize.height
     });
+
+    pr.positionBulkDialog(pr.DOM_IDS.bulkSelectDialogContent, options.dialogPosition || pr.bulkSelect.lastDialogPosition, previewSize.width, previewSize.height);
 
     var content = document.getElementById(pr.DOM_IDS.bulkSelectDialogContent);
     if (!content) return;
