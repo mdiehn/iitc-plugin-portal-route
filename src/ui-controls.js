@@ -291,7 +291,7 @@
 
     return [
       { label: 'Add me', action: 'add-current-location' },
-      { label: 'Select portals', action: 'open-bulk-select-menu' },
+      { label: 'Bulk select', action: 'open-bulk-select-menu' },
       { label: pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop', action: 'toggle-loop-back' },
       { label: 'Clear Route', action: 'clear-route', disabled: !hasStops },
       { label: 'Save', action: 'save-route', disabled: !hasStops },
