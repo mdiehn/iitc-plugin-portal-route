@@ -348,11 +348,11 @@
       return;
     }
 
-    pr.closeAddMenu();
-
     var size = pr.bulkDialogSize(430, 260, 330, 230);
     var position = pr.bulkDialogPositionForTarget(target, size.width, size.height) || pr.bulkSelect.lastDialogPosition;
     pr.bulkSelect.lastDialogPosition = position;
+
+    pr.closeAddMenu();
 
     window.dialog({
       id: 'iitc-plugin-portal-route-bookmark-picker-dialog',

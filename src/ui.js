@@ -235,7 +235,7 @@
     };
 
     if (actions[action]) {
-      if (action !== 'open-bulk-select-menu') pr.closeAddMenu();
+      if (action !== 'open-bulk-select-menu' && action !== 'select-portals-bookmarks') pr.closeAddMenu();
       actions[action]();
     }
   };
