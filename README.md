@@ -12,7 +12,7 @@ This release fixes a layer-toggle cleanup bug so Portal Route controls disappear
 
 The 1.3 series also adds placement-mode cancel polish, clearer stale-route cues, mobile row-control polish, and the v1.2.0 route-control cleanup.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/main/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/feat/bulk-point-selection/dist/portal-route.user.js)
 
 ## Quick start
 
