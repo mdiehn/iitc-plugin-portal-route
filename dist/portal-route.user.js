@@ -1914,8 +1914,9 @@ button.portal-route-waypoint-name,
     ];
   };
 
-  pr.openRouteContextMenu = function(items, className, x, y) {
-    pr.closeAddMenu();
+  pr.openRouteContextMenu = function(items, className, x, y, options) {
+    options = options || {};
+    if (!options.keepExisting) pr.closeAddMenu();
 
     if (!items) return;
     var menu = document.createElement('div');
@@ -3498,8 +3499,8 @@ button.portal-route-waypoint-name,
     ];
   };
 
-  pr.openBulkSelectMenu = function(x, y) {
-    pr.openRouteContextMenu(pr.bulkSelectMenuItems(), 'portal-route-bulk-select-menu', x, y);
+  pr.openBulkSelectMenu = function(x, y, options) {
+    pr.openRouteContextMenu(pr.bulkSelectMenuItems(), 'portal-route-bulk-select-menu', x, y, options);
   };
 
   pr.getGoogleLatLng = function(stop) {
@@ -6263,11 +6264,11 @@ button.portal-route-waypoint-name,
       'open-bulk-select-menu': function() {
         if (pr.cancelAddPointMode) pr.cancelAddPointMode({ silent: true });
         if (!target || !target.getBoundingClientRect) {
-          pr.openBulkSelectMenu(20, 20);
+          pr.openBulkSelectMenu(20, 20, { keepExisting: true });
           return;
         }
         var rect = target.getBoundingClientRect();
-        pr.openBulkSelectMenu(rect.left, rect.bottom + 4);
+        pr.openBulkSelectMenu(rect.right + 4, rect.top, { keepExisting: true });
       },
       'open-edit': pr.openMainPanel,
       'close-panel': function() {
@@ -6328,7 +6329,7 @@ button.portal-route-waypoint-name,
     };
 
     if (actions[action]) {
-      pr.closeAddMenu();
+      if (action !== 'open-bulk-select-menu') pr.closeAddMenu();
       actions[action]();
     }
   };
@@ -6448,9 +6449,15 @@ button.portal-route-waypoint-name,
   pr.mapsMenuTarget = pr.mainMenuTarget;
 
   pr.closeAddMenu = function() {
-    var menu = document.querySelector('.portal-route-context-menu');
-    if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
-    if (menu && pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
+    var menus = document.querySelectorAll('.portal-route-context-menu');
+    var removedAny = false;
+    menus.forEach(function(menu) {
+      if (menu && menu.parentNode) {
+        menu.parentNode.removeChild(menu);
+        removedAny = true;
+      }
+    });
+    if (removedAny && pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
   };
 
   pr.openMainMenu = function(x, y) {

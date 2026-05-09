@@ -324,8 +324,9 @@
     ];
   };
 
-  pr.openRouteContextMenu = function(items, className, x, y) {
-    pr.closeAddMenu();
+  pr.openRouteContextMenu = function(items, className, x, y, options) {
+    options = options || {};
+    if (!options.keepExisting) pr.closeAddMenu();
 
     if (!items) return;
     var menu = document.createElement('div');

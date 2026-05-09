@@ -169,11 +169,11 @@
       'open-bulk-select-menu': function() {
         if (pr.cancelAddPointMode) pr.cancelAddPointMode({ silent: true });
         if (!target || !target.getBoundingClientRect) {
-          pr.openBulkSelectMenu(20, 20);
+          pr.openBulkSelectMenu(20, 20, { keepExisting: true });
           return;
         }
         var rect = target.getBoundingClientRect();
-        pr.openBulkSelectMenu(rect.left, rect.bottom + 4);
+        pr.openBulkSelectMenu(rect.right + 4, rect.top, { keepExisting: true });
       },
       'open-edit': pr.openMainPanel,
       'close-panel': function() {
@@ -234,7 +234,7 @@
     };
 
     if (actions[action]) {
-      pr.closeAddMenu();
+      if (action !== 'open-bulk-select-menu') pr.closeAddMenu();
       actions[action]();
     }
   };
@@ -354,9 +354,15 @@
   pr.mapsMenuTarget = pr.mainMenuTarget;
 
   pr.closeAddMenu = function() {
-    var menu = document.querySelector('.portal-route-context-menu');
-    if (menu && menu.parentNode) menu.parentNode.removeChild(menu);
-    if (menu && pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
+    var menus = document.querySelectorAll('.portal-route-context-menu');
+    var removedAny = false;
+    menus.forEach(function(menu) {
+      if (menu && menu.parentNode) {
+        menu.parentNode.removeChild(menu);
+        removedAny = true;
+      }
+    });
+    if (removedAny && pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
   };
 
   pr.openMainMenu = function(x, y) {

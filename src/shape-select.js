@@ -527,6 +527,6 @@
     ];
   };
 
-  pr.openBulkSelectMenu = function(x, y) {
-    pr.openRouteContextMenu(pr.bulkSelectMenuItems(), 'portal-route-bulk-select-menu', x, y);
+  pr.openBulkSelectMenu = function(x, y, options) {
+    pr.openRouteContextMenu(pr.bulkSelectMenuItems(), 'portal-route-bulk-select-menu', x, y, options);
   };
