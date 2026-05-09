@@ -9,7 +9,11 @@
     return {
       defaultStopMinutes: settings.defaultStopMinutes,
       includeReturnToStart: !!settings.includeReturnToStart,
-      startOnCurrentLocation: !!settings.startOnCurrentLocation
+      startOnCurrentLocation: !!settings.startOnCurrentLocation,
+      defaultTravelMode: settings.defaultTravelMode || pr.TRAVEL_MODES.drive,
+      driveSpeedMph: settings.driveSpeedMph,
+      bikeSpeedMph: settings.bikeSpeedMph,
+      walkSpeedMph: settings.walkSpeedMph
     };
   };
 

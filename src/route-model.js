@@ -9,7 +9,7 @@
       pr.state.route = null;
       pr.clearRouteLine();
     } else if (pr.state.route && pr.state.route.legs) {
-      pr.state.route.totals = pr.calculateTotals(pr.state.route.legs);
+      pr.refreshRouteTravelEstimates(pr.state.route);
     }
 
     if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
@@ -258,6 +258,50 @@
     if (!details) return null;
     var data = details.details || details.portalDetails || details.portalData || details;
     return data.title || data.name || null;
+  };
+
+  pr.normalizeTravelMode = function(mode) {
+    if (mode === pr.TRAVEL_MODES.bike || mode === pr.TRAVEL_MODES.walk) return mode;
+    return pr.TRAVEL_MODES.drive;
+  };
+
+  pr.getTravelMode = function() {
+    return pr.normalizeTravelMode(pr.state.settings.defaultTravelMode);
+  };
+
+  pr.getTravelModeLabel = function(mode) {
+    mode = pr.normalizeTravelMode(mode);
+    if (mode === pr.TRAVEL_MODES.bike) return 'Bike';
+    if (mode === pr.TRAVEL_MODES.walk) return 'Walk';
+    return 'Drive';
+  };
+
+  pr.getTravelSpeedMph = function(mode) {
+    mode = pr.normalizeTravelMode(mode);
+    if (mode === pr.TRAVEL_MODES.bike) return Number(pr.state.settings.bikeSpeedMph) || pr.DEFAULT_SETTINGS.bikeSpeedMph;
+    if (mode === pr.TRAVEL_MODES.walk) return Number(pr.state.settings.walkSpeedMph) || pr.DEFAULT_SETTINGS.walkSpeedMph;
+    return Number(pr.state.settings.driveSpeedMph) || pr.DEFAULT_SETTINGS.driveSpeedMph;
+  };
+
+  pr.travelSecondsForDistance = function(distanceMeters, mode) {
+    var miles = Math.max(0, Number(distanceMeters || 0)) / 1609.344;
+    var mph = Math.max(0.1, pr.getTravelSpeedMph(mode));
+    return miles / mph * 3600;
+  };
+
+  pr.refreshRouteTravelEstimates = function(route) {
+    route = route || pr.state.route;
+    if (!route || !Array.isArray(route.legs)) return route;
+
+    var mode = pr.getTravelMode();
+    route.legs.forEach(function(leg) {
+      leg.travelMode = mode;
+      leg.durationSeconds = pr.travelSecondsForDistance(leg.distanceMeters, mode);
+      leg.durationText = pr.formatDuration(leg.durationSeconds);
+    });
+
+    route.totals = pr.calculateTotals(route.legs);
+    return route;
   };
 
   pr.applyPortalTitleFromDetails = function(guid, details) {
@@ -863,6 +907,7 @@
       driveSeconds: driveSeconds,
       stopSeconds: stopSeconds,
       tripSeconds: driveSeconds + stopSeconds,
-      distanceMeters: distanceMeters
+      distanceMeters: distanceMeters,
+      travelMode: pr.getTravelMode()
     };
   };

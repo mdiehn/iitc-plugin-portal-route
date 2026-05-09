@@ -12,7 +12,7 @@ This release fixes Google Drive auth setup. Portal Route no longer ships a hardc
 
 Large bulk-selected routes can be saved and edited, but Google routing may not plot routes with more than 26 stops in one request yet.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/main/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/feat/multi-modal-routing/dist/portal-route.user.js)
 
 ## Quick start
 

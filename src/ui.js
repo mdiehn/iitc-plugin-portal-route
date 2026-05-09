@@ -552,6 +552,18 @@
     var field = target && target.getAttribute('data-field');
     if (pr.handleDialogSettingChange(target)) return;
 
+    var applyTravelSettings = function() {
+      if (pr.refreshRouteTravelEstimates && pr.state.route) {
+        pr.refreshRouteTravelEstimates(pr.state.route);
+        pr.saveRoute();
+        pr.redrawSegmentTimeLabels();
+      }
+      pr.renderPanel();
+      if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
+      pr.renderMiniControl();
+      if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
+    };
+
     if (field === 'default-stop-minutes') {
       var value = pr.parseDurationMinutes(target.value);
       if (value === null) {
@@ -567,6 +579,32 @@
       pr.saveSettings();
       pr.markRouteStale();
       pr.renderPanel();
+    } else if (field === 'default-travel-mode') {
+      var mode = pr.normalizeTravelMode(target.value);
+      if (mode === pr.state.settings.defaultTravelMode) return;
+      if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('change travel mode');
+      pr.state.settings.defaultTravelMode = mode;
+      pr.saveSettings();
+      applyTravelSettings();
+    } else if (field === 'drive-speed-mph' || field === 'bike-speed-mph' || field === 'walk-speed-mph') {
+      var speed = Number(String(target.value || '').trim());
+      if (!isFinite(speed) || speed <= 0) {
+        pr.showMessage('Invalid speed. Use a number greater than 0.');
+        if (field === 'drive-speed-mph') target.value = pr.formatSpeedInput(pr.state.settings.driveSpeedMph);
+        if (field === 'bike-speed-mph') target.value = pr.formatSpeedInput(pr.state.settings.bikeSpeedMph);
+        if (field === 'walk-speed-mph') target.value = pr.formatSpeedInput(pr.state.settings.walkSpeedMph);
+        return;
+      }
+
+      var settingsKey = field === 'drive-speed-mph'
+        ? 'driveSpeedMph'
+        : (field === 'bike-speed-mph' ? 'bikeSpeedMph' : 'walkSpeedMph');
+      if (speed === pr.state.settings[settingsKey]) return;
+      if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('change travel speed');
+      pr.state.settings[settingsKey] = speed;
+      pr.saveSettings();
+      target.value = pr.formatSpeedInput(speed);
+      applyTravelSettings();
     } else if (field === 'google-drive-oauth-client-id') {
       var clientId = String(target.value || '').trim();
       if (clientId === pr.state.settings.googleDriveOAuthClientId) return;

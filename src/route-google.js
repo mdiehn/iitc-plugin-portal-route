@@ -68,6 +68,8 @@
           durationSeconds: leg.duration ? leg.duration.value : 0,
           distanceText: leg.distance ? leg.distance.text : '',
           durationText: leg.duration ? leg.duration.text : '',
+          googleDurationSeconds: leg.duration ? leg.duration.value : 0,
+          googleDurationText: leg.duration ? leg.duration.text : '',
           path: legPath
         };
       });
@@ -86,6 +88,7 @@
           return { lat: point.lat, lng: point.lng };
         })
       };
+      pr.refreshRouteTravelEstimates(pr.state.route);
       pr.markRouteCurrent();
 
       pr.drawRoutePath(path);

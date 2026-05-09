@@ -22,3 +22,9 @@
     if (km >= 10) return km.toFixed(0) + ' km';
     return km.toFixed(1) + ' km';
   };
+
+  pr.formatSpeedInput = function(mph) {
+    mph = Number(mph || 0);
+    if (!isFinite(mph) || mph <= 0) return '';
+    return String(Math.round(mph * 10) / 10).replace(/\.0$/, '');
+  };

@@ -33,10 +33,20 @@
     routeLibraryDriveFileId: 'iitc-portal-route-drive-file-id'
   };
 
+  pr.TRAVEL_MODES = {
+    drive: 'drive',
+    bike: 'bike',
+    walk: 'walk'
+  };
+
   pr.DEFAULT_SETTINGS = {
     defaultStopMinutes: 5,
     includeReturnToStart: false,
     startOnCurrentLocation: false,
+    defaultTravelMode: pr.TRAVEL_MODES.drive,
+    driveSpeedMph: 30,
+    bikeSpeedMph: 10,
+    walkSpeedMph: 3,
     googleDriveOAuthClientId: '',
     showSegmentTimesOnMap: false,
     showMiniControl: true,

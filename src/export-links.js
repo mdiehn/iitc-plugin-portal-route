@@ -2,6 +2,15 @@
   pr.GOOGLE_MAPS_INTERMEDIATE_STOP_LIMIT = 9;
   pr.APPLE_MAPS_TOTAL_POINT_LIMIT = 15;
   pr.ROUTE_EXPORT_FORMAT = 'portal-route.v1';
+  pr.GOOGLE_MAPS_TRAVEL_MODES = {
+    drive: 'driving',
+    bike: 'bicycling',
+    walk: 'walking'
+  };
+
+  pr.googleMapsTravelMode = function() {
+    return pr.GOOGLE_MAPS_TRAVEL_MODES[pr.getTravelMode()] || 'driving';
+  };
 
   pr.googleMapsUrlForStops = function(stops) {
     if (!stops || stops.length < 2) return null;
@@ -11,7 +20,7 @@
 
     var params = new URLSearchParams();
     params.set('api', '1');
-    params.set('travelmode', 'driving');
+    params.set('travelmode', pr.googleMapsTravelMode());
     params.set('origin', origin.lat + ',' + origin.lng);
     params.set('destination', destination.lat + ',' + destination.lng);
 
@@ -27,6 +36,20 @@
   pr.googleMapsUrl = function() {
     var stops = pr.getRouteStops();
     return pr.googleMapsUrlForStops(stops);
+  };
+
+  pr.routeExportProviders = {
+    google: {
+      id: 'google',
+      label: 'Google Maps',
+      pointLimit: pr.GOOGLE_MAPS_TOTAL_POINT_LIMIT,
+      urlForStops: function(stops) {
+        return pr.googleMapsUrlForStops(stops);
+      },
+      openStagesDialog: function(stages) {
+        pr.openGoogleMapsStagesDialog(stages);
+      }
+    }
   };
 
   pr.appleMapsUrlForStops = function(stops) {
@@ -83,7 +106,7 @@
   };
 
   pr.googleMapsStages = function() {
-    return pr.mapsStages(pr.GOOGLE_MAPS_TOTAL_POINT_LIMIT, pr.googleMapsUrlForStops);
+    return pr.mapsStages(pr.routeExportProviders.google.pointLimit, pr.routeExportProviders.google.urlForStops);
   };
 
   pr.appleMapsStages = function() {
@@ -148,6 +171,7 @@
   };
 
   pr.openGoogleMaps = function() {
+    var provider = pr.routeExportProviders.google;
     var stages = pr.googleMapsStages();
     if (!stages.length) {
       pr.showMessage('Add at least two waypoints first.');
@@ -155,7 +179,7 @@
     }
 
     if (stages.length > 1) {
-      pr.openGoogleMapsStagesDialog(stages);
+      provider.openStagesDialog(stages);
       return;
     }
 
@@ -271,6 +295,7 @@
     pr.state.stops = stops;
     pr.state.settings = pr.normalizeSettings(data.settings);
     pr.state.route = data.route && Array.isArray(data.route.legs) ? data.route : null;
+    if (pr.state.route && pr.refreshRouteTravelEstimates) pr.refreshRouteTravelEstimates(pr.state.route);
     pr.state.routeDirty = !!pr.state.route || !!data.routeDirty;
     pr.state.activeRouteId = null;
 
@@ -361,7 +386,7 @@
     }).join('');
 
     var totalsHtml = totals ? '<div class="totals">' +
-      '<span><b>Drive:</b> ' + pr.escapeHtml(pr.formatDuration(totals.driveSeconds)) + '</span>' +
+      '<span><b>Travel:</b> ' + pr.escapeHtml(pr.formatDuration(totals.driveSeconds)) + '</span>' +
       '<span><b>Stops:</b> ' + pr.escapeHtml(pr.formatDuration(totals.stopSeconds)) + '</span>' +
       '<span><b>Trip:</b> ' + pr.escapeHtml(pr.formatDuration(totals.tripSeconds)) + '</span>' +
       '<span><b>Distance:</b> ' + pr.escapeHtml(pr.formatDistance(totals.distanceMeters)) + '</span>' +
