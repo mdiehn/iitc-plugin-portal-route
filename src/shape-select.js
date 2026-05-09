@@ -3,7 +3,9 @@
     layer: null,
     control: null,
     points: [],
-    previewStops: []
+    previewStops: [],
+    previewStartGuid: null,
+    previewEndGuid: null
   };
 
   pr.ensureBulkSelectLayer = function() {
@@ -149,20 +151,66 @@
     return Math.sqrt(dLat * dLat + dLng * dLng);
   };
 
-  pr.orderStopsNearestNeighbor = function(stops, mode) {
+  pr.findStopByGuid = function(stops, guid) {
+    if (!guid) return null;
+    for (var i = 0; i < (stops || []).length; i++) {
+      if (stops[i] && stops[i].guid === guid) return stops[i];
+    }
+    return null;
+  };
+
+  pr.removeStopByGuid = function(stops, guid) {
+    if (!guid) return stops || [];
+    return (stops || []).filter(function(stop) {
+      return !stop || stop.guid !== guid;
+    });
+  };
+
+  pr.nearestLookaheadScore = function(current, candidate, remaining) {
+    var score = pr.distanceBetweenStops(current, candidate);
+    if (!remaining || !remaining.length) return score;
+
+    var bestFollowup = Infinity;
+    remaining.forEach(function(next) {
+      if (!next || next.guid === candidate.guid) return;
+      bestFollowup = Math.min(bestFollowup, pr.distanceBetweenStops(candidate, next));
+    });
+
+    if (bestFollowup < Infinity) score += bestFollowup;
+    return score;
+  };
+
+  pr.orderStopsNearestNeighbor = function(stops, mode, options) {
     stops = (stops || []).slice();
+    options = options || {};
     if (stops.length < 2) return stops;
 
+    var startStop = pr.findStopByGuid(stops, options.startGuid);
+    var endStop = pr.findStopByGuid(stops, options.endGuid);
     var ordered = [];
-    var current = pr.bulkSelectionStartPoint(mode, stops);
+    var current = null;
+
+    if (startStop) {
+      ordered.push(startStop);
+      current = startStop;
+      stops = pr.removeStopByGuid(stops, startStop.guid);
+    } else {
+      current = pr.bulkSelectionStartPoint(mode, stops);
+    }
+
+    if (endStop && (!startStop || endStop.guid !== startStop.guid)) {
+      stops = pr.removeStopByGuid(stops, endStop.guid);
+    } else {
+      endStop = null;
+    }
 
     while (stops.length) {
       var bestIndex = 0;
-      var bestDistance = Infinity;
+      var bestScore = Infinity;
       for (var i = 0; i < stops.length; i++) {
-        var distance = pr.distanceBetweenStops(current, stops[i]);
-        if (distance < bestDistance) {
-          bestDistance = distance;
+        var score = pr.nearestLookaheadScore(current, stops[i], stops);
+        if (score < bestScore) {
+          bestScore = score;
           bestIndex = i;
         }
       }
@@ -170,6 +218,7 @@
       ordered.push(current);
     }
 
+    if (endStop) ordered.push(endStop);
     return ordered;
   };
 
@@ -201,14 +250,15 @@
     });
   };
 
-  pr.addBulkPortalStops = function(stops) {
+  pr.addBulkPortalStops = function(stops, options) {
+    options = options || {};
     stops = pr.filterNewPortalStops(stops);
     if (!stops.length) {
       pr.showMessage('No new loaded portals to add.');
       return;
     }
 
-    stops = pr.orderStopsNearestNeighbor(stops, 'add');
+    stops = pr.orderStopsNearestNeighbor(stops, 'add', options);
     if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('add loaded portals');
 
     stops.forEach(function(stop) {
@@ -236,8 +286,9 @@
     pr.showMessage('Added ' + stops.length + ' loaded portals.');
   };
 
-  pr.replaceWithBulkPortalStops = function(stops) {
-    stops = pr.orderStopsNearestNeighbor(pr.uniquePortalStops(stops), 'replace');
+  pr.replaceWithBulkPortalStops = function(stops, options) {
+    options = options || {};
+    stops = pr.orderStopsNearestNeighbor(pr.uniquePortalStops(stops), 'replace', options);
     if (!stops.length) {
       pr.showMessage('No loaded portals selected.');
       return;
@@ -260,6 +311,44 @@
     if (content) content.style.display = 'none';
   };
 
+  pr.bulkEndpointLabel = function(stop, fallbackIndex) {
+    var title = pr.hydratedStopTitle ? pr.hydratedStopTitle(stop, 'portal', fallbackIndex) : (stop && stop.title);
+    title = title || ('Portal ' + (fallbackIndex + 1));
+    return title;
+  };
+
+  pr.bulkEndpointOptionsHtml = function(stops, selectedGuid) {
+    var html = '';
+    (stops || []).forEach(function(stop, index) {
+      if (!stop || !stop.guid) return;
+      html += '<option value="' + pr.escapeHtml(stop.guid) + '"' +
+        (stop.guid === selectedGuid ? ' selected' : '') + '>' +
+        pr.escapeHtml(pr.bulkEndpointLabel(stop, index)) + '</option>';
+    });
+    return html;
+  };
+
+  pr.defaultBulkEndpointGuids = function(stops) {
+    stops = stops || [];
+    if (!stops.length) return { startGuid: '', endGuid: '' };
+    if (stops.length === 1) return { startGuid: stops[0].guid, endGuid: stops[0].guid };
+
+    var ordered = pr.orderStopsNearestNeighbor(stops, 'replace', {});
+    return {
+      startGuid: ordered[0] && ordered[0].guid ? ordered[0].guid : stops[0].guid,
+      endGuid: ordered[ordered.length - 1] && ordered[ordered.length - 1].guid ? ordered[ordered.length - 1].guid : stops[stops.length - 1].guid
+    };
+  };
+
+  pr.bulkPreviewEndpointSelection = function(content) {
+    var start = content ? content.querySelector('[data-portal-route-bulk-endpoint="start"]') : null;
+    var end = content ? content.querySelector('[data-portal-route-bulk-endpoint="end"]') : null;
+    return {
+      startGuid: start ? start.value : '',
+      endGuid: end ? end.value : ''
+    };
+  };
+
   pr.renderBulkPortalPreview = function(stops) {
     var addableCount = pr.filterNewPortalStops(stops).length;
     var replaceCount = pr.uniquePortalStops(stops).length;
@@ -273,6 +362,13 @@
       html += '<p>That is a pretty healthy route. Portal Route can add them, but plotting may get slow.</p>';
     }
     html += '<p>Only loaded portals are included. Zoom or pan first if you expected more.</p>';
+    if (replaceCount > 1) {
+      var endpoints = pr.defaultBulkEndpointGuids(pr.uniquePortalStops(stops));
+      html += '<div class="portal-route-bulk-endpoints">';
+      html += '<label>Start <select data-portal-route-bulk-endpoint="start">' + pr.bulkEndpointOptionsHtml(pr.uniquePortalStops(stops), endpoints.startGuid) + '</select></label>';
+      html += '<label>End <select data-portal-route-bulk-endpoint="end">' + pr.bulkEndpointOptionsHtml(pr.uniquePortalStops(stops), endpoints.endGuid) + '</select></label>';
+      html += '</div>';
+    }
     if (replaceCount !== addableCount) {
       html += '<p>' + (replaceCount - addableCount) + ' already in this route.</p>';
     }
@@ -313,12 +409,21 @@
 
       var action = button.getAttribute('data-portal-route-bulk-preview');
       var previewStops = pr.bulkSelect.previewStops.slice();
+      var endpoints = pr.bulkPreviewEndpointSelection(content);
+
+      if ((action === 'add' || action === 'replace') && previewStops.length > 1 && endpoints.startGuid === endpoints.endGuid) {
+        pr.showMessage('Pick different start and end portals.');
+        return;
+      }
+
       pr.closeBulkPortalPreview();
       pr.clearBulkSelectLayer();
       pr.bulkSelect.previewStops = [];
+      pr.bulkSelect.previewStartGuid = null;
+      pr.bulkSelect.previewEndGuid = null;
 
-      if (action === 'add') pr.addBulkPortalStops(previewStops);
-      if (action === 'replace') pr.replaceWithBulkPortalStops(previewStops);
+      if (action === 'add') pr.addBulkPortalStops(previewStops, endpoints);
+      if (action === 'replace') pr.replaceWithBulkPortalStops(previewStops, endpoints);
       if (action === 'cancel') pr.showMessage('Portal selection canceled.');
     });
   };

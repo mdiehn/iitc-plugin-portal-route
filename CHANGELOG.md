@@ -8,6 +8,7 @@ Current release: `1.3.1`
 
 ### Added
 
+- Added start/end portal choices to bulk selection preview so selected portals can be ordered between explicit endpoints.
 - Open the shape selector chooser beside the Select portals menu item instead of replacing the main menu.
 - Added first-pass shape selection for loaded IITC portals, with circle/polygon drawing, preview counts, add-to-route, and replace-route actions.
 - Added graduated preview notes for larger shape selections so users get a heads-up before building chunky routes.

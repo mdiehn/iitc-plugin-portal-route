@@ -1203,4 +1203,21 @@ button.portal-route-waypoint-name,
 .portal-route-bulk-select-preview p {
   margin: 0 0 7px;
 }
+
+.portal-route-bulk-endpoints {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+
+.portal-route-bulk-endpoints label {
+  display: grid;
+  gap: 2px;
+  font-size: 11px;
+}
+
+.portal-route-bulk-endpoints select {
+  width: 100%;
+  max-width: 100%;
+}
 `;
