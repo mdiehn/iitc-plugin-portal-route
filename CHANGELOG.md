@@ -8,6 +8,7 @@ Current release: `1.3.1`
 
 ### Added
 
+- Added Bookmarks folder support to bulk selection, using saved portal positions from IITC Bookmarks.
 - Added start/end portal choices to bulk selection preview so selected portals can be ordered between explicit endpoints.
 - Open the shape selector chooser beside the Bulk select menu item instead of replacing the main menu.
 - Added first-pass shape selection for loaded IITC portals, with circle/polygon drawing, preview counts, add-to-route, and replace-route actions.

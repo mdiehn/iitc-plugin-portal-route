@@ -1242,6 +1242,34 @@ button.portal-route-waypoint-name,
   width: 100%;
   max-width: 100%;
 }
+
+
+.portal-route-bookmark-picker p {
+  margin: 0 0 7px;
+}
+
+.portal-route-bookmark-picker label {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.portal-route-bookmark-picker select {
+  width: 100%;
+  max-width: 100%;
+}
+
+.portal-route-bookmark-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.portal-route-bookmark-actions button {
+  padding: 2px 6px;
+  font: inherit;
+}
 `;
 
   pr.ID = 'portal-route';
@@ -3115,6 +3143,198 @@ button.portal-route-waypoint-name,
     });
   };
 
+
+  pr.bookmarksPluginAvailable = function() {
+    return !!(window.plugin && window.plugin.bookmarks && window.plugin.bookmarks.bkmrksObj);
+  };
+
+  pr.ensureBookmarksLoaded = function() {
+    if (!pr.bookmarksPluginAvailable()) return false;
+    var bookmarks = window.plugin.bookmarks;
+    if ((!bookmarks.bkmrksObj || !bookmarks.bkmrksObj.portals) && typeof bookmarks.loadStorage === 'function') {
+      try {
+        bookmarks.loadStorage();
+      } catch (e) {
+        console.warn('Portal Route: unable to load IITC bookmarks', e);
+      }
+    }
+    return !!(bookmarks.bkmrksObj && bookmarks.bkmrksObj.portals);
+  };
+
+  pr.bookmarkPortalFolders = function() {
+    if (!pr.ensureBookmarksLoaded()) return [];
+
+    var folders = window.plugin.bookmarks.bkmrksObj.portals || {};
+    return Object.keys(folders).map(function(id) {
+      var folder = folders[id] || {};
+      var entries = folder.bkmrk || {};
+      return {
+        id: id,
+        label: folder.label || id,
+        count: Object.keys(entries).length
+      };
+    }).filter(function(folder) {
+      return folder.count > 0;
+    });
+  };
+
+  pr.parseBookmarkLatLng = function(value) {
+    if (!value) return null;
+
+    if (typeof value === 'string') {
+      var parts = value.split(',').map(function(part) { return parseFloat(part); });
+      if (parts.length >= 2 && isFinite(parts[0]) && isFinite(parts[1])) {
+        return { lat: parts[0], lng: parts[1] };
+      }
+      return null;
+    }
+
+    if (Array.isArray(value) && value.length >= 2) {
+      var lat = parseFloat(value[0]);
+      var lng = parseFloat(value[1]);
+      return isFinite(lat) && isFinite(lng) ? { lat: lat, lng: lng } : null;
+    }
+
+    if (typeof value.lat === 'number' && typeof value.lng === 'number') {
+      return { lat: value.lat, lng: value.lng };
+    }
+
+    return null;
+  };
+
+  pr.bookmarkToStop = function(bookmark) {
+    if (!bookmark || !bookmark.guid) return null;
+
+    var loadedStop = pr.portalToStop(bookmark.guid);
+    if (loadedStop) {
+      loadedStop.title = bookmark.label || loadedStop.title || bookmark.guid;
+      return loadedStop;
+    }
+
+    var latlng = pr.parseBookmarkLatLng(bookmark.latlng);
+    if (!latlng) return null;
+
+    return {
+      guid: bookmark.guid,
+      type: 'portal',
+      title: bookmark.label || bookmark.guid,
+      lat: latlng.lat,
+      lng: latlng.lng
+    };
+  };
+
+  pr.bookmarkFolderStops = function(folderId) {
+    if (!pr.ensureBookmarksLoaded()) return [];
+
+    var folders = window.plugin.bookmarks.bkmrksObj.portals || {};
+    var folderIds = folderId === '__all__' ? Object.keys(folders) : [folderId];
+    var stops = [];
+
+    folderIds.forEach(function(id) {
+      var folder = folders[id];
+      var entries = folder && folder.bkmrk ? folder.bkmrk : {};
+      Object.keys(entries).forEach(function(bookmarkId) {
+        var stop = pr.bookmarkToStop(entries[bookmarkId]);
+        if (stop) stops.push(stop);
+      });
+    });
+
+    return pr.uniquePortalStops(stops);
+  };
+
+  pr.bookmarkFolderOptionHtml = function(folder, selectedId) {
+    var label = folder.label + ' (' + folder.count + ')';
+    return '<option value="' + pr.escapeHtml(folder.id) + '"' +
+      (folder.id === selectedId ? ' selected' : '') + '>' +
+      pr.escapeHtml(label) + '</option>';
+  };
+
+  pr.renderBookmarkFolderPicker = function(folders) {
+    var total = folders.reduce(function(sum, folder) { return sum + folder.count; }, 0);
+    var html = '';
+
+    html += '<div id="portal-route-bookmark-picker-content" class="portal-route-dialog-content portal-route-bookmark-picker" tabindex="-1">';
+    html += '<p><b>Choose a bookmarks folder.</b></p>';
+    html += '<p>Bookmark folders use saved portal positions, so portals do not need to be loaded on the map.</p>';
+    html += '<label>Folder <select data-portal-route-bookmark-folder>';
+    if (folders.length > 1) {
+      html += '<option value="__all__">All folders (' + total + ')</option>';
+    }
+    folders.forEach(function(folder, index) {
+      html += pr.bookmarkFolderOptionHtml(folder, index === 0 && folders.length === 1 ? folder.id : '');
+    });
+    html += '</select></label>';
+    html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-bookmark-actions">';
+    html += '<button type="button" data-portal-route-bookmark-action="preview">Preview</button>';
+    html += '<button type="button" data-portal-route-bookmark-action="cancel">Cancel</button>';
+    html += '</div>';
+    html += '</div>';
+
+    return html;
+  };
+
+  pr.closeBookmarkFolderPicker = function() {
+    var content = document.getElementById('portal-route-bookmark-picker-content');
+    if (content && window.jQuery) {
+      try {
+        window.jQuery(content).closest('.ui-dialog-content').dialog('close');
+        return;
+      } catch (e) {
+        // Fall through to hiding the content if the IITC dialog wrapper is unavailable.
+      }
+    }
+    if (content) content.style.display = 'none';
+  };
+
+  pr.openBookmarkFolderPicker = function() {
+    if (!pr.ensureBookmarksLoaded()) {
+      pr.showMessage('Bookmarks plugin is not enabled.');
+      return;
+    }
+
+    var folders = pr.bookmarkPortalFolders();
+    if (!folders.length) {
+      pr.showMessage('No portal bookmarks found.');
+      return;
+    }
+
+    if (typeof window.dialog !== 'function') {
+      pr.showMessage('Bookmarks are available, but the picker cannot open here.');
+      return;
+    }
+
+    window.dialog({
+      id: 'iitc-plugin-portal-route-bookmark-picker-dialog',
+      title: 'Bulk select bookmarks',
+      html: pr.renderBookmarkFolderPicker(folders),
+      dialogClass: 'portal-route-dialog portal-route-bookmark-picker-dialog',
+      width: pr.getDialogSize(360, 190, 300, 170).width,
+      height: pr.getDialogSize(360, 190, 300, 170).height
+    });
+
+    var content = document.getElementById('portal-route-bookmark-picker-content');
+    if (!content) return;
+
+    content.addEventListener('click', function(ev) {
+      var button = ev.target.closest('[data-portal-route-bookmark-action]');
+      if (!button) return;
+      ev.preventDefault();
+
+      var action = button.getAttribute('data-portal-route-bookmark-action');
+      if (action === 'cancel') {
+        pr.closeBookmarkFolderPicker();
+        pr.showMessage('Bookmark selection canceled.');
+        return;
+      }
+
+      var select = content.querySelector('[data-portal-route-bookmark-folder]');
+      var folderId = select ? select.value : '';
+      var stops = pr.bookmarkFolderStops(folderId);
+      pr.closeBookmarkFolderPicker();
+      pr.openBulkPortalPreview(stops, { source: 'bookmarks' });
+    });
+  };
+
   pr.bulkSelectionStartPoint = function(mode, stops) {
     if (mode === 'add' && pr.state.stops.length) {
       var last = pr.state.stops[pr.state.stops.length - 1];
@@ -3243,7 +3463,7 @@ button.portal-route-waypoint-name,
     options = options || {};
     stops = pr.filterNewPortalStops(stops);
     if (!stops.length) {
-      pr.showMessage('No new loaded portals to add.');
+      pr.showMessage('No new portals to add.');
       return;
     }
 
@@ -3272,19 +3492,19 @@ button.portal-route-waypoint-name,
     pr.renderPointsPanel();
     pr.renderMiniControl();
     if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
-    pr.showMessage('Added ' + stops.length + ' loaded portals.');
+    pr.showMessage('Added ' + stops.length + ' portals.');
   };
 
   pr.replaceWithBulkPortalStops = function(stops, options) {
     options = options || {};
     stops = pr.orderStopsNearestNeighbor(pr.uniquePortalStops(stops), 'replace', options);
     if (!stops.length) {
-      pr.showMessage('No loaded portals selected.');
+      pr.showMessage('No portals selected.');
       return;
     }
     pr.replaceStops(stops, { openPointsPanel: true });
     pr.markRouteStale({ clearRoute: true });
-    pr.showMessage('Replaced route with ' + stops.length + ' loaded portals.');
+    pr.showMessage('Replaced route with ' + stops.length + ' portals.');
   };
 
   pr.closeBulkPortalPreview = function() {
@@ -3338,19 +3558,25 @@ button.portal-route-waypoint-name,
     };
   };
 
-  pr.renderBulkPortalPreview = function(stops) {
+  pr.renderBulkPortalPreview = function(stops, options) {
+    options = options || {};
     var addableCount = pr.filterNewPortalStops(stops).length;
     var replaceCount = pr.uniquePortalStops(stops).length;
 
     var html = '';
     html += '<div id="' + pr.DOM_IDS.bulkSelectDialogContent + '" class="portal-route-dialog-content portal-route-bulk-select-preview" tabindex="-1">';
-    html += '<p><b>Found ' + replaceCount + ' loaded portal' + (replaceCount === 1 ? '' : 's') + '.</b></p>';
+    var noun = options.source === 'bookmarks' ? 'bookmarked portal' : 'loaded portal';
+    html += '<p><b>Found ' + replaceCount + ' ' + noun + (replaceCount === 1 ? '' : 's') + '.</b></p>';
     if (replaceCount >= 50) {
       html += '<p>That is a chunky route. Portal Route can add them, but routing services may object.</p>';
     } else if (replaceCount >= 25) {
       html += '<p>That is a pretty healthy route. Portal Route can add them, but plotting may get slow.</p>';
     }
-    html += '<p>Only loaded portals are included. Zoom or pan first if you expected more.</p>';
+    if (options.source === 'bookmarks') {
+      html += '<p>Bookmarks use saved portal positions, so portals do not need to be loaded on the map.</p>';
+    } else {
+      html += '<p>Only loaded portals are included. Zoom or pan first if you expected more.</p>';
+    }
     if (replaceCount > 1) {
       var endpoints = pr.defaultBulkEndpointGuids(pr.uniquePortalStops(stops));
       html += '<div class="portal-route-bulk-endpoints">';
@@ -3371,7 +3597,8 @@ button.portal-route-waypoint-name,
     return html;
   };
 
-  pr.openBulkPortalPreview = function(stops) {
+  pr.openBulkPortalPreview = function(stops, options) {
+    options = options || {};
     pr.bulkSelect.previewStops = pr.uniquePortalStops(stops);
 
     if (typeof window.dialog !== 'function') {
@@ -3382,7 +3609,7 @@ button.portal-route-waypoint-name,
     window.dialog({
       id: pr.DOM_IDS.bulkSelectDialog,
       title: 'Select loaded portals',
-      html: pr.renderBulkPortalPreview(pr.bulkSelect.previewStops),
+      html: pr.renderBulkPortalPreview(pr.bulkSelect.previewStops, options),
       dialogClass: 'portal-route-dialog portal-route-bulk-select-dialog',
       width: pr.getDialogSize(360, 210, 300, 190).width,
       height: pr.getDialogSize(360, 210, 300, 190).height
@@ -3617,6 +3844,7 @@ button.portal-route-waypoint-name,
     return [
       { label: 'Circle', action: 'select-portals-circle' },
       { label: 'Polygon', action: 'select-portals-polygon' },
+      { label: 'Bookmarks', action: 'select-portals-bookmarks', disabled: !(pr.bookmarkPortalFolders && pr.bookmarkPortalFolders().length) },
       { label: 'Cancel', action: 'cancel-bulk-select' }
     ];
   };
@@ -6407,6 +6635,7 @@ button.portal-route-waypoint-name,
       'add-current-location': pr.addCurrentLocation,
       'select-portals-circle': function() { pr.startBulkPortalSelection('circle'); },
       'select-portals-polygon': function() { pr.startBulkPortalSelection('polygon'); },
+      'select-portals-bookmarks': pr.openBookmarkFolderPicker,
       'cancel-bulk-select': pr.cancelBulkPortalSelection,
       'toggle-loop-back': pr.toggleLoopBackToStart,
       'reverse-route': pr.reverseRoute,

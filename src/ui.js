@@ -190,6 +190,7 @@
       'add-current-location': pr.addCurrentLocation,
       'select-portals-circle': function() { pr.startBulkPortalSelection('circle'); },
       'select-portals-polygon': function() { pr.startBulkPortalSelection('polygon'); },
+      'select-portals-bookmarks': pr.openBookmarkFolderPicker,
       'cancel-bulk-select': pr.cancelBulkPortalSelection,
       'toggle-loop-back': pr.toggleLoopBackToStart,
       'reverse-route': pr.reverseRoute,

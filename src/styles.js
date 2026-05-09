@@ -1220,4 +1220,32 @@ button.portal-route-waypoint-name,
   width: 100%;
   max-width: 100%;
 }
+
+
+.portal-route-bookmark-picker p {
+  margin: 0 0 7px;
+}
+
+.portal-route-bookmark-picker label {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.portal-route-bookmark-picker select {
+  width: 100%;
+  max-width: 100%;
+}
+
+.portal-route-bookmark-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.portal-route-bookmark-actions button {
+  padding: 2px 6px;
+  font: inherit;
+}
 `;
