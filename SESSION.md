@@ -15,6 +15,7 @@ This file is a short handoff note for agents working in this repo.
 - First-pass route-level travel mode support for `drive`, `bike`, and `walk`
 - Default travel mode and per-mode average speed settings
 - Google Maps export mode mapping through a small provider abstraction
+- OpenRouteService beta routing provider, with API key/base URL settings
 
 ## Current expectations
 
@@ -28,7 +29,7 @@ This file is a short handoff note for agents working in this repo.
 ## Not in scope unless explicitly requested
 
 - Per-leg travel modes
-- Alternative routing/export providers
+- OSRM routing/export providers
 - Distinct line styles or textures by travel mode
 - Multi-modal summaries
 - Broad refactors

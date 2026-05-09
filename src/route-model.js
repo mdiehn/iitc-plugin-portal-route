@@ -260,6 +260,21 @@
     return data.title || data.name || null;
   };
 
+  pr.normalizeRoutingProvider = function(provider) {
+    if (provider === pr.ROUTING_PROVIDERS.ors) return provider;
+    return pr.ROUTING_PROVIDERS.google;
+  };
+
+  pr.getRoutingProvider = function() {
+    return pr.normalizeRoutingProvider(pr.state.settings.routingProvider);
+  };
+
+  pr.getRoutingProviderLabel = function(provider) {
+    provider = pr.normalizeRoutingProvider(provider);
+    if (provider === pr.ROUTING_PROVIDERS.ors) return 'OpenRouteService beta';
+    return 'Google';
+  };
+
   pr.normalizeTravelMode = function(mode) {
     if (mode === pr.TRAVEL_MODES.bike || mode === pr.TRAVEL_MODES.walk) return mode;
     return pr.TRAVEL_MODES.drive;
@@ -298,6 +313,7 @@
       leg.travelMode = mode;
       leg.durationSeconds = pr.travelSecondsForDistance(leg.distanceMeters, mode);
       leg.durationText = pr.formatDuration(leg.durationSeconds);
+      leg.durationSource = 'speed';
     });
 
     route.totals = pr.calculateTotals(route.legs);
@@ -908,6 +924,7 @@
       stopSeconds: stopSeconds,
       tripSeconds: driveSeconds + stopSeconds,
       distanceMeters: distanceMeters,
-      travelMode: pr.getTravelMode()
+      travelMode: pr.getTravelMode(),
+      routingProvider: pr.getRoutingProvider()
     };
   };

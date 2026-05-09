@@ -31,6 +31,16 @@
           }
           return;
         }
+        if (key === 'routingProvider') {
+          if (value === pr.ROUTING_PROVIDERS.google || value === pr.ROUTING_PROVIDERS.ors) {
+            normalized[key] = value;
+          }
+          return;
+        }
+        if (key === 'orsBaseUrl') {
+          normalized[key] = value.replace(/\/+$/, '') || pr.DEFAULT_SETTINGS.orsBaseUrl;
+          return;
+        }
         normalized[key] = value;
       }
     });

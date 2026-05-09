@@ -39,14 +39,22 @@
     walk: 'walk'
   };
 
+  pr.ROUTING_PROVIDERS = {
+    google: 'google',
+    ors: 'ors'
+  };
+
   pr.DEFAULT_SETTINGS = {
     defaultStopMinutes: 5,
     includeReturnToStart: false,
     startOnCurrentLocation: false,
+    routingProvider: pr.ROUTING_PROVIDERS.google,
     defaultTravelMode: pr.TRAVEL_MODES.drive,
     driveSpeedMph: 30,
     bikeSpeedMph: 10,
     walkSpeedMph: 3,
+    orsApiKey: '',
+    orsBaseUrl: 'https://api.openrouteservice.org',
     googleDriveOAuthClientId: '',
     showSegmentTimesOnMap: false,
     showMiniControl: true,

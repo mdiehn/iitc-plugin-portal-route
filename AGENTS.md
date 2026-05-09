@@ -26,13 +26,14 @@ Current branch when this note was updated: `feat/multi-modal-routing`
 - Route library and Google Drive shared storage are already implemented.
 - Drive auth now prefers IITC Sync auth when available, with Portal Route OAuth Client ID fallback.
 - First-pass route-level travel mode support is in progress for `drive`, `bike`, and `walk`.
+- OpenRouteService beta routing is being added as an opt-in provider for v1.5.0.
 - Travel mode and per-mode speed controls belong in the route list / points panel, even though they persist as settings.
 
 ## Current priorities
 
 - Keep travel-mode changes incremental.
 - Preserve existing Google route calculation geometry and route splitting behavior unless a change is clearly required.
-- Treat alternative providers, per-leg travel modes, multi-modal summaries, and mode-specific line styling as later work.
+- Treat OSRM, per-leg travel modes, multi-modal summaries, and mode-specific line styling as later work.
 
 ## Key docs
 

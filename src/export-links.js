@@ -208,7 +208,15 @@
       pluginName: pr.NAME,
       pluginVersion: pr.VERSION,
       exportedAt: new Date().toISOString(),
-      settings: Object.assign({}, pr.state.settings),
+      settings: pr.routeLibrarySettings ? pr.routeLibrarySettings() : {
+        defaultStopMinutes: pr.state.settings.defaultStopMinutes,
+        includeReturnToStart: !!pr.state.settings.includeReturnToStart,
+        routingProvider: pr.state.settings.routingProvider || pr.ROUTING_PROVIDERS.google,
+        defaultTravelMode: pr.state.settings.defaultTravelMode || pr.TRAVEL_MODES.drive,
+        driveSpeedMph: pr.state.settings.driveSpeedMph,
+        bikeSpeedMph: pr.state.settings.bikeSpeedMph,
+        walkSpeedMph: pr.state.settings.walkSpeedMph
+      },
       stops: pr.state.stops.map(function(stop) {
         return {
           guid: stop.guid || null,
@@ -293,7 +301,7 @@
     if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('import route');
 
     pr.state.stops = stops;
-    pr.state.settings = pr.normalizeSettings(data.settings);
+    pr.state.settings = pr.normalizeSettings(Object.assign({}, pr.state.settings, data.settings || {}));
     pr.state.route = data.route && Array.isArray(data.route.legs) ? data.route : null;
     if (pr.state.route && pr.refreshRouteTravelEstimates) pr.refreshRouteTravelEstimates(pr.state.route);
     pr.state.routeDirty = !!pr.state.route || !!data.routeDirty;

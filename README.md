@@ -8,7 +8,7 @@ It is built for mobile use as the top priority, but also to work well on desktop
 
 Current release: `1.5.0`
 
-This release adds first-pass travel mode support. You can choose `drive`, `bike`, or `walk`, set average speeds for each, and use those settings for estimated travel time and Google Maps export mode.
+This release adds first-pass travel mode support. You can choose `drive`, `bike`, or `walk`, set average speeds for each, and use those settings for estimated travel time and Google Maps export mode. It also adds OpenRouteService as an opt-in beta routing provider for better bike/walk path following.
 
 Large bulk-selected routes can be saved and edited, but Google routing may not plot routes with more than 26 stops in one request yet.
 
@@ -37,10 +37,13 @@ The points list shows the current route order. Drag rows to reorder stops, or us
 
 **Default stop time** applies to stops that do not have their own stop time.
 
+**Travel mode** and the per-mode speed estimates live here because they directly affect the route you are working on.
+
 ### Settings
 
-- **Travel mode** chooses the default route travel mode: drive, bike, or walk.
-- **Drive/Bike/Walk mph** set the average speeds used for estimated travel time.
+- **Routing** chooses Google or OpenRouteService beta. Google remains the default.
+- **ORS API key** and **ORS URL** configure OpenRouteService. The public ORS service needs an API key; self-hosted/proxy URLs can be used too.
+- **Google Drive OAuth Client ID** configures Drive access when IITC Sync auth is not available.
 - **Show segment times on map** shows per-leg labels on the route line when route data is available.
 
 ### Direct actions and Menu
@@ -68,9 +71,11 @@ Large bulk-selected routes can be saved and edited, but Google routing may not p
 ### Route
 
 - Routes calculate automatically after changes. If stale state remains, use **Menu → Route/Replot** to refresh it.
+- Google is the default routing provider. OpenRouteService beta can be selected in the route list controls.
 - Travel time uses the selected travel mode and configured average speed. Distance stays based on the current route geometry.
 - **Menu** includes Google Maps and Apple Maps export choices. Long routes are split into stage links.
-- Google Maps export maps Portal Route modes to Google's `driving`, `bicycling`, and `walking` modes.
+- Google route calculation and Google Maps export map Portal Route modes to Google's `driving`, `bicycling`, and `walking` modes.
+- OpenRouteService beta maps Portal Route modes to `driving-car`, `cycling-regular`, and `foot-walking`. Google Maps export still sends the waypoint list and Google will recalculate its own route.
 - **Print** opens a printable route summary.
 
 When route data is available, the panels show travel time, wait time, trip time, and distance. The portal info panel shows a small abbreviated stats row under its route buttons, and stale route data is marked until the route is replotted.
@@ -143,12 +148,17 @@ Google Drive support uses IITC Sync's Google auth when it is already available. 
 - Mark route data as updating after edits.
 - Persist waypoints and calculated route data across IITC reloads.
 - Optionally show segment time labels on the map.
+- Optionally plot routes with OpenRouteService beta.
 - Export the route to Google Maps, with staged links for long routes.
 - Export the route to Apple Maps, with staged links for long routes.
 - Export and import route JSON.
 - Open a printable route summary.
 
 ## Known limits
+
+### OpenRouteService beta
+
+OpenRouteService is optional and needs an API key when using the public ORS service. It is used to draw the route in Portal Route, not to force Google Maps to follow the same geometry. Google Maps export still hands Google the waypoint list.
 
 ### Google Maps waypoint limit
 
