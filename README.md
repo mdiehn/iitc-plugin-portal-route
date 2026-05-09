@@ -6,9 +6,9 @@ It is built for mobile-first use, but works on desktop IITC too. Build a stop li
 
 ## Status
 
-Current release: `1.4.0`
+Current release: `1.4.1`
 
-This release adds **Bulk select** for building routes from drawn shapes or IITC Bookmarks folders. Shape selection works with currently loaded portals; Bookmarks selection can use saved bookmark positions.
+This release fixes Google Drive auth setup. Portal Route no longer ships a hardcoded Drive credential, prefers IITC Sync's Google auth when available, and otherwise uses a user-configured OAuth Client ID from settings.
 
 Large bulk-selected routes can be saved and edited, but Google routing may not plot routes with more than 26 stops in one request yet.
 

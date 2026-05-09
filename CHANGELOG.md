@@ -2,7 +2,16 @@
 
 This project is in active development.
 
-Current release: `1.4.0`
+Current release: `1.4.1`
+
+## 1.4.1 - Released 2026-05-09
+
+### Fixed
+
+- Removed the hardcoded Google Drive credential from Portal Route.
+- Prefer IITC Sync's existing Google auth session for Drive actions when it is available.
+- Fall back to a user-configured Google Drive OAuth Client ID in Portal Route settings when Sync auth is not available.
+- Show a clear user-facing message when Drive is used without either Sync auth or a configured OAuth Client ID.
 
 ## 1.4.0 - Released 2026-05-09
 
