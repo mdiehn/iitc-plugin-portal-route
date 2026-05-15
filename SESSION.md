@@ -4,25 +4,26 @@ This file is a short handoff note for agents working in this repo.
 
 ## Current branch
 
-`feat/multi-modal-routing`
+`dev/v1.6.0`
 
 ## Current release target
 
-`1.5.0`
+`1.6.0-dev`
 
 ## Current work
 
-- First-pass route-level travel mode support for `drive`, `bike`, and `walk`
-- Default travel mode and per-mode average speed settings
-- Google Maps export mode mapping through a small provider abstraction
-- OpenRouteService beta routing provider, with API key/base URL settings
+- Start v1.6.0 development after the v1.5.0 release.
+- Add a configurable route line color setting.
+- Add a saved Home location.
+- Add Home should use the saved Home coordinates like Add me uses current location.
+- After Add Home, select the newly added Home point so existing route actions can immediately use Set as start or Set as end.
 
 ## Current expectations
 
 - Keep changes small and incremental.
-- Preserve current Google route geometry and export splitting behavior unless explicitly changing them.
-- Keep stop/wait time behavior unchanged.
-- Keep travel mode and speed controls in the route list / points panel, not the small settings panel.
+- Preserve current travel-mode, Google routing, ORS beta, and export splitting behavior unless explicitly changing them.
+- Keep route color and Home settings in global settings.
+- Keep Add Home in the shared Menu near Add me.
 - Update `README.md` and `CHANGELOG.md` for user-visible changes when appropriate.
 - Include a suggested commit message with changes unless the user clearly does not want one.
 

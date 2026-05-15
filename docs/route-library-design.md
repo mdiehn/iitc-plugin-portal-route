@@ -6,7 +6,7 @@ This file records planning decisions, design notes, and implementation context f
 
 ## Current target
 
-Version: `1.5.0`
+Version: `1.6.0-dev`
 
 Theme:
 

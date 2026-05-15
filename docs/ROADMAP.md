@@ -1,8 +1,8 @@
 # Roadmap
 
-#WARNING - needs update since 1.1.0 release
+Current development: `1.6.0-dev`
 
-Current release: `1.5.0`
+Latest release: `1.5.0`
 
 Portal Route has reached its first stable release. The main route-building loop is usable now: add portals, add manual points, add current location, loop back to start, drag/edit points, calculate routes, choose a travel mode, export to staged Google Maps links, import/export JSON, print, and keep state across reloads.
 
@@ -58,17 +58,18 @@ Known rough edges:
 - Google Maps export works, but the staging/export flow could be clearer.
 - Waypoint dragging and portal snapping need more field testing.
 
-## Current focus: v1.5.0
+## Current focus: v1.6.0
 
-Theme: first-pass travel mode support without breaking current Google route/export behavior.
+Theme: small route-planning polish after the travel-mode release.
 
-This release adds route-level travel mode settings and per-mode average speed estimates. Travel times now use the selected mode and speed, while route geometry, distance, stop timing, and staged Google export behavior stay intact.
+Planned v1.6.0 work:
 
-Google Maps export now maps Portal Route travel modes to Google's `driving`, `bicycling`, and `walking` modes through a small provider wrapper.
+- configurable route line color
+- saved Home location settings
+- Add Home action using saved Home coordinates
+- Add Home should select the newly added point so Set as start / Set as end can be used immediately
 
-This release also carries travel-mode settings through saved routes, route JSON import/export, restored state, and undo.
-
-Current v1.5.0 UI state:
+Current v1.6.0 UI baseline:
 
 - Add/Del handles the common selected-point action, with Menu as the wider route-building/export/navigation menu. Add toggles manual point placement when nothing is selected.
 - Undo is available for recent route edits.
@@ -77,14 +78,15 @@ Current v1.5.0 UI state:
 - The route list is the working console for day-to-day route work.
 - Route-list rows have compact Up/Dn/Del controls, with mobile-friendly symbols on narrow screens and rename/start/end actions still in the context menu.
 - The settings panel is a small settings/navigation panel with Add/Del and Menu; Menu includes Route/Replot.
-- The settings panel now also includes default travel mode and per-mode speed settings.
+- The settings panel includes global routing settings. Planned v1.6.0 settings include route line color and saved Home location.
+- Travel mode and per-mode speed settings are route-list controls.
 - The route library is a separate panel with Save, Load, Import, Export, Delete, and Menu.
 - Local route-library JSON portability works for single routes and whole libraries.
 - Stale route data has a clearer Replot cue, stale compact stats, and a Menu Route/Replot fallback.
 
-## Near-term multi-modal follow-up
+## Near-term follow-up
 
-Not in `1.5.0` yet:
+Not in `1.6.0` yet:
 
 - per-leg travel modes
 - alternative export/routing providers

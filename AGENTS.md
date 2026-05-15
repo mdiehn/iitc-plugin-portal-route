@@ -4,9 +4,9 @@
 
 This repo contains the IITC plugin **Portal Route**.
 
-Current release target: `1.5.0`
+Current release target: `1.6.0-dev`
 
-Current branch when this note was updated: `feat/multi-modal-routing`
+Current branch when this note was updated: `dev/v1.6.0`
 
 ## Working style
 
@@ -25,14 +25,16 @@ Current branch when this note was updated: `feat/multi-modal-routing`
 
 - Route library and Google Drive shared storage are already implemented.
 - Drive auth now prefers IITC Sync auth when available, with Portal Route OAuth Client ID fallback.
-- First-pass route-level travel mode support is in progress for `drive`, `bike`, and `walk`.
-- OpenRouteService beta routing is being added as an opt-in provider for v1.5.0.
+- First-pass route-level travel mode support for `drive`, `bike`, and `walk` is released in v1.5.0.
+- OpenRouteService beta routing is released as an opt-in provider in v1.5.0.
 - Travel mode and per-mode speed controls belong in the route list / points panel, even though they persist as settings.
+- v1.6.0 development is starting with route line color and saved Home location polish.
 
 ## Current priorities
 
-- Keep travel-mode changes incremental.
-- Preserve existing Google route calculation geometry and route splitting behavior unless a change is clearly required.
+- Keep route color and saved Home changes incremental.
+- Preserve existing Google route calculation geometry, ORS beta behavior, and route splitting behavior unless a change is clearly required.
+- Add Home should add the saved Home point and select it so Set as start / Set as end can be used immediately.
 - Treat OSRM, per-leg travel modes, multi-modal summaries, and mode-specific line styling as later work.
 
 ## Key docs

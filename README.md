@@ -6,13 +6,15 @@ It is built for mobile use as the top priority, but also to work well on desktop
 
 ## Status
 
-Current release: `1.5.0`
+Current development: `1.6.0-dev`
 
-This release adds first-pass travel mode support. You can choose `drive`, `bike`, or `walk`, set average speeds for each, and use those settings for estimated travel time and Google Maps export mode. It also adds OpenRouteService as an opt-in beta routing provider for better bike/walk path following.
+Latest release: `1.5.0`
+
+The v1.6.0 development branch is for small route-planning polish after the travel-mode release. Planned work includes a configurable route line color and a saved Home location that can be added like Add me.
 
 Large bulk-selected routes can be saved and edited, but Google routing may not plot routes with more than 26 stops in one request yet.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/dev/v1.5.0/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/dev/v1.6.0/dist/portal-route.user.js)
 
 ## Quick start
 
@@ -45,6 +47,7 @@ The points list shows the current route order. Drag rows to reorder stops, or us
 - **ORS API key** and **ORS URL** configure OpenRouteService. The public ORS service needs an API key; self-hosted/proxy URLs can be used too.
 - **Google Drive OAuth Client ID** configures Drive access when IITC Sync auth is not available.
 - **Show segment times on map** shows per-leg labels on the route line when route data is available.
+- Planned for v1.6.0: route line color and saved Home location settings.
 
 ### Direct actions and Menu
 
@@ -52,6 +55,7 @@ The points list shows the current route order. Drag rows to reorder stops, or us
 - **Del** removes the selected route waypoint.
 - **Undo** reverses the last route edit.
 - **Menu** opens Add me, Loop/Unloop, Clear Route, Save, Google Maps, Apple Maps, Route/Replot, Route List, Library, and Settings.
+- Planned for v1.6.0: Add Home will add the saved Home location and select it for follow-up actions such as Set as start or Set as end.
 
 ![Portal Route menu](docs/screen_02_add_menu.png)
 
@@ -118,6 +122,8 @@ Browser location can be very accurate on a phone and very wrong on a desktop. De
 
 Use **Menu -> Add me** when you are on the device you will actually navigate from.
 
+Planned for v1.6.0: save a Home location and use **Menu -> Add Home** to add that saved point without relying on current browser location.
+
 ## Map views
 
 After you add enough stops, Portal Route draws the route line and fills in drive time, trip time, and distance. With **Loop** enabled, the generated loop endpoint stays numbered, and the start/end markers turn loop-blue without losing their end labels.
@@ -137,6 +143,7 @@ Google Drive support uses IITC Sync's Google auth when it is already available. 
 - Add selected portals as route stops.
 - Add manual map points.
 - Add your current location as a route stop.
+- Planned for v1.6.0: add a saved Home location as a route stop.
 - Optionally loop back to the first stop.
 - Edit, remove, and reorder stops.
 - Set a default stop time.
@@ -148,6 +155,7 @@ Google Drive support uses IITC Sync's Google auth when it is already available. 
 - Mark route data as updating after edits.
 - Persist waypoints and calculated route data across IITC reloads.
 - Optionally show segment time labels on the map.
+- Planned for v1.6.0: choose the route line color.
 - Optionally plot routes with OpenRouteService beta.
 - Export the route to Google Maps, with staged links for long routes.
 - Export the route to Apple Maps, with staged links for long routes.

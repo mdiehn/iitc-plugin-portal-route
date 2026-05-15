@@ -2,7 +2,18 @@
 
 This project is in active development.
 
-Current release: `1.5.0`
+Current development: `1.6.0-dev`
+
+Latest release: `1.5.0`
+
+## 1.6.0-dev - Unreleased
+
+### Planned
+
+- Add a configurable route line color setting.
+- Add a saved Home location.
+- Add Home should behave like Add me, using the saved Home coordinates.
+- After Add Home, select the newly added Home point so existing route actions can immediately set it as the start or end.
 
 ## 1.5.0 - Released 2026-05-09
 
