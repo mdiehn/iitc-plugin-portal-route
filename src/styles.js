@@ -593,7 +593,9 @@ button.portal-route-waypoint-badge-wide {
 .portal-route-settings-dialog-content {
   display: flex;
   flex-direction: column;
+  height: 100%;
   max-height: calc(100vh - 120px);
+  min-height: 0;
   overflow: hidden !important;
 }
 
@@ -619,7 +621,9 @@ button.portal-route-waypoint-badge-wide {
 .portal-route-points-dialog-content {
   display: flex;
   flex-direction: column;
+  height: 100%;
   max-height: calc(100vh - 120px);
+  min-height: 0;
   overflow: hidden !important;
 }
 
@@ -628,6 +632,7 @@ button.portal-route-waypoint-badge-wide {
   min-height: 0;
   overflow-y: auto;
   overflow-x: visible;
+  padding-right: 3px;
 }
 
 .portal-route-points-panel-actions {
@@ -678,6 +683,27 @@ button.portal-route-waypoint-badge-wide {
 .portal-route-library-toolbar {
   justify-content: center;
   margin-bottom: 7px;
+}
+
+.portal-route-library-dialog-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: calc(100vh - 120px);
+  min-height: 0;
+  overflow: hidden !important;
+}
+
+.portal-route-library-scroll-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: visible;
+  padding-right: 3px;
+}
+
+.portal-route-library-footer {
+  flex: 0 0 auto;
 }
 
 .portal-route-library-list {
@@ -1111,8 +1137,18 @@ button.portal-route-waypoint-badge-wide {
 }
 
 .ui-dialog.portal-route-settings-dialog .ui-dialog-content,
-.ui-dialog.portal-route-points-dialog .ui-dialog-content {
+.ui-dialog.portal-route-points-dialog .ui-dialog-content,
+.ui-dialog.portal-route-library-dialog .ui-dialog-content {
+  display: flex !important;
+  flex-direction: column !important;
   overflow: hidden !important;
+}
+
+.ui-dialog.portal-route-settings-dialog .ui-dialog-content > .portal-route-settings-dialog-content,
+.ui-dialog.portal-route-points-dialog .ui-dialog-content > .portal-route-points-dialog-content,
+.ui-dialog.portal-route-library-dialog .ui-dialog-content > .portal-route-library-dialog-content {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 
@@ -1178,12 +1214,14 @@ button.portal-route-waypoint-name,
   }
 
   .ui-dialog.portal-route-settings-dialog .ui-dialog-content,
-  .ui-dialog.portal-route-points-dialog .ui-dialog-content {
+  .ui-dialog.portal-route-points-dialog .ui-dialog-content,
+  .ui-dialog.portal-route-library-dialog .ui-dialog-content {
     overflow: hidden !important;
   }
 
   .portal-route-settings-dialog-content,
-  .portal-route-points-dialog-content {
+  .portal-route-points-dialog-content,
+  .portal-route-library-dialog-content {
     max-height: calc(100dvh - 90px);
   }
 

@@ -780,7 +780,10 @@
     contentHtml += '<button type="button" data-action="export-route-library">Export Library</button>';
     contentHtml += '<button type="button" data-action="import-route-library">Import Library</button>';
     contentHtml += '</div>';
+    contentHtml += '<div class="portal-route-library-scroll-body">';
     contentHtml += pr.renderRouteLibraryRows(routes);
+    contentHtml += '</div>';
+    contentHtml += '<div class="portal-route-library-footer">';
     if (selectedCount === 1) {
       contentHtml += '<div class="portal-route-library-tip">' + selectedCount + ' route selected. Save will overwrite it after confirmation.</div>';
     } else if (selectedCount > 1) {
@@ -797,6 +800,7 @@
     contentHtml += pr.mainMenuButton('Menu', 'portal-route-library-menu-button');
     contentHtml += '</div>';
     contentHtml += '<div class="portal-route-message"></div>';
+    contentHtml += '</div>';
     return contentHtml;
   };
 

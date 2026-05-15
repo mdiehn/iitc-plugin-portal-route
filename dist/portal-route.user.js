@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version 1.6.0-dev.20260515071441
+// @version 1.6.0-dev.20260515072120
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
 // @updateURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0-dev/dist/portal-route.meta.js
 // @downloadURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0-dev/dist/portal-route.user.js
@@ -615,7 +615,9 @@ button.portal-route-waypoint-badge-wide {
 .portal-route-settings-dialog-content {
   display: flex;
   flex-direction: column;
+  height: 100%;
   max-height: calc(100vh - 120px);
+  min-height: 0;
   overflow: hidden !important;
 }
 
@@ -641,7 +643,9 @@ button.portal-route-waypoint-badge-wide {
 .portal-route-points-dialog-content {
   display: flex;
   flex-direction: column;
+  height: 100%;
   max-height: calc(100vh - 120px);
+  min-height: 0;
   overflow: hidden !important;
 }
 
@@ -650,6 +654,7 @@ button.portal-route-waypoint-badge-wide {
   min-height: 0;
   overflow-y: auto;
   overflow-x: visible;
+  padding-right: 3px;
 }
 
 .portal-route-points-panel-actions {
@@ -700,6 +705,27 @@ button.portal-route-waypoint-badge-wide {
 .portal-route-library-toolbar {
   justify-content: center;
   margin-bottom: 7px;
+}
+
+.portal-route-library-dialog-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: calc(100vh - 120px);
+  min-height: 0;
+  overflow: hidden !important;
+}
+
+.portal-route-library-scroll-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: visible;
+  padding-right: 3px;
+}
+
+.portal-route-library-footer {
+  flex: 0 0 auto;
 }
 
 .portal-route-library-list {
@@ -1133,8 +1159,18 @@ button.portal-route-waypoint-badge-wide {
 }
 
 .ui-dialog.portal-route-settings-dialog .ui-dialog-content,
-.ui-dialog.portal-route-points-dialog .ui-dialog-content {
+.ui-dialog.portal-route-points-dialog .ui-dialog-content,
+.ui-dialog.portal-route-library-dialog .ui-dialog-content {
+  display: flex !important;
+  flex-direction: column !important;
   overflow: hidden !important;
+}
+
+.ui-dialog.portal-route-settings-dialog .ui-dialog-content > .portal-route-settings-dialog-content,
+.ui-dialog.portal-route-points-dialog .ui-dialog-content > .portal-route-points-dialog-content,
+.ui-dialog.portal-route-library-dialog .ui-dialog-content > .portal-route-library-dialog-content {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 
@@ -1200,12 +1236,14 @@ button.portal-route-waypoint-name,
   }
 
   .ui-dialog.portal-route-settings-dialog .ui-dialog-content,
-  .ui-dialog.portal-route-points-dialog .ui-dialog-content {
+  .ui-dialog.portal-route-points-dialog .ui-dialog-content,
+  .ui-dialog.portal-route-library-dialog .ui-dialog-content {
     overflow: hidden !important;
   }
 
   .portal-route-settings-dialog-content,
-  .portal-route-points-dialog-content {
+  .portal-route-points-dialog-content,
+  .portal-route-library-dialog-content {
     max-height: calc(100dvh - 90px);
   }
 
@@ -1398,7 +1436,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.6.0-dev.20260515071441';
+  pr.VERSION = '1.6.0-dev.20260515072120';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -5933,7 +5971,10 @@ button.portal-route-waypoint-name,
     contentHtml += '<button type="button" data-action="export-route-library">Export Library</button>';
     contentHtml += '<button type="button" data-action="import-route-library">Import Library</button>';
     contentHtml += '</div>';
+    contentHtml += '<div class="portal-route-library-scroll-body">';
     contentHtml += pr.renderRouteLibraryRows(routes);
+    contentHtml += '</div>';
+    contentHtml += '<div class="portal-route-library-footer">';
     if (selectedCount === 1) {
       contentHtml += '<div class="portal-route-library-tip">' + selectedCount + ' route selected. Save will overwrite it after confirmation.</div>';
     } else if (selectedCount > 1) {
@@ -5950,6 +5991,7 @@ button.portal-route-waypoint-name,
     contentHtml += pr.mainMenuButton('Menu', 'portal-route-library-menu-button');
     contentHtml += '</div>';
     contentHtml += '<div class="portal-route-message"></div>';
+    contentHtml += '</div>';
     return contentHtml;
   };
 
