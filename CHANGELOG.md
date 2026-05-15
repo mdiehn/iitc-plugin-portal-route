@@ -14,6 +14,7 @@ Latest release: `1.5.0`
 - Added saved Home settings with Home name, latitude, and longitude.
 - Added Set Home here to save the browser location as Home.
 - Added Add Home, which adds the saved Home point and selects it so existing route actions can immediately set it as the start or end.
+- Added Loop/Unloop controls beside Fit on the info panel and route list panel.
 
 ## 1.5.0 - Released 2026-05-09
 

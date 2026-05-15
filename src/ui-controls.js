@@ -218,6 +218,14 @@
     };
   };
 
+  pr.loopBackButtonOptions = function() {
+    return {
+      label: pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop',
+      action: 'toggle-loop-back',
+      ariaLabel: pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start'
+    };
+  };
+
   pr.createMiniControlButton = function(options) {
     options = options || {};
 

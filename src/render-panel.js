@@ -487,6 +487,7 @@
     contentHtml += pr.selectedAddDeleteButton();
     contentHtml += pr.undoRouteEditButton();
     contentHtml += pr.routeButtonHtml(pr.fitRouteButtonOptions());
+    contentHtml += pr.routeButtonHtml(pr.loopBackButtonOptions());
     contentHtml += pr.mainMenuButton();
     contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';

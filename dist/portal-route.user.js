@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version 1.6.0-dev.20260515104749
+// @version 1.6.0-dev.20260515105328
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
 // @updateURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0/dist/portal-route.meta.js
 // @downloadURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0/dist/portal-route.user.js
@@ -1349,7 +1349,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.6.0-dev.20260515104749';
+  pr.VERSION = '1.6.0-dev.20260515105328';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -2011,6 +2011,14 @@ button.portal-route-waypoint-name,
     };
   };
 
+  pr.loopBackButtonOptions = function() {
+    return {
+      label: pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop',
+      action: 'toggle-loop-back',
+      ariaLabel: pr.state.settings.includeReturnToStart ? 'Turn off loop back to start' : 'Loop back to start'
+    };
+  };
+
   pr.createMiniControlButton = function(options) {
     options = options || {};
 
@@ -2293,6 +2301,11 @@ button.portal-route-waypoint-name,
     addActionButton(pr.undoRouteEditButtonOptions());
 
     addActionLink('Fit', 'fit-route');
+    addActionLink(
+      pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop',
+      'toggle-loop-back',
+      pr.loopBackButtonOptions()
+    );
     addActionLink('Menu', 'open-main-menu', pr.mainMenuLinkOptions());
 
     wrapper.appendChild(links);
@@ -4563,6 +4576,7 @@ button.portal-route-waypoint-name,
     contentHtml += pr.selectedAddDeleteButton();
     contentHtml += pr.undoRouteEditButton();
     contentHtml += pr.routeButtonHtml(pr.fitRouteButtonOptions());
+    contentHtml += pr.routeButtonHtml(pr.loopBackButtonOptions());
     contentHtml += pr.mainMenuButton();
     contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';

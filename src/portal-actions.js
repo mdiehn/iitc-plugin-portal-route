@@ -159,6 +159,11 @@
     addActionButton(pr.undoRouteEditButtonOptions());
 
     addActionLink('Fit', 'fit-route');
+    addActionLink(
+      pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop',
+      'toggle-loop-back',
+      pr.loopBackButtonOptions()
+    );
     addActionLink('Menu', 'open-main-menu', pr.mainMenuLinkOptions());
 
     wrapper.appendChild(links);
