@@ -113,6 +113,11 @@
     return '<div class="portal-route-add-point-hint">Tap map to add point · Add/Esc cancels</div>';
   };
 
+  pr.renderHomePickModeHint = function() {
+    if (!pr.state.homePickMode) return '';
+    return '<div class="portal-route-add-point-hint">Tap map to set Home · Esc cancels</div>';
+  };
+
   pr.renderRouteStaleHint = function() {
     if (!pr.state.routeDirty) return '';
     return '<div class="portal-route-stale portal-route-stale-hint">Route changed. Replot to update stats and map line.</div>';
@@ -188,9 +193,9 @@
     html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-long-setting">Home name <input type="text" value="' + pr.escapeHtml(pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle) + '" aria-label="Home name" placeholder="Home" data-field="home-title"></label>';
     html += '</div>';
     html += '<div class="portal-route-list-options">';
-    html += '<label class="portal-route-setting portal-route-default-stop-setting">Home lat <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.state.settings.homeLat || '') + '" aria-label="Home latitude" placeholder="43.000000" data-field="home-lat"></label>';
-    html += '<label class="portal-route-setting portal-route-default-stop-setting">Home lng <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.state.settings.homeLng || '') + '" aria-label="Home longitude" placeholder="-72.000000" data-field="home-lng"></label>';
-    html += '<button type="button" data-action="set-home-current-location">Set Home here</button>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-home-coordinate-setting">Home lat <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.state.settings.homeLat || '') + '" aria-label="Home latitude" placeholder="43.000000" data-field="home-lat"></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-home-coordinate-setting">Home lng <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.state.settings.homeLng || '') + '" aria-label="Home longitude" placeholder="-72.000000" data-field="home-lng"></label>';
+    html += '<button type="button" data-action="set-home-current-location">' + (window.selectedPortal ? 'Set Home to portal' : 'Pick Home on map') + '</button>';
     html += '</div>';
 
     html += '<div class="portal-route-list-options portal-route-long-setting-row">';
@@ -201,10 +206,10 @@
     html += pr.selectedAddDeleteButton();
     html += pr.undoRouteEditButton();
     html += pr.routeButtonHtml(pr.routeReplotButtonOptions());
-    html += pr.routeButtonHtml(pr.reverseRouteButtonOptions());
     html += pr.mainMenuButton();
     html += '</div>';
     html += pr.renderAddPointModeHint();
+    html += pr.renderHomePickModeHint();
     html += pr.renderRouteStaleHint();
 
     html += '<div class="portal-route-message" id="portal-route-message"></div>';
@@ -486,15 +491,17 @@
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-panel-actions">';
     contentHtml += pr.selectedAddDeleteButton();
     contentHtml += pr.undoRouteEditButton();
-    contentHtml += pr.routeButtonHtml(pr.fitRouteButtonOptions());
     contentHtml += pr.routeButtonHtml(pr.loopBackButtonOptions());
-    contentHtml += pr.mainMenuButton();
+    contentHtml += pr.routeButtonHtml(pr.fitRouteButtonOptions());
+    contentHtml += pr.routeButtonHtml(pr.reverseRouteButtonOptions());
     contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';
     contentHtml += '<button type="button" data-action="save-route">Save</button>';
     contentHtml += '<button type="button" data-action="load-route">Load</button>';
+    contentHtml += pr.mainMenuButton();
     contentHtml += '</div>';
     contentHtml += pr.renderAddPointModeHint();
+    contentHtml += pr.renderHomePickModeHint();
     var existingContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);
 
     if (pr.isDialogOpen(existingContent)) {

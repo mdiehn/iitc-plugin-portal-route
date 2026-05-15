@@ -172,6 +172,10 @@
       wrapper.insertAdjacentHTML('beforeend', pr.renderAddPointModeHint());
     }
 
+    if (pr.renderHomePickModeHint) {
+      wrapper.insertAdjacentHTML('beforeend', pr.renderHomePickModeHint());
+    }
+
     if (pr.renderCompactRouteStats) {
       wrapper.insertAdjacentHTML('beforeend', pr.renderCompactRouteStats(pr.state.route));
     }

@@ -14,9 +14,10 @@ This file is a short handoff note for agents working in this repo.
 
 - v1.6.0 development started after the v1.5.0 release.
 - First pass implemented: configurable route line color setting.
-- First pass implemented: saved Home location with name, latitude, and longitude.
+- First pass implemented: saved Home location with name, latitude, and longitude. Home can be saved from a selected portal or picked from the map.
 - First pass implemented: Add Home uses the saved Home coordinates like Add me uses current location.
 - First pass implemented: Add Home selects the newly added Home point so existing route actions can immediately use Set as start or Set as end.
+- Route list panel action order is Del, Undo, Loop, Fit, Reverse, Print, Save, Load, Menu.
 
 ## Current expectations
 

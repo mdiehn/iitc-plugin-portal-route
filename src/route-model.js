@@ -270,20 +270,38 @@
   };
 
   pr.setHomeToCurrentLocation = function() {
-    pr.showMessage('Getting current location...');
-    pr.getCurrentLocation(
-      function(position) {
-        var coords = position && position.coords;
-        if (!coords) {
-          pr.showMessage('Could not read current location.');
-          return;
-        }
-        pr.setHomeLocation(coords.latitude, coords.longitude, pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle);
-      },
-      function(error) {
-        pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '.'));
-      }
-    );
+    var selectedPortal = pr.portalToStop && pr.portalToStop(window.selectedPortal);
+    if (selectedPortal) {
+      pr.cancelHomePickMode({ silent: true });
+      pr.cancelAddPointMode({ silent: true });
+      pr.setHomeLocation(selectedPortal.lat, selectedPortal.lng, selectedPortal.title || pr.DEFAULT_SETTINGS.homeTitle);
+      return;
+    }
+
+    pr.setHomePickMode(true);
+  };
+
+  pr.cancelHomePickMode = function(options) {
+    options = options || {};
+    if (!pr.state.homePickMode) return false;
+    pr.state.homePickMode = false;
+    pr.syncAddPointModeUi();
+    if (!options.silent) pr.showMessage(options.message || 'Set Home canceled.');
+    return true;
+  };
+
+  pr.setHomePickMode = function(enabled, options) {
+    options = options || {};
+    enabled = !!enabled;
+    if (enabled === !!pr.state.homePickMode) return false;
+
+    pr.state.homePickMode = enabled;
+    if (enabled && pr.state.addPointMode) pr.state.addPointMode = false;
+    pr.syncAddPointModeUi();
+    if (!options.silent) {
+      pr.showMessage(enabled ? 'Click or tap the map to set Home. Select a portal first to use that portal instead.' : 'Set Home canceled.');
+    }
+    return true;
   };
 
   pr.addHomeLocation = function() {
@@ -657,6 +675,7 @@
     var mapContainer = window.map && window.map.getContainer ? window.map.getContainer() : null;
     if (mapContainer && mapContainer.classList) {
       mapContainer.classList.toggle('portal-route-add-point-mode', !!pr.state.addPointMode);
+      mapContainer.classList.toggle('portal-route-home-pick-mode', !!pr.state.homePickMode);
     }
     pr.renderPanel();
     pr.renderMiniControl();
@@ -678,6 +697,7 @@
     if (enabled === !!pr.state.addPointMode) return false;
 
     pr.state.addPointMode = enabled;
+    if (enabled && pr.state.homePickMode) pr.state.homePickMode = false;
     pr.syncAddPointModeUi();
     if (!options.silent) {
       pr.showMessage(enabled ? 'Click or tap the map to add a point. Press Add again or Esc to cancel.' : 'Add point canceled.');

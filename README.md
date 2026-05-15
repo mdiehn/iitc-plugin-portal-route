@@ -14,7 +14,7 @@ The v1.6.0 development branch is for small route-planning polish after the trave
 
 Large bulk-selected routes can be saved and edited, but Google routing may not plot routes with more than 26 stops in one request yet.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/dev/v1.6.0/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/dev/v1.6.0-dev/dist/portal-route.user.js)
 
 ## Quick start
 
@@ -31,7 +31,7 @@ Large bulk-selected routes can be saved and edited, but Google routing may not p
 
 Portal Route is controlled from the mini control, the route list, the settings panel, the route library, and the portal details panel.
 
-Blue-outlined smart buttons mark the primary route controls. **Menu** opens the shared route menu. **Add**, **Del**, **Undo**, **Fit**, **Print**, **Save**, and **Load** do the named action directly.
+Blue-outlined smart buttons mark the primary route controls. **Menu** opens the shared route menu. **Add**, **Del**, **Undo**, **Loop**, **Fit**, **Reverse**, **Print**, **Save**, and **Load** do the named action directly.
 
 ### Points list
 
@@ -46,7 +46,7 @@ The points list shows the current route order. Drag rows to reorder stops, or us
 - **Routing** chooses Google or OpenRouteService beta. Google remains the default.
 - **ORS API key** and **ORS URL** configure OpenRouteService. The public ORS service needs an API key; self-hosted/proxy URLs can be used too.
 - **Route color** changes the plotted route line color.
-- **Home name**, **Home lat**, and **Home lng** store a reusable Home point.
+- **Home name**, **Home lat**, and **Home lng** store a reusable Home point. Select a portal and use **Menu → Set Home to portal**, or use **Menu → Pick Home on map** and tap the map.
 - **Google Drive OAuth Client ID** configures Drive access when IITC Sync auth is not available.
 - **Show segment times on map** shows per-leg labels on the route line when route data is available.
 
@@ -55,7 +55,7 @@ The points list shows the current route order. Drag rows to reorder stops, or us
 - **Add** adds the selected portal, or toggles manual map-point placement when nothing addable is selected. Press **Add** again or **Esc** to cancel placement mode.
 - **Del** removes the selected route waypoint.
 - **Undo** reverses the last route edit.
-- **Menu** opens Add me, Add Home, Set Home here, Loop/Unloop, Clear Route, Save, Google Maps, Apple Maps, Route/Replot, Route List, Library, and Settings.
+- **Menu** opens Add me, Add Home, Set Home to portal / Pick Home on map, Loop/Unloop, Clear Route, Save, Google Maps, Apple Maps, Route/Replot, Route List, Library, and Settings.
 
 ![Portal Route menu](docs/screen_02_add_menu.png)
 
@@ -120,7 +120,7 @@ The mini control is for quick route actions while mostly staying on the map.
 
 Browser location can be very accurate on a phone and very wrong on a desktop. Desktop browsers may report the location of a network exit point instead of your real position.
 
-Use **Menu -> Add me** when you are on the device you will actually navigate from. Use **Menu -> Set Home here** to save that device location as Home, then **Menu -> Add Home** to add it to the route later.
+Use **Menu -> Add me** when you are on the device you will actually navigate from. To save Home, select a portal and use **Menu -> Set Home to portal**, or use **Menu -> Pick Home on map** and tap the map. Then use **Menu -> Add Home** to add it to the route later.
 
 ## Map views
 

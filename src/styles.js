@@ -37,7 +37,9 @@
 }
 
 .leaflet-container.portal-route-add-point-mode,
-.leaflet-container.portal-route-add-point-mode * {
+.leaflet-container.portal-route-add-point-mode *,
+.leaflet-container.portal-route-home-pick-mode,
+.leaflet-container.portal-route-home-pick-mode * {
   cursor: crosshair !important;
 }
 
@@ -97,6 +99,10 @@
 
 .portal-route-travel-controls .portal-route-setting select {
   width: 5.8em;
+}
+
+.portal-route-home-coordinate-setting input {
+  width: 9em;
 }
 
 .portal-route-long-setting-row {

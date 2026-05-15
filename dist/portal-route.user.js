@@ -2,10 +2,10 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version 1.6.0-dev.20260515105328
+// @version 1.6.0-dev.20260515070416
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
-// @updateURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0/dist/portal-route.meta.js
-// @downloadURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0/dist/portal-route.user.js
+// @updateURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0-dev/dist/portal-route.meta.js
+// @downloadURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0-dev/dist/portal-route.user.js
 // @description    Route planning through selected portals with segment drive times, stop-time accounting, and map export.
 // @include        https://intel.ingress.com/*
 // @include        http://intel.ingress.com/*
@@ -59,7 +59,9 @@ function wrapper(plugin_info) {
 }
 
 .leaflet-container.portal-route-add-point-mode,
-.leaflet-container.portal-route-add-point-mode * {
+.leaflet-container.portal-route-add-point-mode *,
+.leaflet-container.portal-route-home-pick-mode,
+.leaflet-container.portal-route-home-pick-mode * {
   cursor: crosshair !important;
 }
 
@@ -119,6 +121,10 @@ function wrapper(plugin_info) {
 
 .portal-route-travel-controls .portal-route-setting select {
   width: 5.8em;
+}
+
+.portal-route-home-coordinate-setting input {
+  width: 9em;
 }
 
 .portal-route-long-setting-row {
@@ -1349,7 +1355,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.6.0-dev.20260515105328';
+  pr.VERSION = '1.6.0-dev.20260515070416';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -1497,6 +1503,7 @@ button.portal-route-waypoint-name,
     panelSize: null,
     pointsPanelOpen: false,
     addPointMode: false,
+    homePickMode: false,
     selectedMapPointIndex: null,
     activeRouteId: null,
     routeLibraryBackendId: 'local',
@@ -2093,7 +2100,7 @@ button.portal-route-waypoint-name,
     return [
       { label: 'Add me', action: 'add-current-location' },
       { label: 'Add Home', action: 'add-home-location', disabled: !pr.getHomeLocation() },
-      { label: 'Set Home here', action: 'set-home-current-location' },
+      { label: window.selectedPortal ? 'Set Home to portal' : 'Pick Home on map', action: 'set-home-current-location' },
       { label: 'Bulk select', action: 'open-bulk-select-menu' },
       { label: pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop', action: 'toggle-loop-back' },
       { label: 'Clear Route', action: 'clear-route', disabled: !hasStops },
@@ -2312,6 +2319,10 @@ button.portal-route-waypoint-name,
 
     if (pr.renderAddPointModeHint) {
       wrapper.insertAdjacentHTML('beforeend', pr.renderAddPointModeHint());
+    }
+
+    if (pr.renderHomePickModeHint) {
+      wrapper.insertAdjacentHTML('beforeend', pr.renderHomePickModeHint());
     }
 
     if (pr.renderCompactRouteStats) {
@@ -2591,20 +2602,38 @@ button.portal-route-waypoint-name,
   };
 
   pr.setHomeToCurrentLocation = function() {
-    pr.showMessage('Getting current location...');
-    pr.getCurrentLocation(
-      function(position) {
-        var coords = position && position.coords;
-        if (!coords) {
-          pr.showMessage('Could not read current location.');
-          return;
-        }
-        pr.setHomeLocation(coords.latitude, coords.longitude, pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle);
-      },
-      function(error) {
-        pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '.'));
-      }
-    );
+    var selectedPortal = pr.portalToStop && pr.portalToStop(window.selectedPortal);
+    if (selectedPortal) {
+      pr.cancelHomePickMode({ silent: true });
+      pr.cancelAddPointMode({ silent: true });
+      pr.setHomeLocation(selectedPortal.lat, selectedPortal.lng, selectedPortal.title || pr.DEFAULT_SETTINGS.homeTitle);
+      return;
+    }
+
+    pr.setHomePickMode(true);
+  };
+
+  pr.cancelHomePickMode = function(options) {
+    options = options || {};
+    if (!pr.state.homePickMode) return false;
+    pr.state.homePickMode = false;
+    pr.syncAddPointModeUi();
+    if (!options.silent) pr.showMessage(options.message || 'Set Home canceled.');
+    return true;
+  };
+
+  pr.setHomePickMode = function(enabled, options) {
+    options = options || {};
+    enabled = !!enabled;
+    if (enabled === !!pr.state.homePickMode) return false;
+
+    pr.state.homePickMode = enabled;
+    if (enabled && pr.state.addPointMode) pr.state.addPointMode = false;
+    pr.syncAddPointModeUi();
+    if (!options.silent) {
+      pr.showMessage(enabled ? 'Click or tap the map to set Home. Select a portal first to use that portal instead.' : 'Set Home canceled.');
+    }
+    return true;
   };
 
   pr.addHomeLocation = function() {
@@ -2978,6 +3007,7 @@ button.portal-route-waypoint-name,
     var mapContainer = window.map && window.map.getContainer ? window.map.getContainer() : null;
     if (mapContainer && mapContainer.classList) {
       mapContainer.classList.toggle('portal-route-add-point-mode', !!pr.state.addPointMode);
+      mapContainer.classList.toggle('portal-route-home-pick-mode', !!pr.state.homePickMode);
     }
     pr.renderPanel();
     pr.renderMiniControl();
@@ -2999,6 +3029,7 @@ button.portal-route-waypoint-name,
     if (enabled === !!pr.state.addPointMode) return false;
 
     pr.state.addPointMode = enabled;
+    if (enabled && pr.state.homePickMode) pr.state.homePickMode = false;
     pr.syncAddPointModeUi();
     if (!options.silent) {
       pr.showMessage(enabled ? 'Click or tap the map to add a point. Press Add again or Esc to cancel.' : 'Add point canceled.');
@@ -4202,6 +4233,11 @@ button.portal-route-waypoint-name,
     return '<div class="portal-route-add-point-hint">Tap map to add point · Add/Esc cancels</div>';
   };
 
+  pr.renderHomePickModeHint = function() {
+    if (!pr.state.homePickMode) return '';
+    return '<div class="portal-route-add-point-hint">Tap map to set Home · Esc cancels</div>';
+  };
+
   pr.renderRouteStaleHint = function() {
     if (!pr.state.routeDirty) return '';
     return '<div class="portal-route-stale portal-route-stale-hint">Route changed. Replot to update stats and map line.</div>';
@@ -4277,9 +4313,9 @@ button.portal-route-waypoint-name,
     html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-long-setting">Home name <input type="text" value="' + pr.escapeHtml(pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle) + '" aria-label="Home name" placeholder="Home" data-field="home-title"></label>';
     html += '</div>';
     html += '<div class="portal-route-list-options">';
-    html += '<label class="portal-route-setting portal-route-default-stop-setting">Home lat <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.state.settings.homeLat || '') + '" aria-label="Home latitude" placeholder="43.000000" data-field="home-lat"></label>';
-    html += '<label class="portal-route-setting portal-route-default-stop-setting">Home lng <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.state.settings.homeLng || '') + '" aria-label="Home longitude" placeholder="-72.000000" data-field="home-lng"></label>';
-    html += '<button type="button" data-action="set-home-current-location">Set Home here</button>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-home-coordinate-setting">Home lat <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.state.settings.homeLat || '') + '" aria-label="Home latitude" placeholder="43.000000" data-field="home-lat"></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-home-coordinate-setting">Home lng <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.state.settings.homeLng || '') + '" aria-label="Home longitude" placeholder="-72.000000" data-field="home-lng"></label>';
+    html += '<button type="button" data-action="set-home-current-location">' + (window.selectedPortal ? 'Set Home to portal' : 'Pick Home on map') + '</button>';
     html += '</div>';
 
     html += '<div class="portal-route-list-options portal-route-long-setting-row">';
@@ -4290,10 +4326,10 @@ button.portal-route-waypoint-name,
     html += pr.selectedAddDeleteButton();
     html += pr.undoRouteEditButton();
     html += pr.routeButtonHtml(pr.routeReplotButtonOptions());
-    html += pr.routeButtonHtml(pr.reverseRouteButtonOptions());
     html += pr.mainMenuButton();
     html += '</div>';
     html += pr.renderAddPointModeHint();
+    html += pr.renderHomePickModeHint();
     html += pr.renderRouteStaleHint();
 
     html += '<div class="portal-route-message" id="portal-route-message"></div>';
@@ -4575,15 +4611,17 @@ button.portal-route-waypoint-name,
     contentHtml += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-panel-actions">';
     contentHtml += pr.selectedAddDeleteButton();
     contentHtml += pr.undoRouteEditButton();
-    contentHtml += pr.routeButtonHtml(pr.fitRouteButtonOptions());
     contentHtml += pr.routeButtonHtml(pr.loopBackButtonOptions());
-    contentHtml += pr.mainMenuButton();
+    contentHtml += pr.routeButtonHtml(pr.fitRouteButtonOptions());
+    contentHtml += pr.routeButtonHtml(pr.reverseRouteButtonOptions());
     contentHtml += '<span class="portal-route-button-divider" aria-hidden="true"></span>';
     contentHtml += '<button type="button" data-action="print-route">Print</button>';
     contentHtml += '<button type="button" data-action="save-route">Save</button>';
     contentHtml += '<button type="button" data-action="load-route">Load</button>';
+    contentHtml += pr.mainMenuButton();
     contentHtml += '</div>';
     contentHtml += pr.renderAddPointModeHint();
+    contentHtml += pr.renderHomePickModeHint();
     var existingContent = document.getElementById(pr.DOM_IDS.pointsDialogContent);
 
     if (pr.isDialogOpen(existingContent)) {
@@ -7943,6 +7981,12 @@ button.portal-route-waypoint-name,
       return;
     }
 
+    if (key === 'Escape' && pr.state.homePickMode) {
+      ev.preventDefault();
+      if (pr.cancelHomePickMode) pr.cancelHomePickMode();
+      return;
+    }
+
     if (key === 'Escape' && pr.bulkSelect && pr.bulkSelect.mode) {
       ev.preventDefault();
       if (pr.cancelBulkPortalSelection) pr.cancelBulkPortalSelection();
@@ -8088,8 +8132,20 @@ button.portal-route-waypoint-name,
     if (!window.map) return;
 
     window.map.on('click', function(e) {
-      if (!pr.state.addPointMode) return;
       if (pr.isLayerEnabled && !pr.isLayerEnabled()) return;
+
+      if (pr.state.homePickMode) {
+        if (pr.cancelHomePickMode) {
+          pr.cancelHomePickMode({ silent: true });
+        } else {
+          pr.state.homePickMode = false;
+          if (pr.syncAddPointModeUi) pr.syncAddPointModeUi();
+        }
+        pr.setHomeLocation(e.latlng.lat, e.latlng.lng, pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle);
+        return;
+      }
+
+      if (!pr.state.addPointMode) return;
 
       if (pr.cancelAddPointMode) {
         pr.cancelAddPointMode({ silent: true });

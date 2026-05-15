@@ -75,6 +75,7 @@
     panelSize: null,
     pointsPanelOpen: false,
     addPointMode: false,
+    homePickMode: false,
     selectedMapPointIndex: null,
     activeRouteId: null,
     routeLibraryBackendId: 'local',

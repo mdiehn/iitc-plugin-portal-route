@@ -300,7 +300,7 @@
     return [
       { label: 'Add me', action: 'add-current-location' },
       { label: 'Add Home', action: 'add-home-location', disabled: !pr.getHomeLocation() },
-      { label: 'Set Home here', action: 'set-home-current-location' },
+      { label: window.selectedPortal ? 'Set Home to portal' : 'Pick Home on map', action: 'set-home-current-location' },
       { label: 'Bulk select', action: 'open-bulk-select-menu' },
       { label: pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop', action: 'toggle-loop-back' },
       { label: 'Clear Route', action: 'clear-route', disabled: !hasStops },

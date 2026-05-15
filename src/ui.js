@@ -719,6 +719,12 @@
       return;
     }
 
+    if (key === 'Escape' && pr.state.homePickMode) {
+      ev.preventDefault();
+      if (pr.cancelHomePickMode) pr.cancelHomePickMode();
+      return;
+    }
+
     if (key === 'Escape' && pr.bulkSelect && pr.bulkSelect.mode) {
       ev.preventDefault();
       if (pr.cancelBulkPortalSelection) pr.cancelBulkPortalSelection();
@@ -864,8 +870,20 @@
     if (!window.map) return;
 
     window.map.on('click', function(e) {
-      if (!pr.state.addPointMode) return;
       if (pr.isLayerEnabled && !pr.isLayerEnabled()) return;
+
+      if (pr.state.homePickMode) {
+        if (pr.cancelHomePickMode) {
+          pr.cancelHomePickMode({ silent: true });
+        } else {
+          pr.state.homePickMode = false;
+          if (pr.syncAddPointModeUi) pr.syncAddPointModeUi();
+        }
+        pr.setHomeLocation(e.latlng.lat, e.latlng.lng, pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle);
+        return;
+      }
+
+      if (!pr.state.addPointMode) return;
 
       if (pr.cancelAddPointMode) {
         pr.cancelAddPointMode({ silent: true });
