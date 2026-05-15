@@ -41,6 +41,18 @@
           normalized[key] = value.replace(/\/+$/, '') || pr.DEFAULT_SETTINGS.orsBaseUrl;
           return;
         }
+        if (key === 'routeLineColor') {
+          normalized[key] = pr.normalizeRouteLineColor ? pr.normalizeRouteLineColor(value) : value;
+          return;
+        }
+        if (key === 'homeTitle') {
+          normalized[key] = value || pr.DEFAULT_SETTINGS.homeTitle;
+          return;
+        }
+        if (key === 'homeLat' || key === 'homeLng') {
+          normalized[key] = value;
+          return;
+        }
         normalized[key] = value;
       }
     });

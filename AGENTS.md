@@ -28,7 +28,7 @@ Current branch when this note was updated: `dev/v1.6.0`
 - First-pass route-level travel mode support for `drive`, `bike`, and `walk` is released in v1.5.0.
 - OpenRouteService beta routing is released as an opt-in provider in v1.5.0.
 - Travel mode and per-mode speed controls belong in the route list / points panel, even though they persist as settings.
-- v1.6.0 development is starting with route line color and saved Home location polish.
+- v1.6.0 development has started with route line color and saved Home location polish.
 
 ## Current priorities
 

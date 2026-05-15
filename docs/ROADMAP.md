@@ -64,10 +64,10 @@ Theme: small route-planning polish after the travel-mode release.
 
 Planned v1.6.0 work:
 
-- configurable route line color
+- route line color setting
 - saved Home location settings
 - Add Home action using saved Home coordinates
-- Add Home should select the newly added point so Set as start / Set as end can be used immediately
+- Add Home selects the newly added point so Set as start / Set as end can be used immediately
 
 Current v1.6.0 UI baseline:
 
@@ -78,7 +78,7 @@ Current v1.6.0 UI baseline:
 - The route list is the working console for day-to-day route work.
 - Route-list rows have compact Up/Dn/Del controls, with mobile-friendly symbols on narrow screens and rename/start/end actions still in the context menu.
 - The settings panel is a small settings/navigation panel with Add/Del and Menu; Menu includes Route/Replot.
-- The settings panel includes global routing settings. Planned v1.6.0 settings include route line color and saved Home location.
+- The settings panel includes global routing settings, route line color, and saved Home location.
 - Travel mode and per-mode speed settings are route-list controls.
 - The route library is a separate panel with Save, Load, Import, Export, Delete, and Menu.
 - Local route-library JSON portability works for single routes and whole libraries.

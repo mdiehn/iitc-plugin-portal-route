@@ -229,6 +229,74 @@
     );
   };
 
+
+  pr.parseHomeCoordinate = function(value, min, max) {
+    var number = Number(String(value == null ? '' : value).trim());
+    if (!isFinite(number) || number < min || number > max) return null;
+    return number;
+  };
+
+  pr.getHomeLocation = function() {
+    var lat = pr.parseHomeCoordinate(pr.state.settings.homeLat, -90, 90);
+    var lng = pr.parseHomeCoordinate(pr.state.settings.homeLng, -180, 180);
+    if (lat === null || lng === null) return null;
+
+    return {
+      type: 'map',
+      title: pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle,
+      lat: lat,
+      lng: lng,
+      stopMinutes: null,
+      home: true
+    };
+  };
+
+  pr.setHomeLocation = function(lat, lng, title) {
+    lat = pr.parseHomeCoordinate(lat, -90, 90);
+    lng = pr.parseHomeCoordinate(lng, -180, 180);
+    if (lat === null || lng === null) {
+      pr.showMessage('Invalid home location.');
+      return false;
+    }
+
+    pr.state.settings.homeLat = String(lat);
+    pr.state.settings.homeLng = String(lng);
+    pr.state.settings.homeTitle = String(title || pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle).trim() || pr.DEFAULT_SETTINGS.homeTitle;
+    pr.saveSettings();
+    pr.renderPanel();
+    if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
+    pr.showMessage('Home location saved.');
+    return true;
+  };
+
+  pr.setHomeToCurrentLocation = function() {
+    pr.showMessage('Getting current location...');
+    pr.getCurrentLocation(
+      function(position) {
+        var coords = position && position.coords;
+        if (!coords) {
+          pr.showMessage('Could not read current location.');
+          return;
+        }
+        pr.setHomeLocation(coords.latitude, coords.longitude, pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle);
+      },
+      function(error) {
+        pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '.'));
+      }
+    );
+  };
+
+  pr.addHomeLocation = function() {
+    var home = pr.getHomeLocation();
+    if (!home) {
+      pr.showMessage('Set Home first.');
+      return;
+    }
+
+    pr.addStop(home);
+    pr.showMessage('Home added.');
+  };
+
   pr.smartAdd = function() {
     if (window.selectedPortal && pr.portalToStop && pr.portalToStop(window.selectedPortal)) {
       pr.setAddPointMode(false, { silent: true });

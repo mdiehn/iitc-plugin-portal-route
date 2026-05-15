@@ -180,6 +180,19 @@
       html += '<span class="portal-route-version">Portal Route ' + pr.escapeHtml(pr.VERSION) + '</span>';
     }
     html += '</div>';
+    html += '<div class="portal-route-list-options">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Route color <input type="color" value="' + pr.escapeHtml(pr.normalizeRouteLineColor(pr.state.settings.routeLineColor)) + '" aria-label="Route line color" data-field="route-line-color"></label>';
+    html += '</div>';
+
+    html += '<div class="portal-route-list-options portal-route-long-setting-row">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-long-setting">Home name <input type="text" value="' + pr.escapeHtml(pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle) + '" aria-label="Home name" placeholder="Home" data-field="home-title"></label>';
+    html += '</div>';
+    html += '<div class="portal-route-list-options">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Home lat <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.state.settings.homeLat || '') + '" aria-label="Home latitude" placeholder="43.000000" data-field="home-lat"></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Home lng <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.state.settings.homeLng || '') + '" aria-label="Home longitude" placeholder="-72.000000" data-field="home-lng"></label>';
+    html += '<button type="button" data-action="set-home-current-location">Set Home here</button>';
+    html += '</div>';
+
     html += '<div class="portal-route-list-options portal-route-long-setting-row">';
     html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-long-setting">Google Drive OAuth Client ID <input type="text" value="' + pr.escapeHtml(pr.state.settings.googleDriveOAuthClientId || '') + '" aria-label="Google Drive OAuth Client ID" placeholder="Used when Sync auth is unavailable" data-field="google-drive-oauth-client-id"></label>';
     html += '</div>';

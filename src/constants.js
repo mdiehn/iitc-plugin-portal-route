@@ -17,6 +17,12 @@
     toolboxLink: 'iitc-plugin-portal-route-toolbox-link'
   };
 
+  pr.normalizeRouteLineColor = function(color) {
+    color = String(color == null ? '' : color).trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(color)) return color.toLowerCase();
+    return pr.DEFAULT_SETTINGS.routeLineColor;
+  };
+
   pr.STORAGE_KEYS = {
     stops: 'iitc-portal-route-stops',
     settings: 'iitc-portal-route-settings',
@@ -55,6 +61,10 @@
     walkSpeedMph: 3,
     orsApiKey: '',
     orsBaseUrl: 'https://api.openrouteservice.org',
+    routeLineColor: '#ff7f00',
+    homeTitle: 'Home',
+    homeLat: '',
+    homeLng: '',
     googleDriveOAuthClientId: '',
     showSegmentTimesOnMap: false,
     showMiniControl: true,

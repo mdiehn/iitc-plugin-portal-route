@@ -381,7 +381,7 @@
   pr.getRouteLineStyle = function() {
     if (pr.state.routeDirty) {
       return {
-        color: '#ff7f00',
+        color: pr.normalizeRouteLineColor(pr.state.settings.routeLineColor),
         weight: 5,
         opacity: 0.35,
         dashArray: '',
@@ -391,7 +391,7 @@
     }
 
     return {
-      color: '#ff7f00',
+      color: pr.normalizeRouteLineColor(pr.state.settings.routeLineColor),
       weight: 5,
       opacity: 0.8,
       dashArray: '',

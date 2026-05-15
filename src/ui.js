@@ -188,6 +188,8 @@
       'add-selected-stop': pr.addSelectedPortal,
       'add-map-point': function() { pr.setAddPointMode(!pr.state.addPointMode); },
       'add-current-location': pr.addCurrentLocation,
+      'add-home-location': pr.addHomeLocation,
+      'set-home-current-location': pr.setHomeToCurrentLocation,
       'select-portals-circle': function() { pr.startBulkPortalSelection('circle'); },
       'select-portals-polygon': function() { pr.startBulkPortalSelection('polygon'); },
       'select-portals-bookmarks': function() { pr.openBookmarkFolderPicker(target); },
@@ -638,6 +640,39 @@
       pr.saveSettings();
       target.value = orsBaseUrl;
       if (pr.getRoutingProvider() === pr.ROUTING_PROVIDERS.ors) replotForRoutingChange();
+    } else if (field === 'route-line-color') {
+      var routeLineColor = pr.normalizeRouteLineColor(target.value);
+      if (routeLineColor === pr.state.settings.routeLineColor) return;
+
+      pr.state.settings.routeLineColor = routeLineColor;
+      pr.saveSettings();
+      target.value = routeLineColor;
+      if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
+    } else if (field === 'home-title') {
+      var homeTitle = String(target.value || '').trim() || pr.DEFAULT_SETTINGS.homeTitle;
+      if (homeTitle === pr.state.settings.homeTitle) return;
+
+      pr.state.settings.homeTitle = homeTitle;
+      pr.saveSettings();
+      target.value = homeTitle;
+    } else if (field === 'home-lat' || field === 'home-lng') {
+      var homeValue = String(target.value || '').trim();
+      var parsedHomeValue = field === 'home-lat'
+        ? pr.parseHomeCoordinate(homeValue, -90, 90)
+        : pr.parseHomeCoordinate(homeValue, -180, 180);
+      if (homeValue && parsedHomeValue === null) {
+        pr.showMessage(field === 'home-lat' ? 'Invalid latitude.' : 'Invalid longitude.');
+        target.value = field === 'home-lat' ? pr.state.settings.homeLat : pr.state.settings.homeLng;
+        return;
+      }
+
+      var homeKey = field === 'home-lat' ? 'homeLat' : 'homeLng';
+      var normalizedHomeValue = homeValue ? String(parsedHomeValue) : '';
+      if (normalizedHomeValue === pr.state.settings[homeKey]) return;
+
+      pr.state.settings[homeKey] = normalizedHomeValue;
+      pr.saveSettings();
+      target.value = normalizedHomeValue;
     } else if (field === 'google-drive-oauth-client-id') {
       var clientId = String(target.value || '').trim();
       if (clientId === pr.state.settings.googleDriveOAuthClientId) return;

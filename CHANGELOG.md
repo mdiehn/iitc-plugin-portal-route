@@ -8,12 +8,12 @@ Latest release: `1.5.0`
 
 ## 1.6.0-dev - Unreleased
 
-### Planned
+### Added
 
-- Add a configurable route line color setting.
-- Add a saved Home location.
-- Add Home should behave like Add me, using the saved Home coordinates.
-- After Add Home, select the newly added Home point so existing route actions can immediately set it as the start or end.
+- Added a configurable route line color setting.
+- Added saved Home settings with Home name, latitude, and longitude.
+- Added Set Home here to save the browser location as Home.
+- Added Add Home, which adds the saved Home point and selects it so existing route actions can immediately set it as the start or end.
 
 ## 1.5.0 - Released 2026-05-09
 

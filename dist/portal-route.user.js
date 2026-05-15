@@ -2,10 +2,10 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version        1.6.0-dev
+// @version 1.6.0-dev.20260515104749
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
-// @updateURL      https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/main/dist/portal-route.meta.js
-// @downloadURL    https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/main/dist/portal-route.user.js
+// @updateURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0/dist/portal-route.meta.js
+// @downloadURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0/dist/portal-route.user.js
 // @description    Route planning through selected portals with segment drive times, stop-time accounting, and map export.
 // @include        https://intel.ingress.com/*
 // @include        http://intel.ingress.com/*
@@ -1349,7 +1349,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.6.0-dev';
+  pr.VERSION = '1.6.0-dev.20260515104749';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -1364,6 +1364,12 @@ button.portal-route-waypoint-name,
     bulkSelectDialogContent: 'iitc-plugin-portal-route-bulk-select-dialog-content',
     miniControl: 'iitc-plugin-portal-route-mini-control',
     toolboxLink: 'iitc-plugin-portal-route-toolbox-link'
+  };
+
+  pr.normalizeRouteLineColor = function(color) {
+    color = String(color == null ? '' : color).trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(color)) return color.toLowerCase();
+    return pr.DEFAULT_SETTINGS.routeLineColor;
   };
 
   pr.STORAGE_KEYS = {
@@ -1404,6 +1410,10 @@ button.portal-route-waypoint-name,
     walkSpeedMph: 3,
     orsApiKey: '',
     orsBaseUrl: 'https://api.openrouteservice.org',
+    routeLineColor: '#ff7f00',
+    homeTitle: 'Home',
+    homeLat: '',
+    homeLng: '',
     googleDriveOAuthClientId: '',
     showSegmentTimesOnMap: false,
     showMiniControl: true,
@@ -1451,6 +1461,18 @@ button.portal-route-waypoint-name,
         }
         if (key === 'orsBaseUrl') {
           normalized[key] = value.replace(/\/+$/, '') || pr.DEFAULT_SETTINGS.orsBaseUrl;
+          return;
+        }
+        if (key === 'routeLineColor') {
+          normalized[key] = pr.normalizeRouteLineColor ? pr.normalizeRouteLineColor(value) : value;
+          return;
+        }
+        if (key === 'homeTitle') {
+          normalized[key] = value || pr.DEFAULT_SETTINGS.homeTitle;
+          return;
+        }
+        if (key === 'homeLat' || key === 'homeLng') {
+          normalized[key] = value;
           return;
         }
         normalized[key] = value;
@@ -2062,6 +2084,8 @@ button.portal-route-waypoint-name,
 
     return [
       { label: 'Add me', action: 'add-current-location' },
+      { label: 'Add Home', action: 'add-home-location', disabled: !pr.getHomeLocation() },
+      { label: 'Set Home here', action: 'set-home-current-location' },
       { label: 'Bulk select', action: 'open-bulk-select-menu' },
       { label: pr.state.settings.includeReturnToStart ? 'Unloop' : 'Loop', action: 'toggle-loop-back' },
       { label: 'Clear Route', action: 'clear-route', disabled: !hasStops },
@@ -2511,6 +2535,74 @@ button.portal-route-waypoint-name,
         pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '.'));
       }
     );
+  };
+
+
+  pr.parseHomeCoordinate = function(value, min, max) {
+    var number = Number(String(value == null ? '' : value).trim());
+    if (!isFinite(number) || number < min || number > max) return null;
+    return number;
+  };
+
+  pr.getHomeLocation = function() {
+    var lat = pr.parseHomeCoordinate(pr.state.settings.homeLat, -90, 90);
+    var lng = pr.parseHomeCoordinate(pr.state.settings.homeLng, -180, 180);
+    if (lat === null || lng === null) return null;
+
+    return {
+      type: 'map',
+      title: pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle,
+      lat: lat,
+      lng: lng,
+      stopMinutes: null,
+      home: true
+    };
+  };
+
+  pr.setHomeLocation = function(lat, lng, title) {
+    lat = pr.parseHomeCoordinate(lat, -90, 90);
+    lng = pr.parseHomeCoordinate(lng, -180, 180);
+    if (lat === null || lng === null) {
+      pr.showMessage('Invalid home location.');
+      return false;
+    }
+
+    pr.state.settings.homeLat = String(lat);
+    pr.state.settings.homeLng = String(lng);
+    pr.state.settings.homeTitle = String(title || pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle).trim() || pr.DEFAULT_SETTINGS.homeTitle;
+    pr.saveSettings();
+    pr.renderPanel();
+    if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
+    pr.showMessage('Home location saved.');
+    return true;
+  };
+
+  pr.setHomeToCurrentLocation = function() {
+    pr.showMessage('Getting current location...');
+    pr.getCurrentLocation(
+      function(position) {
+        var coords = position && position.coords;
+        if (!coords) {
+          pr.showMessage('Could not read current location.');
+          return;
+        }
+        pr.setHomeLocation(coords.latitude, coords.longitude, pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle);
+      },
+      function(error) {
+        pr.showMessage('Could not get current location' + (error && error.message ? ': ' + error.message : '.'));
+      }
+    );
+  };
+
+  pr.addHomeLocation = function() {
+    var home = pr.getHomeLocation();
+    if (!home) {
+      pr.showMessage('Set Home first.');
+      return;
+    }
+
+    pr.addStop(home);
+    pr.showMessage('Home added.');
   };
 
   pr.smartAdd = function() {
@@ -3924,7 +4016,7 @@ button.portal-route-waypoint-name,
   pr.getRouteLineStyle = function() {
     if (pr.state.routeDirty) {
       return {
-        color: '#ff7f00',
+        color: pr.normalizeRouteLineColor(pr.state.settings.routeLineColor),
         weight: 5,
         opacity: 0.35,
         dashArray: '',
@@ -3934,7 +4026,7 @@ button.portal-route-waypoint-name,
     }
 
     return {
-      color: '#ff7f00',
+      color: pr.normalizeRouteLineColor(pr.state.settings.routeLineColor),
       weight: 5,
       opacity: 0.8,
       dashArray: '',
@@ -4164,6 +4256,19 @@ button.portal-route-waypoint-name,
       html += '<span class="portal-route-version">Portal Route ' + pr.escapeHtml(pr.VERSION) + '</span>';
     }
     html += '</div>';
+    html += '<div class="portal-route-list-options">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Route color <input type="color" value="' + pr.escapeHtml(pr.normalizeRouteLineColor(pr.state.settings.routeLineColor)) + '" aria-label="Route line color" data-field="route-line-color"></label>';
+    html += '</div>';
+
+    html += '<div class="portal-route-list-options portal-route-long-setting-row">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-long-setting">Home name <input type="text" value="' + pr.escapeHtml(pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle) + '" aria-label="Home name" placeholder="Home" data-field="home-title"></label>';
+    html += '</div>';
+    html += '<div class="portal-route-list-options">';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Home lat <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.state.settings.homeLat || '') + '" aria-label="Home latitude" placeholder="43.000000" data-field="home-lat"></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Home lng <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.state.settings.homeLng || '') + '" aria-label="Home longitude" placeholder="-72.000000" data-field="home-lng"></label>';
+    html += '<button type="button" data-action="set-home-current-location">Set Home here</button>';
+    html += '</div>';
+
     html += '<div class="portal-route-list-options portal-route-long-setting-row">';
     html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-long-setting">Google Drive OAuth Client ID <input type="text" value="' + pr.escapeHtml(pr.state.settings.googleDriveOAuthClientId || '') + '" aria-label="Google Drive OAuth Client ID" placeholder="Used when Sync auth is unavailable" data-field="google-drive-oauth-client-id"></label>';
     html += '</div>';
@@ -7293,6 +7398,8 @@ button.portal-route-waypoint-name,
       'add-selected-stop': pr.addSelectedPortal,
       'add-map-point': function() { pr.setAddPointMode(!pr.state.addPointMode); },
       'add-current-location': pr.addCurrentLocation,
+      'add-home-location': pr.addHomeLocation,
+      'set-home-current-location': pr.setHomeToCurrentLocation,
       'select-portals-circle': function() { pr.startBulkPortalSelection('circle'); },
       'select-portals-polygon': function() { pr.startBulkPortalSelection('polygon'); },
       'select-portals-bookmarks': function() { pr.openBookmarkFolderPicker(target); },
@@ -7743,6 +7850,39 @@ button.portal-route-waypoint-name,
       pr.saveSettings();
       target.value = orsBaseUrl;
       if (pr.getRoutingProvider() === pr.ROUTING_PROVIDERS.ors) replotForRoutingChange();
+    } else if (field === 'route-line-color') {
+      var routeLineColor = pr.normalizeRouteLineColor(target.value);
+      if (routeLineColor === pr.state.settings.routeLineColor) return;
+
+      pr.state.settings.routeLineColor = routeLineColor;
+      pr.saveSettings();
+      target.value = routeLineColor;
+      if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
+    } else if (field === 'home-title') {
+      var homeTitle = String(target.value || '').trim() || pr.DEFAULT_SETTINGS.homeTitle;
+      if (homeTitle === pr.state.settings.homeTitle) return;
+
+      pr.state.settings.homeTitle = homeTitle;
+      pr.saveSettings();
+      target.value = homeTitle;
+    } else if (field === 'home-lat' || field === 'home-lng') {
+      var homeValue = String(target.value || '').trim();
+      var parsedHomeValue = field === 'home-lat'
+        ? pr.parseHomeCoordinate(homeValue, -90, 90)
+        : pr.parseHomeCoordinate(homeValue, -180, 180);
+      if (homeValue && parsedHomeValue === null) {
+        pr.showMessage(field === 'home-lat' ? 'Invalid latitude.' : 'Invalid longitude.');
+        target.value = field === 'home-lat' ? pr.state.settings.homeLat : pr.state.settings.homeLng;
+        return;
+      }
+
+      var homeKey = field === 'home-lat' ? 'homeLat' : 'homeLng';
+      var normalizedHomeValue = homeValue ? String(parsedHomeValue) : '';
+      if (normalizedHomeValue === pr.state.settings[homeKey]) return;
+
+      pr.state.settings[homeKey] = normalizedHomeValue;
+      pr.saveSettings();
+      target.value = normalizedHomeValue;
     } else if (field === 'google-drive-oauth-client-id') {
       var clientId = String(target.value || '').trim();
       if (clientId === pr.state.settings.googleDriveOAuthClientId) return;
