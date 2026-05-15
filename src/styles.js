@@ -105,6 +105,21 @@
   width: 9em;
 }
 
+
+.portal-route-line-style-options {
+  align-items: center;
+}
+
+.portal-route-line-style-options .portal-route-setting {
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+
+.portal-route-line-style-options select {
+  width: 6.4em;
+}
+
+
 .portal-route-long-setting-row {
   align-items: stretch;
 }

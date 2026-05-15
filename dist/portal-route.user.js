@@ -2,10 +2,10 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version 1.6.0-dev.20260515120226
+// @version 1.6.0-dev.20260515082619
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
-// @updateURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0/dist/portal-route.meta.js
-// @downloadURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0/dist/portal-route.user.js
+// @updateURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0-dev/dist/portal-route.meta.js
+// @downloadURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0-dev/dist/portal-route.user.js
 // @description    Route planning through selected portals with segment drive times, stop-time accounting, and map export.
 // @include        https://intel.ingress.com/*
 // @include        http://intel.ingress.com/*
@@ -126,6 +126,21 @@ function wrapper(plugin_info) {
 .portal-route-home-coordinate-setting input {
   width: 9em;
 }
+
+
+.portal-route-line-style-options {
+  align-items: center;
+}
+
+.portal-route-line-style-options .portal-route-setting {
+  flex: 0 1 auto;
+  white-space: nowrap;
+}
+
+.portal-route-line-style-options select {
+  width: 6.4em;
+}
+
 
 .portal-route-long-setting-row {
   align-items: stretch;
@@ -1456,7 +1471,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.6.0-dev.20260515120226';
+  pr.VERSION = '1.6.0-dev.20260515082619';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -1477,6 +1492,32 @@ button.portal-route-waypoint-name,
     color = String(color == null ? '' : color).trim();
     if (/^#[0-9a-fA-F]{6}$/.test(color)) return color.toLowerCase();
     return pr.DEFAULT_SETTINGS.routeLineColor;
+  };
+
+  pr.normalizeRouteLineWeight = function(weight) {
+    weight = Number(weight);
+    if (weight === 3 || weight === 5 || weight === 7 || weight === 9) return weight;
+    return pr.DEFAULT_SETTINGS.routeLineWeight;
+  };
+
+  pr.ROUTE_LINE_STYLES = {
+    solid: 'solid',
+    dashed: 'dashed',
+    dotted: 'dotted'
+  };
+
+  pr.normalizeRouteLineStyle = function(style) {
+    style = String(style == null ? '' : style).trim();
+    if (style === pr.ROUTE_LINE_STYLES.solid || style === pr.ROUTE_LINE_STYLES.dashed || style === pr.ROUTE_LINE_STYLES.dotted) return style;
+    return pr.DEFAULT_SETTINGS.routeLineStyle;
+  };
+
+  pr.getRouteLineDashArray = function(style, weight) {
+    style = pr.normalizeRouteLineStyle(style);
+    weight = pr.normalizeRouteLineWeight(weight);
+    if (style === pr.ROUTE_LINE_STYLES.dashed) return String(weight * 3) + ' ' + String(weight * 2);
+    if (style === pr.ROUTE_LINE_STYLES.dotted) return '1 ' + String(weight * 2);
+    return '';
   };
 
   pr.STORAGE_KEYS = {
@@ -1518,6 +1559,8 @@ button.portal-route-waypoint-name,
     orsApiKey: '',
     orsBaseUrl: 'https://api.openrouteservice.org',
     routeLineColor: '#ff7f00',
+    routeLineWeight: 5,
+    routeLineStyle: 'solid',
     homeTitle: 'Home',
     homeLat: '',
     homeLng: '',
@@ -1543,6 +1586,10 @@ button.portal-route-waypoint-name,
       if (typeof defaultValue === 'number') {
         value = Number(value);
         if (!isFinite(value) || value < 0) return;
+        if (key === 'routeLineWeight') {
+          normalized[key] = pr.normalizeRouteLineWeight ? pr.normalizeRouteLineWeight(value) : Math.round(value);
+          return;
+        }
         if (/SpeedMph$/.test(key)) {
           if (value > 0) normalized[key] = value;
           return;
@@ -1572,6 +1619,10 @@ button.portal-route-waypoint-name,
         }
         if (key === 'routeLineColor') {
           normalized[key] = pr.normalizeRouteLineColor ? pr.normalizeRouteLineColor(value) : value;
+          return;
+        }
+        if (key === 'routeLineStyle') {
+          normalized[key] = pr.normalizeRouteLineStyle ? pr.normalizeRouteLineStyle(value) : value;
           return;
         }
         if (key === 'homeTitle') {
@@ -4205,22 +4256,18 @@ button.portal-route-waypoint-name,
   };
 
   pr.getRouteLineStyle = function() {
-    if (pr.state.routeDirty) {
-      return {
-        color: pr.normalizeRouteLineColor(pr.state.settings.routeLineColor),
-        weight: 5,
-        opacity: 0.35,
-        dashArray: '',
-        interactive: false,
-        bubblingMouseEvents: false
-      };
-    }
+    var color = pr.normalizeRouteLineColor(pr.state.settings.routeLineColor);
+    var weight = pr.normalizeRouteLineWeight(pr.state.settings.routeLineWeight);
+    var lineStyle = pr.normalizeRouteLineStyle(pr.state.settings.routeLineStyle);
+    var dashArray = pr.getRouteLineDashArray(lineStyle, weight);
 
     return {
-      color: pr.normalizeRouteLineColor(pr.state.settings.routeLineColor),
-      weight: 5,
-      opacity: 0.8,
-      dashArray: '',
+      color: color,
+      weight: weight,
+      opacity: pr.state.routeDirty ? 0.35 : 0.8,
+      dashArray: dashArray,
+      lineCap: 'round',
+      lineJoin: 'round',
       interactive: false,
       bubblingMouseEvents: false
     };
@@ -4453,8 +4500,21 @@ button.portal-route-waypoint-name,
       html += '<span class="portal-route-version">Portal Route ' + pr.escapeHtml(pr.VERSION) + '</span>';
     }
     html += '</div>';
-    html += '<div class="portal-route-list-options">';
+    var routeLineWeight = pr.normalizeRouteLineWeight(pr.state.settings.routeLineWeight);
+    var routeLineStyle = pr.normalizeRouteLineStyle(pr.state.settings.routeLineStyle);
+    html += '<div class="portal-route-list-options portal-route-line-style-options">';
     html += '<label class="portal-route-setting portal-route-default-stop-setting">Route color <input type="color" value="' + pr.escapeHtml(pr.normalizeRouteLineColor(pr.state.settings.routeLineColor)) + '" aria-label="Route line color" data-field="route-line-color"></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Thickness <select aria-label="Route line thickness" data-field="route-line-weight">' +
+      '<option value="3"' + (routeLineWeight === 3 ? ' selected' : '') + '>Thin</option>' +
+      '<option value="5"' + (routeLineWeight === 5 ? ' selected' : '') + '>Normal</option>' +
+      '<option value="7"' + (routeLineWeight === 7 ? ' selected' : '') + '>Thick</option>' +
+      '<option value="9"' + (routeLineWeight === 9 ? ' selected' : '') + '>Heavy</option>' +
+      '</select></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Style <select aria-label="Route line style" data-field="route-line-style">' +
+      '<option value="solid"' + (routeLineStyle === pr.ROUTE_LINE_STYLES.solid ? ' selected' : '') + '>Solid</option>' +
+      '<option value="dashed"' + (routeLineStyle === pr.ROUTE_LINE_STYLES.dashed ? ' selected' : '') + '>Dashed</option>' +
+      '<option value="dotted"' + (routeLineStyle === pr.ROUTE_LINE_STYLES.dotted ? ' selected' : '') + '>Dotted</option>' +
+      '</select></label>';
     html += '</div>';
 
     html += '<div class="portal-route-list-options portal-route-long-setting-row">';
@@ -8067,6 +8127,22 @@ button.portal-route-waypoint-name,
       pr.state.settings.routeLineColor = routeLineColor;
       pr.saveSettings();
       target.value = routeLineColor;
+      if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
+    } else if (field === 'route-line-weight') {
+      var routeLineWeight = pr.normalizeRouteLineWeight(target.value);
+      if (routeLineWeight === pr.state.settings.routeLineWeight) return;
+
+      pr.state.settings.routeLineWeight = routeLineWeight;
+      pr.saveSettings();
+      target.value = String(routeLineWeight);
+      if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
+    } else if (field === 'route-line-style') {
+      var routeLineStyle = pr.normalizeRouteLineStyle(target.value);
+      if (routeLineStyle === pr.state.settings.routeLineStyle) return;
+
+      pr.state.settings.routeLineStyle = routeLineStyle;
+      pr.saveSettings();
+      target.value = routeLineStyle;
       if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
     } else if (field === 'home-title') {
       var homeTitle = String(target.value || '').trim() || pr.DEFAULT_SETTINGS.homeTitle;

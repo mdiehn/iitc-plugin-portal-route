@@ -186,8 +186,21 @@
       html += '<span class="portal-route-version">Portal Route ' + pr.escapeHtml(pr.VERSION) + '</span>';
     }
     html += '</div>';
-    html += '<div class="portal-route-list-options">';
+    var routeLineWeight = pr.normalizeRouteLineWeight(pr.state.settings.routeLineWeight);
+    var routeLineStyle = pr.normalizeRouteLineStyle(pr.state.settings.routeLineStyle);
+    html += '<div class="portal-route-list-options portal-route-line-style-options">';
     html += '<label class="portal-route-setting portal-route-default-stop-setting">Route color <input type="color" value="' + pr.escapeHtml(pr.normalizeRouteLineColor(pr.state.settings.routeLineColor)) + '" aria-label="Route line color" data-field="route-line-color"></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Thickness <select aria-label="Route line thickness" data-field="route-line-weight">' +
+      '<option value="3"' + (routeLineWeight === 3 ? ' selected' : '') + '>Thin</option>' +
+      '<option value="5"' + (routeLineWeight === 5 ? ' selected' : '') + '>Normal</option>' +
+      '<option value="7"' + (routeLineWeight === 7 ? ' selected' : '') + '>Thick</option>' +
+      '<option value="9"' + (routeLineWeight === 9 ? ' selected' : '') + '>Heavy</option>' +
+      '</select></label>';
+    html += '<label class="portal-route-setting portal-route-default-stop-setting">Style <select aria-label="Route line style" data-field="route-line-style">' +
+      '<option value="solid"' + (routeLineStyle === pr.ROUTE_LINE_STYLES.solid ? ' selected' : '') + '>Solid</option>' +
+      '<option value="dashed"' + (routeLineStyle === pr.ROUTE_LINE_STYLES.dashed ? ' selected' : '') + '>Dashed</option>' +
+      '<option value="dotted"' + (routeLineStyle === pr.ROUTE_LINE_STYLES.dotted ? ' selected' : '') + '>Dotted</option>' +
+      '</select></label>';
     html += '</div>';
 
     html += '<div class="portal-route-list-options portal-route-long-setting-row">';

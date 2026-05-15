@@ -10,7 +10,7 @@ Latest release: `1.5.0`
 
 ### Added
 
-- Added a configurable route line color setting.
+- Added configurable route line color, thickness, and style settings.
 - Added saved Home settings with Home name, latitude, and longitude.
 - Changed Home setup so selected portals can be saved as Home directly; otherwise Home is picked by tapping the map.
 - Added Add Home, which adds the saved Home point and selects it so existing route actions can immediately set it as the start or end.

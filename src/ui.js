@@ -648,6 +648,22 @@
       pr.saveSettings();
       target.value = routeLineColor;
       if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
+    } else if (field === 'route-line-weight') {
+      var routeLineWeight = pr.normalizeRouteLineWeight(target.value);
+      if (routeLineWeight === pr.state.settings.routeLineWeight) return;
+
+      pr.state.settings.routeLineWeight = routeLineWeight;
+      pr.saveSettings();
+      target.value = String(routeLineWeight);
+      if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
+    } else if (field === 'route-line-style') {
+      var routeLineStyle = pr.normalizeRouteLineStyle(target.value);
+      if (routeLineStyle === pr.state.settings.routeLineStyle) return;
+
+      pr.state.settings.routeLineStyle = routeLineStyle;
+      pr.saveSettings();
+      target.value = routeLineStyle;
+      if (pr.applyRouteLineStyle) pr.applyRouteLineStyle();
     } else if (field === 'home-title') {
       var homeTitle = String(target.value || '').trim() || pr.DEFAULT_SETTINGS.homeTitle;
       if (homeTitle === pr.state.settings.homeTitle) return;

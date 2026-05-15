@@ -14,6 +14,10 @@
       if (typeof defaultValue === 'number') {
         value = Number(value);
         if (!isFinite(value) || value < 0) return;
+        if (key === 'routeLineWeight') {
+          normalized[key] = pr.normalizeRouteLineWeight ? pr.normalizeRouteLineWeight(value) : Math.round(value);
+          return;
+        }
         if (/SpeedMph$/.test(key)) {
           if (value > 0) normalized[key] = value;
           return;
@@ -43,6 +47,10 @@
         }
         if (key === 'routeLineColor') {
           normalized[key] = pr.normalizeRouteLineColor ? pr.normalizeRouteLineColor(value) : value;
+          return;
+        }
+        if (key === 'routeLineStyle') {
+          normalized[key] = pr.normalizeRouteLineStyle ? pr.normalizeRouteLineStyle(value) : value;
           return;
         }
         if (key === 'homeTitle') {

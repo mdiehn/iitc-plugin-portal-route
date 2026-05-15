@@ -10,11 +10,11 @@ Current development: `1.6.0-dev`
 
 Latest release: `1.5.0`
 
-The v1.6.0 development branch is for small route-planning polish after the travel-mode release. It adds a configurable route line color and a saved Home location that can be added like Add me.
+The v1.6.0 development branch is for small route-planning polish after the travel-mode release. It adds configurable route line color, thickness, and style, plus a saved Home location that can be added like Add me.
 
 Large bulk-selected routes can be saved and edited, but Google routing may not plot routes with more than 26 stops in one request yet.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/dev/v1.6.0/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/dev/v1.6.0-dev/dist/portal-route.user.js)
 
 ## Quick start
 
@@ -45,7 +45,7 @@ The points list shows the current route order. Drag rows to reorder stops, or us
 
 - **Routing** chooses Google or OpenRouteService beta. Google remains the default.
 - **ORS API key** and **ORS URL** configure OpenRouteService. The public ORS service needs an API key; self-hosted/proxy URLs can be used too.
-- **Route color** changes the plotted route line color.
+- **Route color**, **Thickness**, and **Style** change the plotted route line appearance.
 - **Home name**, **Home lat**, and **Home lng** store a reusable Home point. Select a portal and use **Menu → Set Home to portal**, or use **Menu → Pick Home on map** and tap the map. Either action also adds or updates the interactive Home waypoint on the route.
 - **Google Drive OAuth Client ID** configures Drive access when IITC Sync auth is not available.
 - **Show segment times on map** shows per-leg labels on the route line when route data is available. Long settings content scrolls independently so the bottom action buttons stay reachable.

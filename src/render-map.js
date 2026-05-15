@@ -382,22 +382,18 @@
   };
 
   pr.getRouteLineStyle = function() {
-    if (pr.state.routeDirty) {
-      return {
-        color: pr.normalizeRouteLineColor(pr.state.settings.routeLineColor),
-        weight: 5,
-        opacity: 0.35,
-        dashArray: '',
-        interactive: false,
-        bubblingMouseEvents: false
-      };
-    }
+    var color = pr.normalizeRouteLineColor(pr.state.settings.routeLineColor);
+    var weight = pr.normalizeRouteLineWeight(pr.state.settings.routeLineWeight);
+    var lineStyle = pr.normalizeRouteLineStyle(pr.state.settings.routeLineStyle);
+    var dashArray = pr.getRouteLineDashArray(lineStyle, weight);
 
     return {
-      color: pr.normalizeRouteLineColor(pr.state.settings.routeLineColor),
-      weight: 5,
-      opacity: 0.8,
-      dashArray: '',
+      color: color,
+      weight: weight,
+      opacity: pr.state.routeDirty ? 0.35 : 0.8,
+      dashArray: dashArray,
+      lineCap: 'round',
+      lineJoin: 'round',
       interactive: false,
       bubblingMouseEvents: false
     };

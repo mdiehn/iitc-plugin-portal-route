@@ -23,6 +23,32 @@
     return pr.DEFAULT_SETTINGS.routeLineColor;
   };
 
+  pr.normalizeRouteLineWeight = function(weight) {
+    weight = Number(weight);
+    if (weight === 3 || weight === 5 || weight === 7 || weight === 9) return weight;
+    return pr.DEFAULT_SETTINGS.routeLineWeight;
+  };
+
+  pr.ROUTE_LINE_STYLES = {
+    solid: 'solid',
+    dashed: 'dashed',
+    dotted: 'dotted'
+  };
+
+  pr.normalizeRouteLineStyle = function(style) {
+    style = String(style == null ? '' : style).trim();
+    if (style === pr.ROUTE_LINE_STYLES.solid || style === pr.ROUTE_LINE_STYLES.dashed || style === pr.ROUTE_LINE_STYLES.dotted) return style;
+    return pr.DEFAULT_SETTINGS.routeLineStyle;
+  };
+
+  pr.getRouteLineDashArray = function(style, weight) {
+    style = pr.normalizeRouteLineStyle(style);
+    weight = pr.normalizeRouteLineWeight(weight);
+    if (style === pr.ROUTE_LINE_STYLES.dashed) return String(weight * 3) + ' ' + String(weight * 2);
+    if (style === pr.ROUTE_LINE_STYLES.dotted) return '1 ' + String(weight * 2);
+    return '';
+  };
+
   pr.STORAGE_KEYS = {
     stops: 'iitc-portal-route-stops',
     settings: 'iitc-portal-route-settings',
@@ -62,6 +88,8 @@
     orsApiKey: '',
     orsBaseUrl: 'https://api.openrouteservice.org',
     routeLineColor: '#ff7f00',
+    routeLineWeight: 5,
+    routeLineStyle: 'solid',
     homeTitle: 'Home',
     homeLat: '',
     homeLng: '',
