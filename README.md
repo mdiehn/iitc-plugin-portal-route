@@ -35,7 +35,7 @@ Blue-outlined smart buttons mark the primary route controls. **Menu** opens the 
 
 ### Points list
 
-The points list shows the current route order. Drag rows to reorder stops, or use the compact **Up**, **Dn**, and **Del** row buttons. Right-click or long-press a row for rename and start/end actions.
+The points list shows the current route order. Drag rows to reorder stops, or use the compact **Up**, **Dn**, and **Del** row buttons. Right-click or long-press a row for rename and start/end actions. The waypoint list scrolls independently so the bottom action buttons stay reachable.
 
 **Default stop time** applies to stops that do not have their own stop time.
 
@@ -48,7 +48,7 @@ The points list shows the current route order. Drag rows to reorder stops, or us
 - **Route color** changes the plotted route line color.
 - **Home name**, **Home lat**, and **Home lng** store a reusable Home point. Select a portal and use **Menu → Set Home to portal**, or use **Menu → Pick Home on map** and tap the map.
 - **Google Drive OAuth Client ID** configures Drive access when IITC Sync auth is not available.
-- **Show segment times on map** shows per-leg labels on the route line when route data is available.
+- **Show segment times on map** shows per-leg labels on the route line when route data is available. Long settings content scrolls independently so the bottom action buttons stay reachable.
 
 ### Direct actions and Menu
 

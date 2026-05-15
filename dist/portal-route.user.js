@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version 1.6.0-dev.20260515070416
+// @version 1.6.0-dev.20260515071441
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
 // @updateURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0-dev/dist/portal-route.meta.js
 // @downloadURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0-dev/dist/portal-route.user.js
@@ -611,6 +611,33 @@ button.portal-route-waypoint-badge-wide {
   justify-content: space-between;
 }
 
+
+.portal-route-settings-dialog-content {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 120px);
+  overflow: hidden !important;
+}
+
+.portal-route-settings-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.portal-route-settings-scroll-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: visible;
+  padding-right: 3px;
+}
+
+.portal-route-settings-footer {
+  flex: 0 0 auto;
+}
+
 .portal-route-points-dialog-content {
   display: flex;
   flex-direction: column;
@@ -619,6 +646,7 @@ button.portal-route-waypoint-badge-wide {
 }
 
 .portal-route-points-list-body {
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   overflow-x: visible;
@@ -1104,6 +1132,11 @@ button.portal-route-waypoint-badge-wide {
   overflow-x: visible !important;
 }
 
+.ui-dialog.portal-route-settings-dialog .ui-dialog-content,
+.ui-dialog.portal-route-points-dialog .ui-dialog-content {
+  overflow: hidden !important;
+}
+
 
 .ui-dialog.portal-route-anchored-dialog {
   max-width: calc(100vw - 20px) !important;
@@ -1164,6 +1197,16 @@ button.portal-route-waypoint-name,
     padding-left: 8px !important;
     padding-right: 8px !important;
     padding-bottom: 8px !important;
+  }
+
+  .ui-dialog.portal-route-settings-dialog .ui-dialog-content,
+  .ui-dialog.portal-route-points-dialog .ui-dialog-content {
+    overflow: hidden !important;
+  }
+
+  .portal-route-settings-dialog-content,
+  .portal-route-points-dialog-content {
+    max-height: calc(100dvh - 90px);
   }
 
   .portal-route-waypoint-row {
@@ -1355,7 +1398,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.6.0-dev.20260515070416';
+  pr.VERSION = '1.6.0-dev.20260515071441';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -4278,7 +4321,8 @@ button.portal-route-waypoint-name,
     var html = '';
     var provider = pr.getRoutingProvider();
 
-    html += '<div class="portal-route-body">';
+    html += '<div class="portal-route-body portal-route-settings-body">';
+    html += '<div class="portal-route-settings-scroll-body">';
     html += '<div class="portal-route-list-options">';
     html += '<label class="portal-route-setting portal-route-default-stop-setting">Default stop time <input type="text" inputmode="decimal" value="' + pr.escapeHtml(pr.formatDurationInput(pr.state.settings.defaultStopMinutes)) + '" aria-label="Default stop time" placeholder="15m" data-field="default-stop-minutes"> per portal</label>';
     html += '</div>';
@@ -4321,7 +4365,9 @@ button.portal-route-waypoint-name,
     html += '<div class="portal-route-list-options portal-route-long-setting-row">';
     html += '<label class="portal-route-setting portal-route-default-stop-setting portal-route-long-setting">Google Drive OAuth Client ID <input type="text" value="' + pr.escapeHtml(pr.state.settings.googleDriveOAuthClientId || '') + '" aria-label="Google Drive OAuth Client ID" placeholder="Used when Sync auth is unavailable" data-field="google-drive-oauth-client-id"></label>';
     html += '</div>';
+    html += '</div>';
 
+    html += '<div class="portal-route-settings-footer">';
     html += '<div class="portal-route-control-group-buttons portal-route-footer-actions portal-route-points-actions">';
     html += pr.selectedAddDeleteButton();
     html += pr.undoRouteEditButton();
@@ -4333,6 +4379,7 @@ button.portal-route-waypoint-name,
     html += pr.renderRouteStaleHint();
 
     html += '<div class="portal-route-message" id="portal-route-message"></div>';
+    html += '</div>';
     html += '</div>';
     return html;
   };
@@ -4548,14 +4595,14 @@ button.portal-route-waypoint-name,
       return;
     }
 
-    var html = '<div id="' + pr.DOM_IDS.dialogContent + '" class="portal-route-dialog-content" tabindex="-1">' + contentHtml + '</div>';
+    var html = '<div id="' + pr.DOM_IDS.dialogContent + '" class="portal-route-dialog-content portal-route-settings-dialog-content" tabindex="-1">' + contentHtml + '</div>';
 
     if (typeof window.dialog === 'function') {
       window.dialog({
         id: pr.DOM_IDS.dialog,
         title: 'Portal Route Settings',
         html: html,
-        dialogClass: 'portal-route-dialog',
+        dialogClass: 'portal-route-dialog portal-route-settings-dialog',
         width: pr.getDialogWidth(),
         height: pr.getDialogHeight()
       });

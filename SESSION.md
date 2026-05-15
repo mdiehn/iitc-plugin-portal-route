@@ -18,6 +18,7 @@ This file is a short handoff note for agents working in this repo.
 - First pass implemented: Add Home uses the saved Home coordinates like Add me uses current location.
 - First pass implemented: Add Home selects the newly added Home point so existing route actions can immediately use Set as start or Set as end.
 - Route list panel action order is Del, Undo, Loop, Fit, Reverse, Print, Save, Load, Menu.
+- Route List and Settings panels use fixed action bars with scrolling content areas. Do not change IITC portal-details/sidebar scrolling for this feature.
 
 ## Current expectations
 

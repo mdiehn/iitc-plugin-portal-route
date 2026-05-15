@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version 1.6.0-dev.20260515070416
+// @version 1.6.0-dev.20260515071441
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
 // @updateURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0-dev/dist/portal-route.meta.js
 // @downloadURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0-dev/dist/portal-route.user.js

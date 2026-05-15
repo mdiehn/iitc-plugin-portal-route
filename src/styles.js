@@ -589,6 +589,33 @@ button.portal-route-waypoint-badge-wide {
   justify-content: space-between;
 }
 
+
+.portal-route-settings-dialog-content {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 120px);
+  overflow: hidden !important;
+}
+
+.portal-route-settings-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.portal-route-settings-scroll-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: visible;
+  padding-right: 3px;
+}
+
+.portal-route-settings-footer {
+  flex: 0 0 auto;
+}
+
 .portal-route-points-dialog-content {
   display: flex;
   flex-direction: column;
@@ -597,6 +624,7 @@ button.portal-route-waypoint-badge-wide {
 }
 
 .portal-route-points-list-body {
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   overflow-x: visible;
@@ -1082,6 +1110,11 @@ button.portal-route-waypoint-badge-wide {
   overflow-x: visible !important;
 }
 
+.ui-dialog.portal-route-settings-dialog .ui-dialog-content,
+.ui-dialog.portal-route-points-dialog .ui-dialog-content {
+  overflow: hidden !important;
+}
+
 
 .ui-dialog.portal-route-anchored-dialog {
   max-width: calc(100vw - 20px) !important;
@@ -1142,6 +1175,16 @@ button.portal-route-waypoint-name,
     padding-left: 8px !important;
     padding-right: 8px !important;
     padding-bottom: 8px !important;
+  }
+
+  .ui-dialog.portal-route-settings-dialog .ui-dialog-content,
+  .ui-dialog.portal-route-points-dialog .ui-dialog-content {
+    overflow: hidden !important;
+  }
+
+  .portal-route-settings-dialog-content,
+  .portal-route-points-dialog-content {
+    max-height: calc(100dvh - 90px);
   }
 
   .portal-route-waypoint-row {

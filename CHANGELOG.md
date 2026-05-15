@@ -17,6 +17,7 @@ Latest release: `1.5.0`
 - Added Loop/Unloop controls beside Fit on the info panel and route list panel.
 - Moved Reverse route to the route list panel and ordered the route list action buttons as Del, Undo, Loop, Fit, Reverse, Print, Save, Load, Menu.
 - Widened the Home latitude and longitude fields.
+- Kept the Route List and Settings action bars pinned while their long content scrolls.
 
 ## 1.5.0 - Released 2026-05-09
 
