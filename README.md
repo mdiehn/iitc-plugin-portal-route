@@ -14,7 +14,7 @@ The v1.6.0 development branch is for small route-planning polish after the trave
 
 Large bulk-selected routes can be saved and edited, but Google routing may not plot routes with more than 26 stops in one request yet.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/dev/v1.6.0-dev/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/dev/v1.6.0/dist/portal-route.user.js)
 
 ## Quick start
 
@@ -46,7 +46,7 @@ The points list shows the current route order. Drag rows to reorder stops, or us
 - **Routing** chooses Google or OpenRouteService beta. Google remains the default.
 - **ORS API key** and **ORS URL** configure OpenRouteService. The public ORS service needs an API key; self-hosted/proxy URLs can be used too.
 - **Route color** changes the plotted route line color.
-- **Home name**, **Home lat**, and **Home lng** store a reusable Home point. Select a portal and use **Menu → Set Home to portal**, or use **Menu → Pick Home on map** and tap the map.
+- **Home name**, **Home lat**, and **Home lng** store a reusable Home point. Select a portal and use **Menu → Set Home to portal**, or use **Menu → Pick Home on map** and tap the map. Either action also adds or updates the interactive Home waypoint on the route.
 - **Google Drive OAuth Client ID** configures Drive access when IITC Sync auth is not available.
 - **Show segment times on map** shows per-leg labels on the route line when route data is available. Long settings content scrolls independently so the bottom action buttons stay reachable.
 
@@ -120,7 +120,7 @@ The mini control is for quick route actions while mostly staying on the map.
 
 Browser location can be very accurate on a phone and very wrong on a desktop. Desktop browsers may report the location of a network exit point instead of your real position.
 
-Use **Menu -> Add me** when you are on the device you will actually navigate from. To save Home, select a portal and use **Menu -> Set Home to portal**, or use **Menu -> Pick Home on map** and tap the map. Then use **Menu -> Add Home** to add it to the route later. Home points use a distinct map icon but can still be selected, dragged, reordered, deleted, and set as start or end like other map points.
+Use **Menu -> Add me** when you are on the device you will actually navigate from. To save Home, select a portal and use **Menu -> Set Home to portal**, or use **Menu -> Pick Home on map** and tap the map. That saves Home and adds or updates the interactive Home waypoint immediately. Use **Menu -> Add Home** later if you removed it from the current route and want to add it again. Home points use a distinct map icon but can still be selected, dragged, reordered, deleted, and set as start or end like other map points.
 
 ## Map views
 

@@ -879,7 +879,7 @@
           pr.state.homePickMode = false;
           if (pr.syncAddPointModeUi) pr.syncAddPointModeUi();
         }
-        pr.setHomeLocation(e.latlng.lat, e.latlng.lng, pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle);
+        pr.setHomeLocation(e.latlng.lat, e.latlng.lng, pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle, { addWaypoint: true });
         return;
       }
 

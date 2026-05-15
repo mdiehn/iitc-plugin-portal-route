@@ -155,6 +155,7 @@
     pr.saveStops();
     pr.redrawLabels();
     pr.renderPanel();
+    if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
     pr.renderMiniControl();
     if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
     return true;
@@ -251,7 +252,39 @@
     };
   };
 
-  pr.setHomeLocation = function(lat, lng, title) {
+  pr.updateHomeWaypoint = function(home) {
+    if (!home || typeof home.lat !== 'number' || typeof home.lng !== 'number') return false;
+
+    var existingIndex = pr.state.stops.findIndex(function(stop) {
+      return stop && stop.type === 'map' && !!stop.home;
+    });
+
+    if (existingIndex < 0) {
+      pr.addStop(home);
+      return true;
+    }
+
+    if (pr.pushUndoSnapshot) pr.pushUndoSnapshot('update Home waypoint');
+
+    pr.state.stops[existingIndex].title = home.title || pr.DEFAULT_SETTINGS.homeTitle;
+    pr.state.stops[existingIndex].lat = home.lat;
+    pr.state.stops[existingIndex].lng = home.lng;
+    pr.state.stops[existingIndex].stopMinutes = typeof home.stopMinutes === 'number' ? home.stopMinutes : null;
+    pr.state.stops[existingIndex].home = true;
+    pr.state.selectedMapPointIndex = existingIndex;
+    if (pr.clearIitcPortalSelection) pr.clearIitcPortalSelection();
+
+    pr.markRouteStale({ clearRoute: true });
+    pr.saveStops();
+    pr.redrawLabels();
+    pr.renderPanel();
+    pr.renderMiniControl();
+    if (pr.injectPortalDetailsAction) pr.injectPortalDetailsAction();
+    return true;
+  };
+
+  pr.setHomeLocation = function(lat, lng, title, options) {
+    options = options || {};
     lat = pr.parseHomeCoordinate(lat, -90, 90);
     lng = pr.parseHomeCoordinate(lng, -180, 180);
     if (lat === null || lng === null) {
@@ -263,9 +296,15 @@
     pr.state.settings.homeLng = String(lng);
     pr.state.settings.homeTitle = String(title || pr.state.settings.homeTitle || pr.DEFAULT_SETTINGS.homeTitle).trim() || pr.DEFAULT_SETTINGS.homeTitle;
     pr.saveSettings();
-    pr.renderPanel();
-    if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
-    pr.showMessage('Home location saved.');
+
+    if (options.addWaypoint) {
+      pr.updateHomeWaypoint(pr.getHomeLocation());
+    } else {
+      pr.renderPanel();
+      if (pr.state.pointsPanelOpen) pr.renderPointsPanel();
+    }
+
+    pr.showMessage(options.addWaypoint ? 'Home saved and added to route.' : 'Home location saved.');
     return true;
   };
 
@@ -274,7 +313,7 @@
     if (selectedPortal) {
       pr.cancelHomePickMode({ silent: true });
       pr.cancelAddPointMode({ silent: true });
-      pr.setHomeLocation(selectedPortal.lat, selectedPortal.lng, selectedPortal.title || pr.DEFAULT_SETTINGS.homeTitle);
+      pr.setHomeLocation(selectedPortal.lat, selectedPortal.lng, selectedPortal.title || pr.DEFAULT_SETTINGS.homeTitle, { addWaypoint: true });
       return;
     }
 
