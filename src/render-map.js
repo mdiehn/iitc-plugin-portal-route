@@ -78,7 +78,8 @@
       type: 'map',
       title: existing.type === 'map' && existing.title ? existing.title : 'Map point ' + (index + 1),
       lat: latlng.lat,
-      lng: latlng.lng
+      lng: latlng.lng,
+      home: !!(existing.type === 'map' && existing.home)
     };
   };
 
@@ -90,6 +91,7 @@
     var isLoop = !!stop.generatedLoop;
     var isSelected = !isLoop && pr.selectedStopIndex && pr.selectedStopIndex() === index;
     var isMapPoint = stop.type === 'map';
+    var isHomePoint = isMapPoint && !!stop.home;
     var canDragRouteStop = !isLoop && !pr.isManagedStartStop(stop);
     var label = index + 1;
     var className = 'portal-route-stop-label';
@@ -103,6 +105,7 @@
       className += ' portal-route-stop-label-end';
     }
     if (isMapPoint) className += ' portal-route-map-point-label';
+    if (isHomePoint) className += ' portal-route-home-point-label';
     if (canDragRouteStop) className += ' portal-route-stop-label-draggable';
     if (isLoop) className += ' portal-route-loop-label';
     if (isSelected) className += ' portal-route-stop-label-selected';
@@ -151,7 +154,7 @@
   pr.createMapPointMarker = function(stop, index, title, clickHandler) {
     var isSelected = pr.selectedStopIndex && pr.selectedStopIndex() === index;
     var pointIcon = L.divIcon({
-      className: 'portal-route-map-point-marker' + (isSelected ? ' portal-route-map-point-marker-selected' : ''),
+      className: 'portal-route-map-point-marker' + (stop.home ? ' portal-route-home-point-marker' : '') + (isSelected ? ' portal-route-map-point-marker-selected' : ''),
       html: '<span></span>',
       iconSize: [16, 16],
       iconAnchor: [8, 8]

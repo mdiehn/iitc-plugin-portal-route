@@ -14,6 +14,7 @@ Latest release: `1.5.0`
 - Added saved Home settings with Home name, latitude, and longitude.
 - Changed Home setup so selected portals can be saved as Home directly; otherwise Home is picked by tapping the map.
 - Added Add Home, which adds the saved Home point and selects it so existing route actions can immediately set it as the start or end.
+- Added a distinct Home marker icon while keeping Home waypoints draggable and selectable like other map points.
 - Added Loop/Unloop controls beside Fit on the info panel and route list panel.
 - Moved Reverse route to the route list panel and ordered the route list action buttons as Del, Undo, Loop, Fit, Reverse, Print, Save, Load, Menu.
 - Widened the Home latitude and longitude fields.

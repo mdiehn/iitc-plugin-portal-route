@@ -225,7 +225,8 @@
           lat: Number(stop.lat),
           lng: Number(stop.lng),
           stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null,
-          startOnMe: !!stop.startOnMe
+          startOnMe: !!stop.startOnMe,
+          home: (stop.type || (stop.guid ? 'portal' : 'map')) === 'map' && !!stop.home
         };
       }),
       route: pr.state.route || null,
@@ -286,6 +287,7 @@
       lng: lng,
       stopMinutes: stopMinutes,
       startOnMe: !!stop.startOnMe,
+      home: type === 'map' && !!stop.home,
       accuracy: typeof stop.accuracy === 'number' ? stop.accuracy : null,
       updatedAt: stop.updatedAt || null
     };

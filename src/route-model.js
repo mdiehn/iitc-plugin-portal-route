@@ -556,7 +556,8 @@
       stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null,
       startOnMe: !!stop.startOnMe,
       accuracy: typeof stop.accuracy === 'number' ? stop.accuracy : null,
-      updatedAt: stop.updatedAt || null
+      updatedAt: stop.updatedAt || null,
+      home: stopType === 'map' && !!stop.home
     });
 
     if (stopType === 'map') {
@@ -644,7 +645,8 @@
       lng: replacement.lng,
       startOnMe: false,
       accuracy: typeof replacement.accuracy === 'number' ? replacement.accuracy : null,
-      updatedAt: replacement.updatedAt || null
+      updatedAt: replacement.updatedAt || null,
+      home: stopType === 'map' && !!(replacement.home || existing.home)
     });
 
     if (stopType === 'map') {
@@ -838,7 +840,8 @@
         stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null,
         startOnMe: !!stop.startOnMe,
         accuracy: typeof stop.accuracy === 'number' ? stop.accuracy : null,
-        updatedAt: stop.updatedAt || null
+        updatedAt: stop.updatedAt || null,
+        home: stopType === 'map' && !!stop.home
       });
     });
 

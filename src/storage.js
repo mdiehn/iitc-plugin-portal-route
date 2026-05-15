@@ -12,7 +12,8 @@
           pr.state.stops = stops.map(function(stop) {
             if (!stop) return stop;
             return Object.assign({}, stop, {
-              type: stop.type || (stop.guid ? 'portal' : 'map')
+              type: stop.type || (stop.guid ? 'portal' : 'map'),
+              home: (stop.type || (stop.guid ? 'portal' : 'map')) === 'map' && !!stop.home
             });
           });
         }

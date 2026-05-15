@@ -2,7 +2,7 @@
 // @id             iitc-plugin-portal-route
 // @name           IITC plugin: Portal Route
 // @category       Navigate
-// @version 1.6.0-dev.20260515072120
+// @version 1.6.0-dev.20260515075506
 // @namespace      https://github.com/mdiehn/iitc-plugin-portal-route
 // @updateURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0-dev/dist/portal-route.meta.js
 // @downloadURL https://raw.githubusercontent.com/mdiehn/iitc-plugin-portal-route/refs/heads/dev/v1.6.0-dev/dist/portal-route.user.js
@@ -969,6 +969,26 @@ button.portal-route-waypoint-badge-wide {
   cursor: grab;
 }
 
+.portal-route-home-point-marker span {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: rgba(116, 226, 142, 0.88);
+  text-align: center;
+  line-height: 18px;
+}
+
+.portal-route-home-point-marker span::before {
+  content: "⌂";
+  color: #111;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.portal-route-home-point-label span {
+  border-color: #74e28e;
+}
+
 .portal-route-map-point-marker-selected span {
   outline: 1px solid #fff;
   outline-offset: 2px;
@@ -1436,7 +1456,7 @@ button.portal-route-waypoint-name,
 
   pr.ID = 'portal-route';
   pr.NAME = 'Portal Route';
-  pr.VERSION = '1.6.0-dev.20260515072120';
+  pr.VERSION = '1.6.0-dev.20260515075506';
   pr.SHOW_VERSION_IN_PANEL = true;
 
   pr.DOM_IDS = {
@@ -1616,7 +1636,8 @@ button.portal-route-waypoint-name,
           pr.state.stops = stops.map(function(stop) {
             if (!stop) return stop;
             return Object.assign({}, stop, {
-              type: stop.type || (stop.guid ? 'portal' : 'map')
+              type: stop.type || (stop.guid ? 'portal' : 'map'),
+              home: (stop.type || (stop.guid ? 'portal' : 'map')) === 'map' && !!stop.home
             });
           });
         }
@@ -2969,7 +2990,8 @@ button.portal-route-waypoint-name,
       stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null,
       startOnMe: !!stop.startOnMe,
       accuracy: typeof stop.accuracy === 'number' ? stop.accuracy : null,
-      updatedAt: stop.updatedAt || null
+      updatedAt: stop.updatedAt || null,
+      home: stopType === 'map' && !!stop.home
     });
 
     if (stopType === 'map') {
@@ -3057,7 +3079,8 @@ button.portal-route-waypoint-name,
       lng: replacement.lng,
       startOnMe: false,
       accuracy: typeof replacement.accuracy === 'number' ? replacement.accuracy : null,
-      updatedAt: replacement.updatedAt || null
+      updatedAt: replacement.updatedAt || null,
+      home: stopType === 'map' && !!(replacement.home || existing.home)
     });
 
     if (stopType === 'map') {
@@ -3251,7 +3274,8 @@ button.portal-route-waypoint-name,
         stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null,
         startOnMe: !!stop.startOnMe,
         accuracy: typeof stop.accuracy === 'number' ? stop.accuracy : null,
-        updatedAt: stop.updatedAt || null
+        updatedAt: stop.updatedAt || null,
+        home: stopType === 'map' && !!stop.home
       });
     });
 
@@ -3838,7 +3862,8 @@ button.portal-route-waypoint-name,
       type: 'map',
       title: existing.type === 'map' && existing.title ? existing.title : 'Map point ' + (index + 1),
       lat: latlng.lat,
-      lng: latlng.lng
+      lng: latlng.lng,
+      home: !!(existing.type === 'map' && existing.home)
     };
   };
 
@@ -3850,6 +3875,7 @@ button.portal-route-waypoint-name,
     var isLoop = !!stop.generatedLoop;
     var isSelected = !isLoop && pr.selectedStopIndex && pr.selectedStopIndex() === index;
     var isMapPoint = stop.type === 'map';
+    var isHomePoint = isMapPoint && !!stop.home;
     var canDragRouteStop = !isLoop && !pr.isManagedStartStop(stop);
     var label = index + 1;
     var className = 'portal-route-stop-label';
@@ -3863,6 +3889,7 @@ button.portal-route-waypoint-name,
       className += ' portal-route-stop-label-end';
     }
     if (isMapPoint) className += ' portal-route-map-point-label';
+    if (isHomePoint) className += ' portal-route-home-point-label';
     if (canDragRouteStop) className += ' portal-route-stop-label-draggable';
     if (isLoop) className += ' portal-route-loop-label';
     if (isSelected) className += ' portal-route-stop-label-selected';
@@ -3911,7 +3938,7 @@ button.portal-route-waypoint-name,
   pr.createMapPointMarker = function(stop, index, title, clickHandler) {
     var isSelected = pr.selectedStopIndex && pr.selectedStopIndex() === index;
     var pointIcon = L.divIcon({
-      className: 'portal-route-map-point-marker' + (isSelected ? ' portal-route-map-point-marker-selected' : ''),
+      className: 'portal-route-map-point-marker' + (stop.home ? ' portal-route-home-point-marker' : '') + (isSelected ? ' portal-route-map-point-marker-selected' : ''),
       html: '<span></span>',
       iconSize: [16, 16],
       iconAnchor: [8, 8]
@@ -4972,7 +4999,8 @@ button.portal-route-waypoint-name,
           lat: Number(stop.lat),
           lng: Number(stop.lng),
           stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null,
-          startOnMe: !!stop.startOnMe
+          startOnMe: !!stop.startOnMe,
+          home: (stop.type || (stop.guid ? 'portal' : 'map')) === 'map' && !!stop.home
         };
       }),
       route: pr.state.route || null,
@@ -5033,6 +5061,7 @@ button.portal-route-waypoint-name,
       lng: lng,
       stopMinutes: stopMinutes,
       startOnMe: !!stop.startOnMe,
+      home: type === 'map' && !!stop.home,
       accuracy: typeof stop.accuracy === 'number' ? stop.accuracy : null,
       updatedAt: stop.updatedAt || null
     };
@@ -5236,6 +5265,7 @@ button.portal-route-waypoint-name,
         lng: Number(stop.lng),
         stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null,
         startOnMe: !!stop.startOnMe,
+        home: (stop.type || (stop.guid ? 'portal' : 'map')) === 'map' && !!stop.home,
         accuracy: typeof stop.accuracy === 'number' ? stop.accuracy : null,
         updatedAt: stop.updatedAt || null
       };

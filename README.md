@@ -120,7 +120,7 @@ The mini control is for quick route actions while mostly staying on the map.
 
 Browser location can be very accurate on a phone and very wrong on a desktop. Desktop browsers may report the location of a network exit point instead of your real position.
 
-Use **Menu -> Add me** when you are on the device you will actually navigate from. To save Home, select a portal and use **Menu -> Set Home to portal**, or use **Menu -> Pick Home on map** and tap the map. Then use **Menu -> Add Home** to add it to the route later.
+Use **Menu -> Add me** when you are on the device you will actually navigate from. To save Home, select a portal and use **Menu -> Set Home to portal**, or use **Menu -> Pick Home on map** and tap the map. Then use **Menu -> Add Home** to add it to the route later. Home points use a distinct map icon but can still be selected, dragged, reordered, deleted, and set as start or end like other map points.
 
 ## Map views
 

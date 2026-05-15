@@ -45,6 +45,7 @@
         lng: Number(stop.lng),
         stopMinutes: typeof stop.stopMinutes === 'number' ? stop.stopMinutes : null,
         startOnMe: !!stop.startOnMe,
+        home: (stop.type || (stop.guid ? 'portal' : 'map')) === 'map' && !!stop.home,
         accuracy: typeof stop.accuracy === 'number' ? stop.accuracy : null,
         updatedAt: stop.updatedAt || null
       };

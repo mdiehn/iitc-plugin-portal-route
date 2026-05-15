@@ -947,6 +947,26 @@ button.portal-route-waypoint-badge-wide {
   cursor: grab;
 }
 
+.portal-route-home-point-marker span {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: rgba(116, 226, 142, 0.88);
+  text-align: center;
+  line-height: 18px;
+}
+
+.portal-route-home-point-marker span::before {
+  content: "⌂";
+  color: #111;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.portal-route-home-point-label span {
+  border-color: #74e28e;
+}
+
 .portal-route-map-point-marker-selected span {
   outline: 1px solid #fff;
   outline-offset: 2px;
