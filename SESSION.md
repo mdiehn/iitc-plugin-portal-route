@@ -22,6 +22,12 @@ This file is a short handoff note for agents working in this repo.
 - Route List, Settings, and Route Library panels use fixed action bars with scrolling content areas.
 - IITC portal-details/sidebar scrolling was intentionally left unchanged.
 
+## Release history note
+
+The v1.5.0 work was merged to `main` but apparently was not tagged as a
+separate release. The v1.6.0 release notes included the v1.5 routing/travel-mode
+work so users jumping from v1.4.x still see those changes.
+
 ## Current expectations
 
 - Keep changes small and incremental.
