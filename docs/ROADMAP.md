@@ -1,270 +1,227 @@
 # Roadmap
 
-Current development: `1.6.0-dev`
+Latest release: `1.6.0`
 
-Latest release: `1.5.0`
+Portal Route is now in a stable feature-building phase. The core workflow is usable: add portals, manual points, current location, and saved Home; drag, reorder, remove, loop, reverse, and edit route points; choose travel mode and routing engine; customize route line color, thickness, and style; export to staged Google Maps links; import/export JSON; print; and keep state across reloads.
 
-Portal Route has reached its first stable release. The main route-building loop is usable now: add portals, add manual points, add current location, loop back to start, drag/edit points, calculate routes, choose a travel mode, export to staged Google Maps links, import/export JSON, print, and keep state across reloads.
+Recent releases have focused on making the plugin more comfortable for real use: better mobile controls, route library improvements, route-provider support, pinned action bars in long panels, Home location support, and more visible route controls in the Route List.
 
-## Current state: 1.5.0
+## Current state: 1.6.0
 
-Done and released:
+### Route building and editing
 
-- portal stops from the IITC portal details panel
-- manual map points
-- editable manual point names
-- selectable map handles and labels
-- manual point dragging from handles and labels
-- waypoint replacement dragging from numbered labels
-  - drop near a loaded portal to replace that waypoint with the portal
-  - drop elsewhere to replace it with a manual map point
-- waypoint row move/remove controls
-- waypoint row drag-and-drop reordering
-- per-stop wait times and default stop time
-- route-level travel mode selection
-- per-mode average speed settings for travel-time estimates
-- flexible wait-time inputs such as `15m`, `1.5h`, and `2d`
-- stale route tracking after edits
-- automatic route calculation after route edits
-- explicit Fit Route action
-- Start on me
-- Add Current Location
-- Loop back to start with generated `L` endpoint
-- compact mini-control
-- optional mini-control and portal info-panel controls
-- portal details controls for Add/Remove, Menu, List, Plot/Replot, and Clear
-- route summary with travel time, stop time, trip time, and distance
-- per-leg segment time/distance in the stop list
-- optional segment labels on the map
-- Google Maps export
-- Google Maps export mode mapping for driving, bicycling, and walking
-- staged Apple Maps export
-- staged Google Maps links for routes over the practical 11-point limit
-- JSON export/import of the current route
-- printable route summary
-- external route import API used by Fan Fields 2
-- persistent current route state across IITC reloads
-- route library
-- Google Drive shared storage
+- Add portals from the IITC portal details panel.
+- Add manual map points.
+- Add current location.
+- Add saved Home as an editable route waypoint.
+- Pick Home from a selected portal or map point.
+- Show Home with distinct marker styling.
+- Rename manual/map points.
+- Drag manual points and route handles.
+- Replace waypoints by dragging numbered labels:
+  - drop near a loaded portal to replace with that portal
+  - drop elsewhere to replace with a manual map point
+- Reorder waypoints from the Route List.
+- Remove waypoints from the Route List or selected-point controls.
+- Undo recent route edits.
+- Loop/unloop routes.
+- Reverse routes.
+- Fit the map to the current route.
+- Keep the current route across IITC reloads.
+
+### Routing, timing, and display
+
+- Calculate route geometry automatically after edits.
+- Replot stale routes explicitly when needed.
+- Choose travel mode.
+- Choose routing provider, including Google and OpenRouteService-backed routing.
+- Configure per-mode average speeds for travel-time estimates.
+- Configure per-stop wait times and default stop time.
+- Show route summary time, stop time, trip time, and distance.
+- Show per-leg time and distance in the Route List.
+- Optionally show segment labels on the map.
+- Customize route line color, thickness, and style.
+
+### Export, printing, and route library
+
+- Export staged Google Maps links, including handling routes over the practical 11-point limit.
+- Export Apple Maps links.
+- Print route summaries.
+- Save and load routes in the route library.
+- Export and import a saved route as JSON.
+- Export and import the whole route library as JSON.
+- Use Google Drive shared storage for route-library data.
+- Preserve route state, route library records, and Home waypoint metadata through save/load and JSON import/export.
+
+### UI baseline
+
+- Mini-control provides compact map access to Maps export, route list, add/remove, and menu actions.
+- Route List is the main working panel for route editing and route actions.
+- Route Library is separate from the current-route editor.
+- Settings holds global routing, provider, route-line appearance, and Home settings.
+- Route List, Route Library, and Settings use scrollable content with pinned action bars.
+- Embedded IITC portal-details behavior is left to IITC as much as possible.
+
+## Recent progress since 1.1.0
+
+The original post-1.1 roadmap focused heavily on route-library structure and storage. Most of that foundation is now done. Since then, the project has added or improved:
+
+- route library save/load workflows
+- route and library JSON import/export
+- Google Drive shared route storage
+- Google and OpenRouteService routing support
+- travel mode selection
+- automatic stale-route replot behavior
+- manual and portal waypoint dragging/replacement
+- route looping and reversing
+- Google Maps staged export behavior
 - Apple Maps export
+- compact mini-control refinements
+- mobile panel and button behavior
+- route line appearance settings
+- saved Home location support
+- pinned action bars for long standalone panels
+- external route import API for other IITC plugins
+- first-pass bulk portal selection from shapes
 
-Known rough edges:
+## Future topic index
 
-- Save and Load currently use a local route library in this browser.
-- JSON import/export now covers individual saved routes and the local route library.
-- Cross-device sharing is manual only.
-- Browser/device location may be coarse or wrong, especially on desktop.
-- Mobile hover behavior is limited because touch devices do not really hover.
-- Google Maps export works, but the staging/export flow could be clearer.
-- Waypoint dragging and portal snapping need more field testing.
+Topics discussed for future work:
 
-## Current focus: v1.6.0
+- Route Follow Mode
+- bulk portal selection and optimized route building
+- route splitting and export-limit handling
+- per-leg and multi-modal routing
+- route-line styling by travel mode
+- route library and shared-storage polish
+- shared map/route handoff between devices
+- waypoint dragging, snapping, and selected-waypoint actions
+- bookmark, polygon/circle, and mission-based route creation
+- routing/export destinations beyond Google and Apple Maps
+- IITC update/install polish and release ergonomics
 
-Theme: small route-planning polish after the travel-mode release.
+## Route Follow Mode
 
-Planned v1.6.0 work:
+Goal: make Portal Route behave more like a navigation companion while traveling along a planned route.
 
-- route line color setting
-- saved Home location settings
-- Add Home action using saved Home coordinates
-- Add Home selects the newly added point so Set as start / Set as end can be used immediately
+Planned ideas:
 
-Current v1.6.0 UI baseline:
+- follow the user’s current location more smoothly than IITC’s default behavior
+- keep more route ahead visible than behind
+- shift the map after the user moves a configurable amount through the visible route
+- optionally rotate the map in the direction of travel if Leaflet/IITC support makes it clean enough
+- show portals in a configurable corridor around the route
+- support configurable look-ahead distance or look-ahead percentage
+- limit Intel/IITC portal refreshes by corridor size, movement threshold, and update rate
 
-- Add/Del handles the common selected-point action, with Menu as the wider route-building/export/navigation menu. Add toggles manual point placement when nothing is selected.
-- Undo is available for recent route edits.
-- Routes calculate automatically after changes, with a Menu Route/Replot fallback.
-- The mini control is `M`, `L`, add/remove, route count, and `=` Menu.
-- The route list is the working console for day-to-day route work.
-- Route-list rows have compact Up/Dn/Del controls, with mobile-friendly symbols on narrow screens and rename/start/end actions still in the context menu.
-- The settings panel is a small settings/navigation panel with Add/Del and Menu; Menu includes Route/Replot.
-- The settings panel includes global routing settings, route line color, and saved Home location.
-- Travel mode and per-mode speed settings are route-list controls.
-- The route library is a separate panel with Save, Load, Import, Export, Delete, and Menu.
-- Local route-library JSON portability works for single routes and whole libraries.
-- Stale route data has a clearer Replot cue, stale compact stats, and a Menu Route/Replot fallback.
+Design caution:
 
-## Near-term follow-up
+- avoid excessive Intel data polling
+- avoid surprising map jumps
+- make the behavior easy to turn off
+- keep the defaults conservative
 
-Not in `1.6.0` yet:
+## Bulk portal selection and optimized route building
 
-- per-leg travel modes
-- alternative export/routing providers
-- distinct line styles by mode
-- multi-modal summaries
+Goal: create routes from groups of portals instead of adding every portal one at a time.
 
-### v1.1.0-a: route record and local library
+Possible inputs:
 
-Status: mostly done in `1.1.0-dev`.
+- IITC bookmarks or bookmark folders
+- selected portals inside a bounding box
+- selected portals inside a polygon or circle
+- selected portals from Draw Tools shapes, if integration is practical
+- portals associated with a mission, if a reliable source is available
 
-Goal: save and load named routes in this browser.
+Possible route-building modes:
 
-Implemented work:
+- preserve the user’s selected order
+- nearest-neighbor ordering
+- optimized route ordering through an external service
+- start/end-fixed optimization
+- loop optimization
 
-- define a saved route record schema
-- save the current route as a named route
-- load a saved route into the current route
-- overwrite/update an existing saved route via Save with one checked route
-- rename saved routes
-- delete saved routes
-- show route metadata such as created/updated time and stop count
-- save map center/zoom with the route
-- decide which route-relevant settings belong in the saved route
-- keep current-route persistence separate from the saved route library
+Open questions:
 
-Suggested route record fields:
+- how large can a generated route get before UI and export workflows become awkward?
+- should Portal Route warn at selection-size thresholds?
+- should generated routes preview before replacing the current route?
+- how should route optimization handle portals that require walking or biking paths?
 
-```json
-{
-  "schemaVersion": 1,
-  "pluginVersion": "1.1.0-dev",
-  "id": "route-...",
-  "name": "Example route",
-  "createdAt": "2026-05-02T12:00:00.000Z",
-  "updatedAt": "2026-05-02T12:30:00.000Z",
-  "map": {
-    "center": { "lat": 43.642, "lng": -72.251 },
-    "zoom": 15
-  },
-  "route": {
-    "stops": []
-  },
-  "settings": {}
-}
-```
+## Route splitting and export-limit handling
 
-Notes:
+Google Maps export has practical waypoint limits. Portal Route already stages Google Maps links for longer routes, but this can be clearer.
 
-- Use `localStorage` first as the first backend and test target.
-- Save and Load should use the same route record shape that Google Drive will use later.
-- Loading a saved route should restore stops, map view, route-relevant settings, and then recalculate automatically.
-- Avoid OAuth in this first slice, but do not design localStorage in a way that assumes it is the only backend.
+Future polish:
 
-### v1.1.0-b: route library UI
+- clearer stage naming
+- clearer explanation of why staged links are needed
+- better handoff instructions for mobile use
+- optional route splitting preview
+- warnings when export destinations will omit intermediate stops
+- better handling of the first/last plus intermediate-stop limit
 
-Status: mostly done in `1.1.0-dev`.
+## Per-leg and multi-modal routing
 
-Goal: make route-library Save and Load useful from the Route Library panel.
+Goal: allow a route to mix travel modes, such as driving to an area, walking a group of portals, then driving again.
 
-Implemented work:
+Possible work:
 
-- wire Save to save the current route as a new route when none is checked
-- wire Save to overwrite one checked route after confirmation
-- wire Load to load exactly one checked route
-- support inline rename and delete
-- support selected-route JSON export/import
-- support whole-library JSON export/import
-- show where the route is stored, starting with `This browser`
-- keep UI text short enough for mobile
+- per-leg travel mode
+- per-leg routing provider choice, if needed
+- different line textures or styles by mode
+- mode-aware time summaries
+- clearer total time vs. drive/walk/bike time
+- route-list controls that do not make the UI too crowded
 
-Open UI questions:
+This should probably be a focused minor release because it touches route records, UI, summaries, rendering, and export behavior.
 
-- Should there be a separate Save As action later, or is unchecked Save enough?
-- Should multi-selected route export use a distinct filename/prompt?
-- Should loading a route restore map center/zoom automatically? Current behavior: yes.
+## Route line styling by mode
 
-### v1.1.0-c: storage adapter shape
+Current state:
 
-Status: started in the current worktree.
+- users can choose route line color, thickness, and style globally.
 
-Goal: keep the route library UI mostly independent from the storage backend.
+Possible future work:
 
-Possible backend shape:
+- default styles per travel mode
+- different styles for drive, bike, walk, and mixed-mode legs
+- style presets that are easy to see on the IITC map
+- accessible defaults that remain visible over busy portal/link fields
 
-```js
-{
-  id: 'local',
-  label: 'This browser',
-  listRoutes: function () {},
-  getRoute: function (id) {},
-  saveRoute: function (route) {},
-  deleteRoute: function (id) {}
-}
-```
+## Route library and shared-storage polish
 
-Backends should be able to store the same route record schema:
+Current state:
 
-- local browser storage
-- Google Drive visible folder/file
-- possible later backends such as WebDAV, Dropbox, or IITC Sync if they fit
+- local route library works
+- route and library JSON import/export works
+- Google Drive shared storage exists
 
-### v1.1.0-d: JSON portability
+Future polish:
 
-Status: mostly done in `1.1.0-dev`.
+- make shared-storage status clearer
+- improve conflict handling when two devices edit the library
+- make Save vs. Save As behavior clearer if field use shows confusion
+- improve route metadata display
+- possibly add route folders/tags later
+- keep the route record schema stable enough for future migrations
 
-Goal: keep route-library data inspectable and movable even before shared storage is finished.
+## Shared map and route handoff
 
-Implemented work:
+Goal: let desktop and phone hand off the current map/route context without pretending to do live sync.
 
-- export one saved route as JSON
-- import one saved route from JSON
-- export the whole route library as JSON
-- import/merge a route library JSON file
-- handle duplicate route IDs safely
-
-Preferred conflict behavior for now:
-
-- do not silently overwrite imported routes
-- duplicate/rename on conflict, or ask before overwrite
-- keep this simple until real sync exists
-
-### v1.1.0-e: Google Drive shared storage
-
-Goal: let desktop and phone read/write the same route library.
-
-Preferred design:
-
-- Use Google Drive first because IITC/Ingress users already tend to have Google accounts in this workflow.
-- Use a visible, user-selected Drive folder, not hidden `appDataFolder` storage.
-- Remember the selected Drive folder ID locally on each device.
-- Store known JSON files in that folder.
-
-Initial Drive layout:
-
-```text
-Google Drive/
-  IITC Portal Route/
-    route-library.json
-```
-
-Later shared-map file:
-
-```text
-Google Drive/
-  IITC Portal Route/
-    current-map.json
-```
-
-Before building Drive directly, inspect IITC's existing Google Drive sync implementation to see whether Portal Route can reuse its auth/session/sync machinery, register plugin data with IITC sync, or at least follow IITC's working assumptions.
-
-Likely Drive proof-of-concept goals:
-
-- choose or create a visible Drive folder
-- remember the folder ID locally
-- find or create `route-library.json` in that folder
-- read the route library
-- write the route library
-- test on desktop and mobile
-- avoid silent overwrites when two clients have changed data
-
-## Shared map snapshot
-
-This is useful, but should come after route library storage is working.
-
-Goal: let phone and desktop hand off the current map/route context.
-
-Start manual, not live-sync:
+Possible first version:
 
 - Save shared view
 - Load shared view
 
-Possible snapshot:
+Possible shared snapshot:
 
 ```json
 {
   "schemaVersion": 1,
-  "pluginVersion": "1.1.0-dev",
-  "updatedAt": "2026-05-02T12:30:00.000Z",
+  "pluginVersion": "1.6.0",
+  "updatedAt": "2026-05-16T12:00:00.000Z",
   "deviceName": "desktop",
   "map": {
     "center": { "lat": 43.642, "lng": -72.251 },
@@ -275,90 +232,52 @@ Possible snapshot:
 }
 ```
 
-Do not start with automatic polling or live sync. Auto-sync adds conflict handling, stale writes, network weirdness, mobile battery concerns, and surprising map jumps.
+Avoid automatic polling or live sync at first. Auto-sync adds conflict handling, stale writes, network weirdness, mobile battery concerns, and surprising map jumps.
 
-## External storage notes
+## Waypoint dragging, snapping, and selected-waypoint actions
 
-Current preference:
+Waypoint dragging works, but still needs field testing.
 
-- Google Drive first.
-- Visible user-selected folder first.
-- `appDataFolder` later, only if hidden app-specific storage becomes useful.
-- Avoid magic sync behavior until conflicts and stale writes are handled safely.
-
-Why visible Drive storage first:
-
-- easy to inspect
-- easy to back up
-- understandable to the user
-- easier to debug during development
-- lets the user decide where shared route files live
-
-Known costs:
-
-- direct Drive integration needs auth/API handling unless IITC's sync layer can be reused
-- Drive paths are really folder IDs plus filenames, not POSIX-style paths
-- conflict handling matters once desktop and phone can both write
-
-## Post-1.1 route editing polish
-
-Keep these as follow-up polish unless field testing says one is urgent.
-
-Waypoint dragging / snapping:
+Future polish:
 
 - tune snap distance threshold
 - add better snap-target feedback while dragging
-- decide whether snapping should be live during drag or only on drag end
-- confirm portal details/selection behavior after waypoint replacement
+- decide whether snapping should happen live during drag or only on drag end
 - confirm manual-to-portal, portal-to-portal, and portal-to-map-point replacement on mobile
+- decide whether to add explicit Set Start and Set End actions
+- keep Home waypoints normal and editable rather than special-casing them too much
 
-Route panel polish:
+## Bookmark, polygon/circle, and mission-based route creation
 
-- review whether compact button labels need more clarity before the next stable release
-- possibly separate route-library UI from current-route editing UI if the panel gets crowded
-- improve Google Maps stage naming and handoff text if needed
+Related to bulk selection, but focused on input sources.
 
-## Later: route-building from selected portals
+Possible work:
 
-Feature idea:
+- import portals from a bookmark folder
+- select portals inside a polygon/circle
+- integrate with Draw Tools if it avoids too much coupling
+- explore whether mission portal lists can be read reliably
+- provide a review step before committing generated route points
 
-- select portals by bookmarks, bounding box, draw-tools polygon, or circle
-- designate a start and end
-- calculate a route through all selected portals
-
-Open design questions:
-
-- preserve selected order, nearest-neighbor order, or optimized route order?
-- how should this integrate with IITC bookmarks and draw-tools?
-- how should loops work?
-- how should the route preview work before committing?
-- how large can a generated route get before the UI/export flow becomes awkward?
-
-## Later: routing/export destinations
+## Routing and export destinations
 
 Possible future targets:
 
 - Waze links
+- GPX export
+- KML export
 - copied stop list for external tools
-- GPX/KML export if useful
-- better Google Maps stage handoff
+- clearer Google Maps stage handoff
+- provider-specific warnings when an export target cannot represent the full route
 
-## Release path
+## IITC integration and release ergonomics
 
-Suggested next path:
+Keep these habits unless there is a reason to change them:
 
-1. Review and commit the local storage-adapter cleanup.
-2. Field-test route library and Menu behavior on desktop and phone.
-3. Inspect IITC's existing Google Drive sync code.
-4. Add Google Drive backend using a visible user-selected Drive folder.
-5. Field-test shared storage on desktop and phone.
-6. Polish manual point naming if it stays annoying in use.
-7. Cut v1.1.0 when saved routes and shared Drive storage feel boring and reliable.
-
-## Release habits
-
-- Do not update generated `dist/` files unless explicitly asked or preparing a release build.
-- Source changes belong in `src/`.
-- Changelog entries should go under the correct dev/release version.
-- User may ask for tarballs containing only updated source/docs files.
-- Release names can use format like `Portal Route 1.1.0`.
+- avoid fighting IITC’s own portal-details/sidebar behavior
+- keep generated `dist/` files out of normal source-change tarballs unless preparing a release
+- update generated userscript and meta files for release builds
+- keep install/update URLs aligned with the intended release branch
+- keep changelog entries under the correct dev/release version
+- use short, user-facing release notes
+- provide tarballs with whole updated files when that is easier to review than patches

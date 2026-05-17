@@ -4,9 +4,9 @@
 
 This repo contains the IITC plugin **Portal Route**.
 
-Current release target: `1.6.0-dev`
+Current release: `1.6.0`
 
-Current branch when this note was updated: `dev/v1.6.0`
+Current branch after release merge: `main`
 
 ## Working style
 
@@ -28,13 +28,13 @@ Current branch when this note was updated: `dev/v1.6.0`
 - First-pass route-level travel mode support for `drive`, `bike`, and `walk` is released in v1.5.0.
 - OpenRouteService beta routing is released as an opt-in provider in v1.5.0.
 - Travel mode and per-mode speed controls belong in the route list / points panel, even though they persist as settings.
-- v1.6.0 development has started with route line color and saved Home location polish.
+- v1.6.0 is released with route line appearance settings, saved Home support, improved route controls, and pinned standalone panel action bars.
 
 ## Current priorities
 
-- Keep route color and saved Home changes incremental.
 - Preserve existing Google route calculation geometry, ORS beta behavior, and route splitting behavior unless a change is clearly required.
-- Add Home should add the saved Home point and select it so Set as start / Set as end can be used immediately.
+- Keep Home waypoints editable like normal route points.
+- Keep standalone panel action bars pinned while long lists/settings scroll.
 - Treat OSRM, per-leg travel modes, multi-modal summaries, and mode-specific line styling as later work.
 
 ## Key docs
@@ -46,4 +46,33 @@ Current branch when this note was updated: `dev/v1.6.0`
 - `docs/design.md`
 - `docs/ROADMAP.md`
 - `docs/route-library-design.md`
-- `docs/ui-refactor-plan.md`
+- `docs/ui-model-and-interaction-notes.md`
+- `docs/usability-and-ux-gaps.md`
+
+## Documentation roles
+
+Keep project docs focused on their current job:
+
+- `CHANGELOG.md`: release history and user-visible changes.
+- `docs/ROADMAP.md`: forward-looking plan, organized by feature area.
+- `docs/route-library-design.md`: current route library, storage, schema, and shared-storage design.
+- `docs/ui-model-and-interaction-notes.md`: current UI surfaces, interaction rules, and control placement.
+- `docs/usability-and-ux-gaps.md`: current rough edges, small UX gaps, and field-test notes.
+
+Avoid preserving stale implementation phases in active planning docs. If a plan has
+shipped, move the useful summary to a completed section or to `CHANGELOG.md`.
+
+Do not describe already-shipped work as future work. Check the current code,
+`CHANGELOG.md`, and recent session notes before editing roadmap/design docs.
+
+## Current documentation cleanup direction
+
+The v1.6.0 documentation cleanup is moving old phase-plan docs into current
+guidance docs:
+
+- old UI simplification plan -> `docs/ui-model-and-interaction-notes.md`
+- old usability notes -> `docs/usability-and-ux-gaps.md`
+- old route library v1.1 planning -> current `docs/route-library-design.md`
+
+When updating these files, prefer current state, active gaps, and design rules.
+Put release chronology in `CHANGELOG.md`, not in design docs.

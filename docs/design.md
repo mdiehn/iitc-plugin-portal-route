@@ -1,151 +1,277 @@
-# Portal Route design
+# Portal Route Design
 
-Portal Route is a mobile-first IITC plugin for planning routes through selected Ingress portals and manual map points.
+Current as of: `1.6.0`
 
-The plugin is meant to help an agent:
+Portal Route is a mobile-first IITC plugin for planning practical routes through
+Ingress portals, manual map points, current location, and a saved Home location.
 
-- build an ordered stop list from portals, map points, or current location
-- edit, rename, reorder, reverse, and clear route stops
-- include per-stop and default stop time
-- choose a route travel mode and per-mode average speed for estimated travel time
-- loop back to the first stop when needed
-- calculate routes automatically after route changes
-- see travel time, stop time, trip time, distance, and per-leg details
-- export long routes to staged Google Maps links
-- export long routes to staged Apple Maps links
-- save and load named routes
-- import/export current routes, saved routes, and route libraries as JSON
-- print a simple route summary
-- restore current route state after an IITC reload
+This file is the high-level design overview. It describes the shape of the
+plugin and the main design decisions. Release history belongs in `CHANGELOG.md`;
+future planning belongs in `docs/ROADMAP.md`.
 
-## Design docs
+## Product goal
 
-- [Roadmap](ROADMAP.md)
-- [Route library design](route-library-design.md)
-- [UI refactor plan](ui-refactor-plan.md)
-- [Phase 1 design](design-phase-1.md)
-- [Usability notes](usability-notes.md)
+Portal Route helps an agent build, edit, save, and export ordered routes inside
+IITC without leaving the map.
 
-## Completed phases
+The core workflow is:
 
-### Phase 1: manual route planner
+1. Add portals, manual points, current location, or Home to a route.
+2. Reorder, rename, duplicate, drag, remove, loop, or reverse route points.
+3. Let the plugin calculate route geometry and timing.
+4. Save, load, print, or export the route for field use.
 
-Done in the early releases and stable in `1.0.0`:
+## Current feature model
 
-- portal stops
-- manual map points
-- route plotting/calculation
-- stop timing
-- stale/current route tracking
-- persisted current route state
-- Google Maps export
-- Google Maps export-limit warning
-- staged Apple Maps export
-- JSON import/export
+Portal Route supports:
+
+- ordered route stops from portals, manual map points, current location, and Home
+- selectable and editable waypoints
+- draggable manual, Add Me, and Home points
+- waypoint reordering and duplication
+- route loop/unloop
+- route reversal
+- undo for recent route edits
+- per-stop wait time
+- default stop time
+- route-level travel mode: drive, bike, or walk
+- per-mode average speed settings for time estimates
+- automatic route recalculation after route-affecting edits
+- stale/current route state while recalculation is pending
+- route distance, travel time, stop time, trip time, and per-leg details
+- configurable route line color, thickness, and style
+- current-route JSON import/export
+- saved-route and whole-library JSON import/export
+- local route library
+- Google Drive shared route storage
+- staged Google Maps export for long routes
+- Apple Maps export
 - printable route summary
+- current route restore after IITC reloads
+- external route import API for other IITC plugins
 
-### Phase 2: route editing and map polish
+## Route model
 
-Done:
+A route is an ordered list of stops.
 
-- drag-and-drop waypoint reordering
-- manual point dragging
-- waypoint replacement dragging
-- selectable map labels and handles
-- Start on me
-- Add Current Location
-- loop back to start
-- route reversal and clear route
-- staged Google Maps links for long routes
+A stop may come from:
 
-### Phase 3: mobile-first UI simplification
+- a selected portal
+- a manual map point
+- browser geolocation through Add Me / current location
+- the saved Home location
+- an external plugin handoff
 
-Mostly done in `1.2.0`:
+Route stops may carry:
 
-- Add/Del for direct selected-point changes, with Menu as the wider route-building/export/navigation menu
-- Undo for recent route edits
-- shared Menu context menu
-- compact mini control
-- route list as the day-to-day work panel
-- settings panel as a small settings/navigation panel
-- portal details controls
-- automatic route calculation after edits
+- display name
+- latitude and longitude
+- portal identity, when available
+- stop wait time
+- source/type metadata
+- marker/display hints such as Home styling
 
-### Phase 4: local route library
+Route geometry is derived from the current stop list and routing settings. Saved
+route geometry should not be treated as authoritative; loading a route should
+restore stops and recalculate geometry when possible.
 
-Mostly done in `1.2.0`:
+## Travel modes and timing
 
-- schema version 1 saved route records
-- local saved-route library
-- Save, Load, overwrite, rename, delete
-- selected route import/export
+Portal Route currently has route-level travel mode support.
+
+Supported modes:
+
+- drive
+- bike
+- walk
+
+The selected mode affects:
+
+- travel-time estimates
+- Google Maps export mode
+- settings carried through saved routes and restored route state
+
+Per-leg travel modes and multi-modal summaries are not part of the current
+design. They remain future work.
+
+## UI surfaces
+
+Portal Route uses several focused UI surfaces instead of one large control panel.
+
+### Mini control
+
+The mini control is the compact always-available map control.
+
+It provides quick access to common actions such as:
+
+- map export
+- loop/unloop
+- add/remove or smart add behavior
+- route count / Route List
+- menu/settings
+
+The mini control should stay small, mobile-friendly, and usable while viewing the
+map.
+
+### Settings panel
+
+The Settings panel holds configuration and navigation to secondary tools.
+
+It is not a separate “main panel.” Route editing belongs mostly in the Route List
+and map interactions.
+
+Settings content may scroll, but its action buttons should stay reachable.
+
+### Route List panel
+
+The Route List is the day-to-day route editing console.
+
+It handles:
+
+- route point selection
+- route point ordering
+- route point edits
+- direct route actions such as Del, Undo, Loop, Fit, Reverse, Print, Save, Load,
+  and Menu
+
+The waypoint list should scroll independently while the action bar stays pinned.
+
+### Route Library panel
+
+The Route Library handles saved routes and route-library portability.
+
+It handles:
+
+- save
+- load
+- rename
+- overwrite
+- delete
+- selected-route import/export
 - whole-library import/export
-- route-library storage adapter shape started
+- shared storage actions
 
-## Current phase: shared route library
+The saved-route list should scroll independently while action buttons stay
+reachable.
 
-The remaining v1.1.0 goal is shared route storage.
+### IITC portal/details section
 
-Preferred direction:
+Portal Route adds compact controls to IITC’s portal/details sidebar.
 
-- inspect IITC's existing Google Drive sync code first
-- use a visible, user-selected Google Drive folder
-- store `route-library.json` in that folder
-- remember the Drive folder ID locally on each device
-- keep sync manual at first
-- avoid hidden `appDataFolder` storage for the first Drive backend
-- avoid automatic polling/live sync until conflict handling is clear
+This area should remain conservative. IITC owns the surrounding sidebar behavior,
+so Portal Route should avoid fighting its scrolling, sizing, and layout unless
+there is a specific bug.
 
-## Current release: travel mode start
+## Storage model
 
-Done in `1.5.0`:
+Portal Route uses a route record shape that can be used by local storage, JSON
+export/import, and shared storage.
 
-- route-level `drive`, `bike`, and `walk` travel modes
-- default travel mode setting
-- per-mode average speed settings
-- travel-time estimates derived from selected mode and configured speed
-- Google Maps export mode mapping for `driving`, `bicycling`, and `walking`
-- travel-mode settings carried through saved routes, route JSON, restored state, and undo
+Current storage paths:
 
-Notes:
+- browser local storage for the normal local route library
+- JSON files for backup, sharing, and recovery
+- Google Drive shared storage for explicit cross-device handoff
 
-- Distance calculation still follows the current route geometry.
-- Stop/wait time behavior is unchanged.
-- Per-leg travel modes and alternative routing providers are still later work.
+Shared storage should remain user-driven unless conflict handling is designed
+carefully. Avoid surprising automatic live sync.
 
-## Remaining polish
+## Routing model
 
-Likely useful polish before or after Drive:
+Portal Route calculates route geometry after route-affecting edits.
 
-- better names for manual map points, possibly by reverse-geocoding a street address or place name
-- field-test waypoint replacement dragging on mobile
-- improve Google Maps stage handoff text if needed
-- improve route calculation failure messages
+Design rules:
 
-Later ideas:
+- route edits should queue automatic recalculation when there are enough stops
+- stale route state should be visible while recalculation is pending
+- manual Recalc should remain available as a fallback
+- routing-provider failures should not destroy the route stop list
+- routing behavior should preserve existing Google and ORS beta behavior unless a
+  change is intentional
 
-- route optimization
-- Waze links
-- GPX/KML export
-- per-leg travel modes
-- alternative routing providers
-- manual shared map/view handoff with `current-map.json`
-- turn-by-turn directions inside IITC, only if it ever feels worth the complexity
+Current routing/export behavior includes Google-based routing and opt-in
+OpenRouteService beta routing.
 
-## UI direction
+## Export model
 
-Keep the UI small, plain, and mobile-friendly.
+Portal Route exports routes to external tools, but external tools may not support
+all Portal Route behavior.
+
+Design rules:
+
+- explain export limits clearly
+- stage long exports when needed
+- avoid implying that every waypoint will survive an external handoff when the
+  target tool has waypoint limits
+- keep map export separate from route library save/load
+
+Known important behavior:
+
+- Google Maps supports a limited number of stops in a single link.
+- Portal Route uses staged Google Maps links for long routes.
+- Export instructions should be clear enough for mobile field use.
+
+## Home location
+
+Home is a saved location with a name, latitude, and longitude.
+
+Home can be set from:
+
+- a selected portal
+- a picked map point
+
+Add Home adds or updates an interactive Home waypoint. Home waypoints should stay
+editable like normal route points. The distinct Home marker is a display hint,
+not a locked special route type.
+
+## Bulk route creation and plugin handoff
+
+Portal Route can receive route data from other IITC plugins through its external
+route import API.
+
+Current direction:
+
+- keep plugin handoff simple and explicit
+- preserve existing route-building behavior
+- warn before large route operations
+- treat route optimization as a separate explicit step, not a hidden side effect
+
+## Design principles
 
 Prefer:
 
-- obvious controls for core workflows
-- compact rows over wide tables
-- stable layout over clever animation
-- plain labels when icons render poorly on mobile
-- subtle blue-outlined smart buttons for contextual menus or smart flows
-- plain buttons for direct actions such as Fit, Print, Save, and Load
-- manual, inspectable storage before automatic sync
+- mobile-first controls
+- short UI text
+- compact panels
+- focused panels with clear jobs
+- direct buttons for direct actions
+- contextual menus for less common actions
+- automatic route calculation with clear stale/fallback behavior
+- inspectable storage and recoverable JSON
+- conservative integration with IITC
+
+Avoid:
+
+- hover-only controls for core workflows
+- wide tables
+- tiny mobile-critical buttons
+- controls that fight IITC’s own sidebar behavior
+- hidden automatic sync
+- silent overwrite behavior
+- duplicating every action in every panel
+- large refactors without a clear reason
+
+## Related docs
+
+- `CHANGELOG.md` — release history and user-visible changes
+- `docs/ROADMAP.md` — forward-looking feature plan
+- `docs/route-library-design.md` — route library, storage, schema, and shared storage
+- `docs/ui-model-and-interaction-notes.md` — UI surfaces and interaction rules
+- `docs/usability-and-ux-gaps.md` — current rough edges and small UX polish
+- `SESSION.md` — short current handoff notes
+- `AGENTS.md` — repo guidance for coding agents
 
 ## Credit
 
-Portal Route is a separate implementation inspired in part by the IITC Traveling Agent plugin by yavidor and the Map Route Planner plugin by DanielOnDiordna
+Portal Route is a separate implementation inspired in part by the IITC Traveling
+Agent plugin by yavidor and the Map Route Planner plugin by DanielOnDiordna.

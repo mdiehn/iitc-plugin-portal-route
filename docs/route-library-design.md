@@ -1,60 +1,43 @@
 # Route Library Design Notes
 
-Working notes for the Portal Route plugin.
+Working design notes for Portal Route saved routes, route library storage,
+JSON portability, and shared-storage behavior.
 
-This file records planning decisions, design notes, and implementation context for humans and AI coding assistants working on the project.
+## Current state
 
-## Current target
+Portal Route has a local route library with named saved routes. Routes can be
+saved, loaded, renamed, deleted, imported, exported, and preserved across reloads.
+The route library also supports JSON portability and Google Drive shared route
+storage.
 
-Version: `1.6.0-dev`
+The current design goal is to keep local storage reliable, keep JSON files
+human-readable and recoverable, and treat shared storage as explicit user-driven
+sync rather than live collaboration.
 
-Theme:
-
-Route library with Google Drive shared storage.
-
-The user-facing goal is to save/load named routes and make those routes available from both desktop and mobile. Google Drive is the first external storage target. Implementation should still start with a local backend so the route model and UI can be built safely before adding Drive auth/API work.
-
-Current implementation status:
-
-- Local route records, local storage, Route Library UI, and JSON portability are mostly implemented.
-- A synchronous local storage adapter is started.
-- IITC Google Drive sync has been inspected.
-- Google Drive storage is started as a manual Connect/Pull/Push backend.
-
-Current local-library behavior:
+## Current Route Library behavior
 
 - The Route Library is a separate panel.
-- The top row contains whole-library actions: Export Library and Import Library.
-- The bottom row contains selected-route actions: Save, Load, Import, Export, Delete.
-- With no checked route, Save creates a new saved route.
-- With one checked route, Save overwrites that route after confirmation.
-- With multiple checked routes, Save and Load are disabled; Export and Delete support multiple routes.
-- Route names are edited inline.
-- Loading a saved route restores stops, map center/zoom, route-relevant settings, and queues automatic route calculation.
-
-## Guiding decisions
-
-- Keep Route Library Save and Load working while adding shared storage.
-- Build the route record schema once and use it for local storage, JSON import/export, and Google Drive.
-- Use `localStorage` as the first backend and test harness.
-- Keep route storage backend-agnostic where practical.
-- Add Google Drive as part of the v1.1.0 target, after the local route library is working.
-- Use a visible, user-selected Google Drive folder for the first Drive backend.
-- Remember the selected Drive folder ID locally on each device.
-- Store known JSON files in that Drive folder.
-- Inspect IITC's existing Google Drive sync implementation before building direct Drive integration.
-- Treat shared current-map sync as a later subfeature, not the first save/load milestone.
-- Avoid automatic polling/live sync until conflict handling is clear.
-- Keep changes conservative and avoid making existing large functions larger.
+- Saved routes can be selected from the library.
+- Save can create or overwrite route records.
+- Load restores the saved route into the active route editor.
+- Route names can be edited.
+- Routes can be imported/exported as JSON.
+- The whole route library can be exported/imported.
+- Google Drive shared storage exists as an explicit user action, not automatic
+  live sync.
+- The saved-route list scrolls independently while Route Library action buttons
+  stay visible.
 
 ## Route record schema
 
-Saved-route records use `schemaVersion: 1` and look roughly like this:
+Saved-route records use `schemaVersion: 1`.
+
+Example:
 
 ```json
 {
   "schemaVersion": 1,
-  "pluginVersion": "1.1.0-dev",
+  "pluginVersion": "1.6.0",
   "id": "route-...",
   "name": "Example route",
   "createdAt": "2026-05-02T12:00:00.000Z",
@@ -72,16 +55,20 @@ Saved-route records use `schemaVersion: 1` and look roughly like this:
 
 Notes:
 
-- `schemaVersion` should start at `1`.
-- `id` should be stable across saves so overwrite/update works.
+- `schemaVersion` should remain stable until the record shape changes.
+- `id` should remain stable across saves so overwrite/update works.
 - `createdAt` should remain unchanged after the first save.
-- `updatedAt` should change whenever the saved record is overwritten.
+- `updatedAt` should change when the saved record is overwritten.
 - `map.center` and `map.zoom` capture the view when the route is saved.
-- `route.stops` should contain the same stop data needed by current JSON export/import.
-- `settings` should probably include only route-relevant settings, not every UI preference.
-- Saved route geometry is not trusted for the local library slice. Loading restores stops and recalculates the route.
+- `route.stops` contains the stop data needed to restore the active route.
+- Saved geometry should not be treated as authoritative; loading a route should
+  restore stops and recalculate route geometry.
+- `settings` should include route-relevant settings, not every UI preference.
 
-Route-relevant settings might include:
+## Route-relevant settings
+
+Route records may include settings that affect the meaning or timing of the
+route, such as:
 
 ```json
 {
@@ -90,16 +77,14 @@ Route-relevant settings might include:
   "defaultTravelMode": "drive",
   "driveSpeedMph": 30,
   "bikeSpeedMph": 10,
-  "walkSpeedMph": 3
+  "walkSpeedMph": 3,
+  "routeLineColor": "#3388ff",
+  "routeLineWeight": 5,
+  "routeLineStyle": "solid"
 }
 ```
 
-Current implementation note:
-
-- Travel-mode settings now travel with saved routes because they directly affect displayed route timing and export mode.
-- Route geometry is still recalculated from stops when a saved route is loaded.
-
-Settings that feel more like user preferences should probably stay global:
+Settings that are mainly UI preferences should usually remain global, such as:
 
 ```json
 {
@@ -108,119 +93,70 @@ Settings that feel more like user preferences should probably stay global:
 }
 ```
 
-## Storage plan
+Open question:
 
-### Phase 1: local route library
+- Should route-line appearance be saved per route, remain global, or support both?
 
-Status: mostly done in `1.1.0-dev`.
+## Storage model
 
-Save named routes to browser local storage.
+Portal Route should keep storage backend-agnostic where practical.
 
-Minimum useful operations:
+Current/persistent storage goals:
 
-- Save current route as a named route.
-- Load a saved route.
-- Overwrite an existing saved route.
-- Rename a saved route.
-- Delete a saved route.
+- Local browser storage remains the reliable default.
+- JSON export/import remains the recovery and portability path.
+- Google Drive shared storage remains explicit and user-driven.
+- Avoid automatic polling/live sync until conflict behavior is clearly designed.
 
-This is currently handled in the Route Library panel rather than the Settings panel.
+Storage backends should preserve the same route record shape where possible.
 
-The local backend should use the same route record shape planned for Google Drive. Do not let localStorage-only assumptions leak into the route library UI.
+## Local storage
 
-### Phase 2: route library UI
+Local storage is the default backend.
 
-Status: mostly done in `1.1.0-dev`.
+Expected behavior:
 
-The UI should expose the useful local library operations without crowding the current route editor.
+- save named routes
+- load saved routes
+- overwrite existing routes after confirmation
+- rename routes
+- delete routes
+- preserve route library across reloads
 
-Likely first behavior:
+Local storage should not leak assumptions into the route library UI that would
+make shared storage harder later.
 
-- Save asks for a route name when saving a new route.
-- Save overwrites one checked route after confirmation.
-- Load requires exactly one checked route.
-- The list shows name, updated time, stop count, and backend label.
-- Route library rows use checkboxes. Load and overwrite need exactly one selected route. Export and delete can use one or many.
-- Import of one route lives in the selected-route action row.
-- Whole-library import/export live in the top action row.
+## JSON portability
 
-Open questions:
+JSON import/export is both a user feature and a safety valve.
 
-- Do we need Save As separately, or is unchecked Save enough?
-- Should selected-route export use a different filename when multiple routes are selected?
-- Should library rows eventually support select-all for bulk export/delete?
-- Should Drive storage preserve the same checkbox/action model?
+Supported behavior:
 
-### Phase 3: JSON portability
+- export one route
+- import one route
+- export the whole library
+- import/merge a route library
 
-Status: mostly done in `1.1.0-dev`.
+Conflict handling should stay conservative:
 
-Add file-style movement between browsers even before Drive is finished.
+- never silently overwrite an unrelated local route
+- if an imported route ID already exists, create a duplicate or ask before
+  replacing
+- keep JSON readable enough for manual repair
 
-Useful operations:
+## Google Drive shared storage
 
-- Export one route.
-- Import one route.
-- Export the whole route library.
-- Import/merge a route library.
+Google Drive shared storage exists to help users move routes between devices,
+especially desktop planning and mobile field use.
 
-Conflict handling can stay simple at first. If an imported route ID already exists, create a duplicate with a changed name rather than silently overwriting.
+Design principles:
 
-### Phase 4: storage adapter
+- user-driven push/pull is safer than automatic live sync
+- visible Drive files are easier to inspect, copy, repair, and back up
+- conflict handling should be conservative
+- do not surprise the user by silently replacing local routes
 
-Status: started with the local backend; still needs review before Drive.
-
-The route library UI should not talk directly to `localStorage`. Use a small backend interface so other storage backends can be added without replacing the UI.
-
-Approximate shape:
-
-```js
-pr.storageBackends = {};
-
-pr.storageBackends.local = {
-  id: 'local',
-  label: 'This browser',
-  loadLibrary: function () {},
-  saveLibrary: function (library) {},
-  listRoutes: function () {},
-  getRoute: function (id) {},
-  saveRoute: function (route) {},
-  deleteRoute: function (id) {}
-};
-
-pr.routeLibraryStorage = function () {
-  return pr.storageBackends[pr.state.routeLibraryBackendId] || pr.storageBackends.local;
-};
-```
-
-Later backends can follow the same shape:
-
-```js
-pr.storageBackends.googleDrive = {
-  id: 'googleDrive',
-  label: 'Google Drive',
-  loadLibrary: function () {},
-  saveLibrary: function (library) {},
-  listRoutes: function () {},
-  getRoute: function (id) {},
-  saveRoute: function (route) {},
-  deleteRoute: function (id) {}
-};
-```
-
-The current first adapter slice keeps the backend synchronous and local-only. Google Drive may need async behavior later; if so, adapt the UI at the storage boundary rather than spreading Drive-specific code through route-library actions.
-
-### Phase 5: Google Drive shared storage
-
-Google Drive is part of the v1.1.0 target, not merely a distant later idea. Still, build it after the route schema, local backend, and UI behavior are working.
-
-Preferred Drive model:
-
-- User chooses or creates a visible Google Drive folder.
-- Plugin remembers the Drive folder ID locally on that device.
-- Plugin stores known JSON files in that folder.
-
-Initial layout:
+Preferred layout:
 
 ```text
 Google Drive/
@@ -228,7 +164,7 @@ Google Drive/
     route-library.json
 ```
 
-Later layout with shared map handoff:
+Future possible layout:
 
 ```text
 Google Drive/
@@ -237,61 +173,57 @@ Google Drive/
     current-map.json
 ```
 
-Notes:
+Open questions:
 
-- In Google Drive, the stable target is a folder ID plus a known file name, not a POSIX-style path.
-- Prefer visible Drive files first because they are easier for the user to inspect, copy, back up, and repair.
-- Do not start with `appDataFolder`; it may be useful later but is harder to debug and less visible to the user.
-- Direct Drive integration likely needs Google auth/API handling unless IITC's existing sync machinery can be reused.
-- Avoid silent overwrite behavior when both phone and desktop have changed route data.
+- Should Drive writes include a device/client ID?
+- Should Drive load warn when the remote file is older than local state?
+- Should Drive save warn when local and remote have both changed?
+- Should shared storage eventually support route-level merge instead of whole
+  library replacement?
 
-### IITC sync reference
+## IITC sync reference findings
 
-Before implementing Drive directly, inspect IITC's existing Google Drive sync code.
+IITC CE `plugins/sync.js` was inspected as a reference.
 
-Things to learn:
+Findings:
 
-- How IITC authenticates to Google Drive.
-- Whether IITC uses visible Drive files or app-specific storage.
-- Whether community plugins can register data with IITC sync.
-- Whether Portal Route can reuse IITC's auth/session machinery.
-- How often IITC syncs.
-- Whether sync is full-file replacement or partial updates.
-- How IITC handles multiple clients writing near the same time.
-- Whether mobile IITC behaves differently from desktop.
-
-Use IITC sync as a reference model, but do not copy unsafe conflict behavior blindly.
-
-Findings from IITC CE `plugins/sync.js`:
-
-- IITC Sync loads Google's `gapi` client directly from `https://apis.google.com/js/api.js`.
-- It uses Drive API v3 with `https://www.googleapis.com/auth/drive.file`.
+- IITC Sync loads Google's `gapi` client from Google's hosted API script.
+- It uses Drive API v3.
+- It uses the `drive.file` scope.
 - It stores data in a visible folder named `IITC-SYNC-DATA-V3`.
-- It creates one Drive file per registered plugin field, using names like `plugin[field]`.
+- It creates one Drive file per registered plugin field.
 - Plugins register map-like fields through `plugin.sync.registerMapForSync(...)`.
-- Sync checks every 3 minutes.
-- Remote updates replace the local registered map when the last update UUID belongs to another client.
-- The sync plugin warns developers to treat Drive data as volatile because a Google API client ID change can make old app-created files inaccessible.
+- Sync checks periodically.
+- Remote updates can replace local registered map data.
+- IITC Sync warns that app-created files can become inaccessible if the Google
+  API client ID changes.
 
 Portal Route decision:
 
-- Do not register with IITC Sync for the first Drive slice.
-- Reuse the broad working assumptions: `gapi`, Drive v3, `drive.file`, cached folder/file IDs, visible Drive files.
-- Keep the route library in a human-readable `route-library.json` file.
-- Keep updates manual or action-driven first; do not add timer polling yet.
-- Avoid silent conflict resolution until desktop/phone write behavior is tested.
+- Do not depend on IITC Sync for the primary route library behavior.
+- Keep Portal Route route libraries in human-readable JSON.
+- Keep shared storage explicit unless conflict handling is improved.
+- Use IITC Sync behavior as background knowledge, not as a model to copy blindly.
 
 ## Shared map snapshot idea
 
-This is a later subfeature, separate from the first route-library save/load flow.
+This is separate from the route library itself.
 
-A snapshot could look like this:
+Goal: make it easier to plan on desktop and continue on mobile without creating
+surprising live map sync.
+
+Possible manual actions:
+
+- Save shared view.
+- Load shared view.
+
+Possible snapshot:
 
 ```json
 {
   "schemaVersion": 1,
-  "pluginVersion": "1.1.0-dev",
-  "updatedAt": "2026-05-02T12:30:00.000Z",
+  "pluginVersion": "1.6.0",
+  "updatedAt": "2026-05-16T12:00:00.000Z",
   "deviceName": "desktop",
   "map": {
     "center": { "lat": 43.642, "lng": -72.251 },
@@ -302,98 +234,32 @@ A snapshot could look like this:
 }
 ```
 
-Initial behavior should be manual:
+Avoid at first:
 
-- Save shared view.
-- Load shared view.
+- automatic map sync
+- frequent polling
+- cross-device writes without conflict handling
+- anything that unexpectedly moves the user's map
 
-Avoid automatic polling or live sync at first. Live sync adds conflicts, stale writes, mobile battery/network concerns, and surprising map jumps.
+## Future work
 
-## Suggested v1.1.0 slices
+Possible route-library polish:
 
-### Slice 1: route object and local backend
-
-- Define route library schema.
-- Add local backend.
-- Add helpers such as:
-  - `makeRouteRecord()`
-  - `serializeCurrentRoute()`
-  - `applyRouteRecord()`
-  - `loadRouteLibrary()`
-  - `saveRouteLibrary()`
-
-No fancy UI required in this slice.
-
-### Slice 2: route library UI
-
-- Save.
-- Load.
-- Rename.
-- Delete.
-- Overwrite.
-- Multi-select export/delete.
-
-### Slice 3: JSON import/export
-
-- Export selected route or selected routes.
-- Import selected route.
-- Export whole library.
-- Import/merge whole library.
-
-### Slice 4: storage adapter cleanup
-
-- Make local storage conform to the final backend shape.
-- Make the UI backend-agnostic.
-- Add a backend selector only if useful.
-
-### Slice 5: study IITC sync
-
-- Find the existing IITC Google Drive sync code.
-- Document the auth/session model.
-- Decide whether Portal Route can reuse it or should build a Drive backend directly.
-
-### Slice 6: Google Drive backend
-
-Use the main v1.1.0 branch if the local route-library pieces are stable. Use a spike branch if the auth or mobile behavior gets uncertain.
-
-Possible branch:
-
-```text
-spike/google-drive-route-storage
-```
-
-Proof-of-concept goals:
-
-- Choose or create a visible Drive folder.
-- Remember the Drive folder ID locally.
-- Create or find `route-library.json` in that folder.
-- Read it.
-- Write it.
-- Check desktop and mobile behavior.
-- Decide basic conflict behavior.
-
-### Slice 7: shared view snapshot
-
-Start manual first, then consider Drive-backed shared state using `current-map.json`.
-
-## Open questions
-
-- Should route records include all settings, or only route-relevant settings?
-- Should loading a route restore map center/zoom automatically? Current behavior: yes.
-- Should imported duplicate route IDs overwrite, rename, or create copies?
-- Should there be a separate Save As action?
-- Should Load remain in the Route Library panel when Drive storage is added?
-- Should route library JSON share code with the existing route export/import format?
-- Can Portal Route reuse IITC's Google Drive sync credentials or registration hooks?
-- What is the safest initial conflict behavior for Drive writes from phone and desktop?
+- clearer Drive/local status
+- clearer Save versus Save As behavior
+- better conflict warnings
+- route folders or tags
+- route notes
+- better route metadata display
+- last-used or recently-used sorting
+- schema migration notes as route records evolve
+- safer shared storage behavior between desktop and mobile
 
 ## Notes for AI assistants
 
-- Keep changes conservative.
+- Keep route library changes conservative.
+- Preserve existing local save/load behavior when changing shared storage.
 - Prefer small helpers over enlarging existing large functions.
-- Do not implement Drive before the local route model and UI are stable.
-- Do not treat Drive as out of scope for v1.1.0; it is part of the release goal once local save/load is working.
-- Use visible user-selected Drive storage first unless the user changes direction.
-- Do not update generated `dist/` files unless the user asks or the repo workflow requires it.
-- Update `CHANGELOG.md` under the correct dev version when user-visible behavior changes.
-- Update this file when design decisions change.
+- Do not update generated `dist/` files unless preparing a release or asked.
+- Update `CHANGELOG.md` when user-visible behavior changes.
+- Update this file when storage or route-record design decisions change.

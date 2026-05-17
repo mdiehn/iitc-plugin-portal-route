@@ -6,15 +6,13 @@ It is built for mobile use as the top priority, but also to work well on desktop
 
 ## Status
 
-Current development: `1.6.0-dev`
+Latest release: `1.6.0`
 
-Latest release: `1.5.0`
-
-The v1.6.0 development branch is for small route-planning polish after the travel-mode release. It adds configurable route line color, thickness, and style, plus a saved Home location that can be added like Add me.
+Version 1.6.0 adds configurable route line color, thickness, and style, plus a saved Home location that can be added like Add me.
 
 Large bulk-selected routes can be saved and edited, but Google routing may not plot routes with more than 26 stops in one request yet.
 
-**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/dev/v1.6.0-dev/dist/portal-route.user.js)
+**Install:** [`portal-route.user.js`](https://github.com/mdiehn/iitc-plugin-portal-route/raw/refs/heads/main/dist/portal-route.user.js)
 
 ## Quick start
 
